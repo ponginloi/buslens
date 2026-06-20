@@ -2,7 +2,7 @@
 
 BusLens 是一个巴士摄影机位分享平台，巴士迷可以在这里分享和发现巴士拍摄位置。
 
-![BusLens](https://buslens.netlify.app/og-image.png)
+
 
 ---
 
