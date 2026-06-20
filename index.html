@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚌 BusLens - 巴士机位地图</title>
+    <script>
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var IMGBB_API_KEY = 'd86506f887437861ec18602836a18eec';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f2f5;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar .brand {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+        .navbar .brand span {
+            font-size: 26px;
+        }
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .navbar .nav-links a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .navbar .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        .navbar .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .navbar .nav-links .user-name {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        .navbar .nav-links .btn-logout {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .navbar .nav-links .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .navbar .nav-links .admin-badge {
+            background: #ff6b35;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+        .navbar .nav-links .pending-badge {
+            background: #ff9800;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .legend {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: white;
+            padding: 14px 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            z-index: 999;
+            font-size: 14px;
+            min-width: 120px;
+        }
+        .legend .title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0;
+        }
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+        .legend-dot.high {
+            background: #ff4444;
+        }
+        .legend-dot.medium {
+            background: #ffbb33;
+        }
+        .legend-dot.low {
+            background: #00c851;
+        }
+        .legend-count {
+            margin-left: auto;
+            color: #999;
+            font-size: 12px;
+        }
+
+        #container {
+            width: 100%;
+            height: calc(100vh - 70px);
+            background: #e8edf3;
+        }
+
+        .spot-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a73e8;
+            margin-bottom: 6px;
+        }
+        .spot-rank {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: white;
+            margin-bottom: 8px;
+        }
+        .spot-rank.high {
+            background: #ff4444;
+        }
+        .spot-rank.medium {
+            background: #ffbb33;
+            color: #333;
+        }
+        .spot-rank.low {
+            background: #00c851;
+        }
+        .spot-desc {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 6px 0;
+        }
+
+        .spot-example-photo {
+            margin-top: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+        .spot-example-photo img {
+            width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            display: block;
+            cursor: pointer;
+        }
+        .spot-example-photo .no-photo {
+            padding: 12px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            background: #f8f9fa;
+        }
+
+        .spot-photos {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .spot-photos .label {
+            font-size: 13px;
+            color: #999;
+        }
+        .spot-photos .photo-item {
+            display: inline-block;
+            margin: 4px 6px 4px 0;
+        }
+        .spot-photos .photo-item img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .spot-photos .photo-item img:hover {
+            transform: scale(1.05);
+        }
+
+        .spot-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .spot-actions .btn-upload-photo {
+            display: inline-block;
+            padding: 6px 16px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .spot-actions .btn-upload-photo:hover {
+            background: #e55a2b;
+        }
+        .spot-actions .btn-new-spot {
+            display: inline-block;
+            padding: 6px 16px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .spot-actions .btn-new-spot:hover {
+            background: #0d47a1;
+        }
+
+        .uploader-title {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+        .uploader-title .title-icon {
+            display: inline-block;
+            margin-right: 2px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal h3 {
+            font-size: 20px;
+            color: #1a73e8;
+            margin-bottom: 4px;
+        }
+        .modal .sub {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .modal .form-group {
+            margin-bottom: 14px;
+        }
+        .modal .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .modal .form-group input,
+        .modal .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+        .modal .form-group input:focus,
+        .modal .form-group textarea:focus {
+            border-color: #1a73e8;
+        }
+        .modal .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .modal .multi-photo-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .modal .multi-photo-upload:hover {
+            border-color: #1a73e8;
+        }
+        .modal .multi-photo-upload .icon {
+            font-size: 28px;
+            display: block;
+        }
+        .modal .multi-photo-upload .text {
+            color: #999;
+            font-size: 13px;
+        }
+        .modal .multi-photo-upload input[type="file"] {
+            display: none;
+        }
+
+        .modal .photo-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .modal .photo-list .photo-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        .modal .photo-list .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .modal .photo-list .photo-item .remove-photo {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal .photo-list .photo-item .remove-photo:hover {
+            background: rgba(200, 0, 0, 0.8);
+        }
+
+        .modal .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .modal .btn-row button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .modal .btn-row button:hover {
+            transform: translateY(-1px);
+        }
+        .modal .btn-submit {
+            background: #1a73e8;
+            color: white;
+        }
+        .modal .btn-submit:hover {
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+        }
+        .modal .btn-cancel {
+            background: #eee;
+            color: #666;
+        }
+        .modal .btn-cancel:hover {
+            background: #ddd;
+        }
+        .modal .modal-msg {
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: none;
+            font-size: 13px;
+        }
+        .modal .modal-msg.error {
+            display: block;
+            background: #fee8e8;
+            color: #d32f2f;
+        }
+        .modal .modal-msg.success {
+            display: block;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .modal .modal-msg.loading {
+            display: block;
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .loading-tip {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 500;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            color: #666;
+            pointer-events: none;
+        }
+        .loading-tip .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .status-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .status-msg.show {
+            display: block;
+        }
+        .status-msg.success {
+            background: #28a745;
+            color: white;
+        }
+        .status-msg.error {
+            background: #dc3545;
+            color: white;
+        }
+        .status-msg.loading {
+            background: #1a73e8;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 10px 16px;
+            }
+            .navbar .brand {
+                font-size: 17px;
+            }
+            .navbar .nav-links a {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .legend {
+                top: 76px;
+                right: 10px;
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+            .legend-dot {
+                width: 14px;
+                height: 14px;
+            }
+            .spot-example-photo img {
+                max-height: 120px;
+            }
+            .modal {
+                padding: 20px;
+            }
+            .modal .photo-list .photo-item {
+                width: 60px;
+                height: 60px;
+            }
+            .status-msg {
+                font-size: 12px;
+                padding: 10px 16px;
+                bottom: 16px;
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="brand"><span>🚌</span> BusLens</a>
+        <div class="nav-links" id="navLinks"></div>
+    </nav>
+
+    <div class="legend">
+        <div class="title">⭐ 机位等级</div>
+        <div class="legend-item"><span class="legend-dot high"></span> 上等 <span class="legend-count" id="countHigh">0</span></div>
+        <div class="legend-item"><span class="legend-dot medium"></span> 中等 <span class="legend-count" id="countMedium">0</span></div>
+        <div class="legend-item"><span class="legend-dot low"></span> 下等 <span class="legend-count" id="countLow">0</span></div>
+    </div>
+
+    <div id="container">
+        <div class="loading-tip" id="loadingTip">
+            <span class="spinner">⟳</span> 加载地图中...
+        </div>
+    </div>
+
+    <div class="status-msg" id="statusMsg"></div>
+
+    <!-- 上传照片弹窗 -->
+    <div class="modal-overlay" id="photoModal">
+        <div class="modal">
+            <h3>📸 上传照片</h3>
+            <div class="sub" id="modalSpotName">机位名称</div>
+            <div class="modal-msg" id="modalMsg"></div>
+            <div class="form-group">
+                <label>照片描述（可选）</label>
+                <textarea id="photoCaption" placeholder="拍摄时间、设备、心得..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>选择照片 <span style="color:#ff4444;">*</span></label>
+                <div class="multi-photo-upload" onclick="document.getElementById('modalPhotoInput').click()">
+                    <span class="icon">📷</span>
+                    <div class="text">点击选择照片（可多选）</div>
+                    <input type="file" id="modalPhotoInput" accept="image/*" multiple>
+                </div>
+                <div class="photo-list" id="modalPhotoList"></div>
+                <div style="font-size:12px;color:#999;margin-top:4px;">已选 <span id="modalPhotoCount">0</span> 张</div>
+            </div>
+            <div class="btn-row">
+                <button class="btn-cancel" onclick="closePhotoModal()">取消</button>
+                <button class="btn-submit" id="photoSubmitBtn" onclick="submitPhotos()">📤 上传</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window._AMapSecurityConfig = {
+            securityJsCode: '32cb0dfc6330c69e2d13dd3164cea242'
+        };
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=404164dc78620cbc5d9440e9b2ed5e85">
+    </script>
+
+    <script>
+        // ============================================================
+        //  🔐 初始化 Supabase
+        // ============================================================
+        var supabaseClient = null;
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+        initSupabase();
+
+        // ============================================================
+        //  用户状态 - 管理员列表（新增 lnx）
+        // ============================================================
+        var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
+
+        function getCurrentUser() {
+            try { var raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+        }
+
+        function logout() {
+            sessionStorage.removeItem(SESSION_KEY);
+            location.reload();
+        }
+
+        function isAdmin() {
+            var user = getCurrentUser();
+            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
+        }
+
+        function renderNav() {
+            var nav = document.getElementById('navLinks');
+            var user = getCurrentUser();
+            if (user) {
+                var admin = isAdmin();
+                var pendingCount = window._pendingCount || 0;
+                nav.innerHTML =
+                    '<a href="index.html" class="active">🏠 地图</a>' +
+                    '<a href="profile.html">👤 个人中心</a>' +
+                    (admin ? '<a href="admin.html">⚙️ 审核</a>' : '') +
+                    (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
+                    '<a href="upload.html">📤 新机位</a>' +
+                    '<span class="user-name">👤 ' + user.username + (admin ? '<span class="admin-badge">管理员</span>' : '') +
+                    '</span>' +
+                    '<button class="btn-logout" onclick="logout()">退出</button>';
+            } else {
+                nav.innerHTML =
+                    '<a href="index.html" class="active">🏠 地图</a>' +
+                    '<a href="login.html">登录</a>' +
+                    '<a href="register.html">注册</a>';
+            }
+        }
+
+        function getRankLabel(rank) {
+            var map = { high: '上等 ⭐⭐⭐', medium: '中等 ⭐⭐', low: '下等 ⭐' };
+            return map[rank] || rank;
+        }
+
+        function getRankColor(rank) {
+            var map = { high: '#ff4444', medium: '#ffbb33', low: '#00c851' };
+            return map[rank] || '#999';
+        }
+
+        function hideLoadingTip() {
+            var tip = document.getElementById('loadingTip');
+            if (tip) {
+                tip.style.display = 'none';
+            }
+        }
+
+        function showStatus(text, type) {
+            var el = document.getElementById('statusMsg');
+            el.textContent = text;
+            el.className = 'status-msg show ' + type;
+            clearTimeout(el._timer);
+            el._timer = setTimeout(function() {
+                el.className = 'status-msg';
+            }, 4000);
+        }
+
+        // ============================================================
+        //  📤 上传图片到 ImgBB
+        // ============================================================
+        function uploadToImgBB(file) {
+            var formData = new FormData();
+            formData.append('image', file);
+            return fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(function(response) {
+                    if (!response.ok) throw new Error('图片上传失败 (HTTP ' + response.status + ')');
+                    return response.json();
+                })
+                .then(function(result) {
+                    if (!result.success) {
+                        throw new Error(result.error?.message || '图片上传失败');
+                    }
+                    return result.data.url;
+                });
+        }
+
+        // ============================================================
+        //  上传照片弹窗
+        // ============================================================
+        var currentSpotId = null;
+        var currentSpotName = '';
+        var selectedPhotoFiles = [];
+
+        function openPhotoModal(spotId, spotName) {
+            var user = getCurrentUser();
+            if (!user) {
+                alert('请先登录才能上传照片！');
+                window.location.href = 'login.html';
+                return;
+            }
+            currentSpotId = spotId;
+            currentSpotName = spotName;
+            selectedPhotoFiles = [];
+            document.getElementById('modalSpotName').textContent = '📍 ' + spotName;
+            document.getElementById('photoCaption').value = '';
+            document.getElementById('modalPhotoInput').value = '';
+            document.getElementById('modalPhotoList').innerHTML = '';
+            document.getElementById('modalPhotoCount').textContent = '0';
+            document.getElementById('modalMsg').className = 'modal-msg';
+            document.getElementById('modalMsg').style.display = 'none';
+            document.getElementById('photoSubmitBtn').disabled = false;
+            document.getElementById('photoSubmitBtn').textContent = '📤 上传';
+            document.getElementById('photoModal').classList.add('active');
+        }
+
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.remove('active');
+        }
+
+        function showModalMsg(text, type) {
+            var el = document.getElementById('modalMsg');
+            el.textContent = text;
+            el.className = 'modal-msg ' + type;
+            el.style.display = 'block';
+        }
+
+        document.getElementById('modalPhotoInput').addEventListener('change', function(e) {
+            var files = e.target.files;
+            for (var i = 0; i < files.length; i++) {
+                if (files[i].size > 10 * 1024 * 1024) {
+                    alert('照片 ' + files[i].name + ' 超过 10MB，已跳过');
+                    continue;
+                }
+                selectedPhotoFiles.push(files[i]);
+            }
+            renderModalPhotoList();
+            this.value = '';
+        });
+
+        function renderModalPhotoList() {
+            var container = document.getElementById('modalPhotoList');
+            document.getElementById('modalPhotoCount').textContent = selectedPhotoFiles.length;
+            if (selectedPhotoFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            var html = '';
+            selectedPhotoFiles.forEach(function(file, index) {
+                var url = URL.createObjectURL(file);
+                html +=
+                    '<div class="photo-item">' +
+                    '<img src="' + url + '" alt="' + file.name + '" />' +
+                    '<button class="remove-photo" onclick="removeModalPhoto(' + index + ')">×</button>' +
+                    '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function removeModalPhoto(index) {
+            selectedPhotoFiles.splice(index, 1);
+            renderModalPhotoList();
+        }
+
+        // ============================================================
+        //  📤 提交照片（保存到 Supabase）
+        // ============================================================
+        function submitPhotos() {
+            var user = getCurrentUser();
+            if (!user) { alert('请先登录'); return; }
+
+            if (selectedPhotoFiles.length === 0) {
+                showModalMsg('❌ 请至少选择一张照片', 'error');
+                return;
+            }
+
+            var caption = document.getElementById('photoCaption').value.trim();
+
+            var btn = document.getElementById('photoSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 上传中...';
+            showModalMsg('⏳ 正在上传照片到图床...', 'loading');
+            showStatus('⏳ 正在上传照片...', 'loading');
+
+            var uploadPromises = selectedPhotoFiles.map(function(file) {
+                return uploadToImgBB(file);
+            });
+
+            Promise.all(uploadPromises)
+                .then(function(imageUrls) {
+                    showModalMsg('✅ 照片已上传到图床，正在保存到数据库...', 'loading');
+                    showStatus('📝 正在保存到数据库...', 'loading');
+
+                    return supabaseClient
+                        .from('spots')
+                        .select('photos')
+                        .eq('id', currentSpotId)
+                        .single()
+                        .then(function(res) {
+                            if (res.error) throw new Error(res.error.message);
+                            var spot = res.data;
+                            if (!spot) throw new Error('机位不存在');
+
+                            var photos = spot.photos || [];
+
+                            imageUrls.forEach(function(url, index) {
+                                photos.push({
+                                    id: 'photo_' + Date.now() + '_' + index,
+                                    url: url,
+                                    caption: caption || '',
+                                    uploader: user.username,
+                                    uploaderName: user.username,
+                                    date: new Date().toISOString().slice(0, 10),
+                                    status: 'pending'
+                                });
+                            });
+
+                            return supabaseClient
+                                .from('spots')
+                                .update({ photos: photos })
+                                .eq('id', currentSpotId);
+                        });
+                })
+                .then(function(result) {
+                    if (result.error) throw new Error(result.error.message);
+                    showModalMsg('✅ ' + selectedPhotoFiles.length + ' 张照片已保存到数据库！等待审核', 'success');
+                    showStatus('✅ 照片保存成功！', 'success');
+                    btn.textContent = '✅ 已上传';
+                    setTimeout(function() {
+                        closePhotoModal();
+                        loadMapData();
+                    }, 1500);
+                })
+                .catch(function(error) {
+                    console.error('上传失败:', error);
+                    showModalMsg('❌ 上传失败：' + error.message, 'error');
+                    showStatus('❌ 上传失败：' + error.message, 'error');
+                    btn.disabled = false;
+                    btn.textContent = '📤 重新上传';
+                });
+        }
+
+        // ============================================================
+        //  头衔计算函数（高难度 6 级）- 与 profile.html 保持一致
+        // ============================================================
+        function getUserTitle(spotCount, approvedCount, highRankCount, photoCount) {
+            if (spotCount >= 150 && approvedCount >= 150 && highRankCount >= 35 && photoCount >= 100) {
+                return { title: '⚡ 巴士之神', class: 'legend' };
+            }
+            if (spotCount >= 80 && approvedCount >= 80 && highRankCount >= 18 && photoCount >= 50) {
+                return { title: '👑 巴士传奇', class: 'master' };
+            }
+            if (spotCount >= 40 && approvedCount >= 40 && highRankCount >= 8 && photoCount >= 25) {
+                return { title: '📷 巴士摄影大师', class: 'photographer' };
+            }
+            if (spotCount >= 20 && approvedCount >= 20 && highRankCount >= 3 && photoCount >= 12) {
+                return { title: '🔍 巴士探索家', class: 'explorer' };
+            }
+            if (spotCount >= 8 && approvedCount >= 8 && photoCount >= 5) {
+                return { title: '📝 巴士记录者', class: 'recorder' };
+            }
+            return { title: '🌱 巴士萌新', class: 'beginner' };
+        }
+
+        // ============================================================
+        //  加载数据并添加标记
+        // ============================================================
+        var map = null;
+        var allSpotsCache = [];
+
+        function loadMapData() {
+            console.log('🔄 开始加载机位数据...');
+
+            if (!supabaseClient) {
+                console.error('❌ Supabase 未初始化');
+                showStatus('❌ 数据库未连接，请刷新重试', 'error');
+                return;
+            }
+
+            supabaseClient
+                .from('spots')
+                .select('*')
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    allSpotsCache = res.data || [];
+                    var allSpots = allSpotsCache;
+                    console.log('📦 从数据库读取到', allSpots.length, '个机位');
+
+                    // ✅ 只显示已审核通过的机位
+                    var spots = allSpots.filter(function(s) {
+                        return s.status === 'approved';
+                    });
+
+                    console.log('📍 已审核机位:', spots.length, '个');
+
+                    // 更新待审核数量（供导航栏使用）
+                    var pending = allSpots.filter(function(s) { return s.status === 'pending'; });
+                    window._pendingCount = pending.length;
+                    renderNav();
+
+                    var totalSpotsEl = document.getElementById('totalSpots');
+                    if (totalSpotsEl) totalSpotsEl.textContent = spots.length;
+
+                    var photoCount = 0;
+                    spots.forEach(function(s) {
+                        if (s.photos) {
+                            var validPhotos = s.photos.filter(function(p) {
+                                return p.status !== 'rejected';
+                            });
+                            photoCount += validPhotos.length;
+                        }
+                    });
+                    var totalPhotosEl = document.getElementById('totalPhotos');
+                    if (totalPhotosEl) totalPhotosEl.textContent = photoCount;
+
+                    var high = 0,
+                        medium = 0,
+                        low = 0;
+                    spots.forEach(function(s) {
+                        if (s.rank === 'high') high++;
+                        else if (s.rank === 'medium') medium++;
+                        else if (s.rank === 'low') low++;
+                    });
+                    document.getElementById('countHigh').textContent = high;
+                    document.getElementById('countMedium').textContent = medium;
+                    document.getElementById('countLow').textContent = low;
+
+                    if (map) {
+                        map.clearMap();
+                    }
+
+                    if (spots.length === 0) {
+                        console.log('⚠️ 没有已审核通过的机位');
+                        return;
+                    }
+
+                    spots.forEach(function(spot, index) {
+                        var color = getRankColor(spot.rank);
+                        console.log('📍 添加标记 ' + (index + 1) + ': ' + spot.name + ' (' + spot.rank + ')');
+
+                        var markerContent = document.createElement('div');
+                        markerContent.style.cssText =
+                            'width: 36px; height: 36px;' +
+                            'background: ' + color + ';' +
+                            'border-radius: 50%;' +
+                            'border: 3px solid white;' +
+                            'box-shadow: 0 2px 12px rgba(0,0,0,0.3);' +
+                            'display: flex; align-items: center; justify-content: center;' +
+                            'font-size: 16px; color: white; cursor: pointer;' +
+                            'transition: transform 0.2s;';
+                        markerContent.textContent = '⭐';
+                        markerContent.onmouseenter = function() {
+                            markerContent.style.transform = 'scale(1.2)';
+                        };
+                        markerContent.onmouseleave = function() {
+                            markerContent.style.transform = 'scale(1)';
+                        };
+
+                        var marker = new AMap.Marker({
+                            position: [spot.lng, spot.lat],
+                            content: markerContent,
+                            offset: new AMap.Pixel(-18, -18),
+                            title: spot.name,
+                            zIndex: 100
+                        });
+
+                        var exampleHtml = '';
+                        if (spot.example_photo) {
+                            exampleHtml =
+                                '<div class="spot-example-photo">' +
+                                '<img src="' + spot.example_photo + '" alt="' + spot.name + ' 例图" onclick="window.open(\'' +
+                                spot.example_photo + '\',\'_blank\')" />' +
+                                '</div>';
+                        } else {
+                            exampleHtml =
+                                '<div class="spot-example-photo">' +
+                                '<div class="no-photo">📷 暂无例图</div>' +
+                                '</div>';
+                        }
+
+                        var photosHtml = '<div class="label">📸 暂无用户照片</div>';
+                        if (spot.photos && spot.photos.length > 0) {
+                            var validPhotos = spot.photos.filter(function(p) {
+                                return p.status !== 'rejected';
+                            });
+                            if (validPhotos.length > 0) {
+                                photosHtml = validPhotos.map(function(p) {
+                                    return '<div class="photo-item"><img src="' + p.url + '" alt="' + (p.caption ||
+                                        '') + '" onclick="window.open(\'' + p.url + '\',\'_blank\')" /></div>';
+                                }).join('');
+                                photosHtml = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">' +
+                                    photosHtml + '</div>';
+                            }
+                        }
+
+                        // ✅ 获取用户头衔（高难度 6 级）
+                        var userSpots = allSpots.filter(function(s) {
+                            return s.created_by === spot.created_by && s.status === 'approved';
+                        });
+                        var userPhotos = 0;
+                        userSpots.forEach(function(s) {
+                            if (s.photos) {
+                                s.photos.forEach(function(p) {
+                                    if (p.status !== 'rejected') userPhotos++;
+                                });
+                            }
+                        });
+                        var userHighRank = userSpots.filter(function(s) { return s.rank === 'high'; }).length;
+                        var titleInfo = getUserTitle(userSpots.length, userSpots.length, userHighRank, userPhotos);
+
+                        var infoContent =
+                            '<div style="padding:4px 2px;max-width:320px;">' +
+                            '<div class="spot-name">' + spot.name + '</div>' +
+                            '<span class="spot-rank ' + spot.rank + '">' + getRankLabel(spot.rank) + '</span>' +
+                            '<div class="spot-desc">' + (spot.description || '暂无描述') + '</div>' +
+                            exampleHtml +
+                            '<div class="spot-photos">' +
+                            photosHtml +
+                            '<div style="margin-top:6px;font-size:12px;color:#999;">' +
+                            '📤 上传者：' + (spot.created_by || '未知') +
+                            '<span class="uploader-title"><span class="title-icon">' + titleInfo.title +
+                            '</span></span>' +
+                            ' ｜ ' + (spot.created_at || '') +
+                            '</div>' +
+                            '<div class="spot-actions">' +
+                            '<button class="btn-upload-photo" onclick="openPhotoModal(\'' + spot.id + '\',\'' + spot.name +
+                            '\')">📸 上传照片</button>' +
+                            '<a href="upload.html" class="btn-new-spot">➕ 新机位</a>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+
+                        var infoWindow = new AMap.InfoWindow({
+                            content: infoContent,
+                            offset: new AMap.Pixel(0, -40),
+                            closeWhenClickMap: true
+                        });
+
+                        marker.on('click', function() {
+                            infoWindow.open(map, marker.getPosition());
+                        });
+
+                        map.add(marker);
+                    });
+
+                    setTimeout(function() {
+                        if (spots.length > 0 && map) {
+                            map.setFitView();
+                            console.log('✅ 已调整视野到所有机位');
+                        }
+                    }, 300);
+
+                    console.log('✅ 数据加载成功，共 ' + spots.length + ' 个已审核机位');
+                })
+                .catch(function(error) {
+                    console.error('❌ 加载数据失败:', error);
+                    showStatus('❌ 读取数据失败：' + error.message, 'error');
+                });
+        }
+
+        // ============================================================
+        //  初始化地图
+        // ============================================================
+        function initMap() {
+            console.log('🚀 开始初始化地图...');
+
+            map = new AMap.Map('container', {
+                zoom: 5,
+                center: [104.0, 35.0],
+                mapStyle: 'amap://styles/whitesmoke',
+                viewMode: '3D',
+                pitch: 0,
+                showIndoorMap: false
+            });
+
+            console.log('✅ 地图对象已创建');
+
+            AMap.plugin(['AMap.ToolBar', 'AMap.Scale'], function() {
+                map.addControl(new AMap.ToolBar({ position: 'LT' }));
+                map.addControl(new AMap.Scale());
+                console.log('✅ 地图控件已加载');
+            });
+
+            map.on('complete', function() {
+                console.log('✅ 地图加载完成！');
+                hideLoadingTip();
+                loadMapData();
+            });
+
+            map.on('error', function() {
+                console.log('⚠️ 地图加载出错，尝试继续');
+                hideLoadingTip();
+                loadMapData();
+            });
+        }
+
+        // ============================================================
+        //  启动
+        // ============================================================
+        renderNav();
+        initMap();
+
+        console.log('🚌 BusLens 地图已加载！');
+        console.log('📌 数据源: Supabase');
+        console.log('📌 只显示 status === "approved" 的机位');
+        console.log('📌 管理员：ponginloi, lnx');
+        console.log('📌 用户头衔：高难度 6 级系统');
+    </script>
+</body>
+</html>

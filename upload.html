@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📤 上传机位 - BusLens</title>
+    <script>
+        // ============================================================
+        //  🔐 Supabase 配置
+        // ============================================================
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var IMGBB_API_KEY = 'd86506f887437861ec18602836a18eec';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #e8f0fe 0%, #f0f2f5 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .navbar .brand {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+        .navbar .brand span {
+            font-size: 26px;
+        }
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .navbar .nav-links a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .navbar .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        .navbar .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .navbar .nav-links .user-name {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        .navbar .nav-links .btn-logout {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .navbar .nav-links .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .navbar .nav-links .admin-badge {
+            background: #ff6b35;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .upload-card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px 36px;
+            box-shadow: 0 20px 60px rgba(26, 115, 232, 0.15);
+        }
+        .upload-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .upload-header .logo {
+            font-size: 48px;
+            display: block;
+        }
+        .upload-header h1 {
+            font-size: 24px;
+            color: #1a73e8;
+            margin-top: 4px;
+        }
+        .upload-header p {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .form-group label .required {
+            color: #ff4444;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            outline: none;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #1a73e8;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-group .hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .map-picker {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+            position: relative;
+            height: 280px;
+            transition: border-color 0.3s;
+        }
+        .map-picker:focus-within {
+            border-color: #1a73e8;
+        }
+        .map-picker #pickerMap {
+            width: 100%;
+            height: 100%;
+        }
+        .map-picker .center-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+            font-size: 32px;
+            color: #ff4444;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 20px rgba(255, 255, 255, 0.9);
+            line-height: 1;
+        }
+        .map-picker .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9;
+            width: 16px;
+            height: 16px;
+            background: #ff4444;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+        }
+        .map-picker .pick-hint {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 10;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .map-picker .coords-display {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-family: monospace;
+            z-index: 10;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+        .map-picker .coords-display .lbl {
+            color: #aaa;
+            font-size: 11px;
+        }
+        .map-picker .btn-locate {
+            position: absolute;
+            bottom: 56px;
+            right: 12px;
+            z-index: 10;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .map-picker .btn-locate:hover {
+            transform: scale(1.1);
+        }
+
+        .coord-inputs {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .coord-inputs input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+            outline: none;
+            transition: border-color 0.3s;
+            background: #f8f9fa;
+        }
+        .coord-inputs input:focus {
+            border-color: #1a73e8;
+            background: white;
+        }
+
+        .rank-options {
+            display: flex;
+            gap: 12px;
+        }
+        .rank-options label {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .rank-options input[type="radio"] {
+            display: none;
+        }
+        .rank-options label:hover {
+            border-color: #1a73e8;
+        }
+        .rank-options input[type="radio"]:checked+label {
+            border-color: #1a73e8;
+            background: #e8f0fe;
+        }
+        .rank-options .high {
+            color: #ff4444;
+        }
+        .rank-options .medium {
+            color: #ffbb33;
+        }
+        .rank-options .low {
+            color: #00c851;
+        }
+
+        .example-preview {
+            margin-top: 8px;
+            display: none;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        .example-preview img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+        .example-preview .remove-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .example-preview .remove-btn:hover {
+            background: rgba(200, 0, 0, 0.8);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: #999;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .btn-secondary:hover {
+            color: #1a73e8;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .message.error {
+            display: block;
+            background: #fee8e8;
+            color: #d32f2f;
+        }
+        .message.success {
+            display: block;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .message.loading {
+            display: block;
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+        .message.warning {
+            display: block;
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .notice {
+            background: #fff3e0;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #e65100;
+        }
+
+        .status-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .status-msg.show {
+            display: block;
+        }
+        .status-msg.success {
+            background: #28a745;
+            color: white;
+        }
+        .status-msg.error {
+            background: #dc3545;
+            color: white;
+        }
+        .status-msg.loading {
+            background: #1a73e8;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 10px 16px;
+            }
+            .navbar .brand {
+                font-size: 17px;
+            }
+            .navbar .nav-links a {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .upload-card {
+                padding: 20px;
+            }
+            .map-picker {
+                height: 220px;
+            }
+            .coord-inputs {
+                flex-direction: column;
+            }
+            .map-picker .coords-display {
+                font-size: 11px;
+                padding: 3px 12px;
+            }
+            .map-picker .pick-hint {
+                font-size: 10px;
+                padding: 3px 12px;
+                bottom: 8px;
+            }
+            .status-msg {
+                font-size: 12px;
+                padding: 10px 16px;
+                bottom: 16px;
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="brand"><span>🚌</span> BusLens</a>
+            <div class="nav-links" id="navLinks"></div>
+        </nav>
+
+        <div class="upload-card">
+            <div class="upload-header">
+                <span class="logo">📤</span>
+                <h1>上传新机位</h1>
+                <p>拖动地图选择位置，支持上传例图</p>
+            </div>
+
+            <div class="message" id="message"></div>
+            <div class="notice">⏳ 提交后将进入审核队列，管理员审核通过后才会在地图上显示</div>
+
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label>📍 机位名称 <span class="required">*</span></label>
+                    <input type="text" id="spotName" placeholder="例如：尖沙咀码头·维港日落" required>
+                </div>
+
+                <div class="form-group">
+                    <label>🗺️ 拖动地图选择位置 <span class="required">*</span></label>
+                    <div class="map-picker" id="mapPickerContainer">
+                        <div id="pickerMap"></div>
+                        <div class="center-dot"></div>
+                        <div class="center-crosshair">✚</div>
+                        <div class="coords-display" id="coordsDisplay">
+                            <span class="lbl">📍</span>
+                            <span id="displayLng">114.169</span>
+                            <span style="color:#666;margin:0 4px;">,</span>
+                            <span id="displayLat">22.300</span>
+                        </div>
+                        <div class="pick-hint">← 拖动地图，十字标记对准目标位置 →</div>
+                        <button type="button" class="btn-locate" id="locateBtn" title="定位到当前位置">📍</button>
+                    </div>
+                    <div class="coord-inputs">
+                        <input type="number" id="lng" placeholder="经度" step="any" required>
+                        <input type="number" id="lat" placeholder="纬度" step="any" required>
+                    </div>
+                    <div class="hint">💡 拖动地图移动十字标记，或直接输入坐标</div>
+                </div>
+
+                <div class="form-group">
+                    <label>⭐ 机位等级 <span class="required">*</span></label>
+                    <div class="rank-options">
+                        <input type="radio" name="rank" id="rankHigh" value="high">
+                        <label for="rankHigh" class="high">🔴 上等</label>
+                        <input type="radio" name="rank" id="rankMedium" value="medium" checked>
+                        <label for="rankMedium" class="medium">🟡 中等</label>
+                        <input type="radio" name="rank" id="rankLow" value="low">
+                        <label for="rankLow" class="low">🟢 下等</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>📸 机位例图 <span style="font-size:12px;color:#999;font-weight:400;">（选填，建议上传）</span></label>
+                    <input type="file" id="examplePhoto" accept="image/*">
+                    <div class="hint">上传一张示例照片，帮助审核员和用户了解这个机位</div>
+                    <div class="example-preview" id="examplePreview">
+                        <img id="examplePreviewImg" src="" alt="例图预览">
+                        <button type="button" class="remove-btn" onclick="removeExamplePhoto()">×</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>📝 拍摄建议</label>
+                    <textarea id="description" placeholder="描述这个机位的拍摄角度、最佳时间、注意事项等..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">📤 提交审核</button>
+            </form>
+
+            <a href="index.html" class="btn-secondary">← 返回地图浏览</a>
+        </div>
+    </div>
+
+    <div class="status-msg" id="statusMsg"></div>
+
+    <script>
+        window._AMapSecurityConfig = {
+            securityJsCode: '32cb0dfc6330c69e2d13dd3164cea242'
+        };
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=404164dc78620cbc5d9440e9b2ed5e85">
+    </script>
+
+    <script>
+        // ============================================================
+        //  初始化 Supabase
+        // ============================================================
+        var supabaseClient = null;
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+        initSupabase();
+
+        // ============================================================
+        //  用户状态
+        // ============================================================
+        var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAME = 'ponginloi';
+
+        function getCurrentUser() {
+            try { var raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+        }
+
+        function logout() {
+            sessionStorage.removeItem(SESSION_KEY);
+            location.reload();
+        }
+
+        function isAdmin() {
+            var user = getCurrentUser();
+            return user && user.username === ADMIN_USERNAME;
+        }
+
+        function renderNav() {
+            var nav = document.getElementById('navLinks');
+            var user = getCurrentUser();
+            if (user) {
+                var admin = isAdmin();
+                nav.innerHTML =
+                    '<a href="index.html">🏠 地图</a>' +
+                    '<a href="profile.html">👤 个人中心</a>' +
+                    (admin ? '<a href="admin.html">⚙️ 审核</a>' : '') +
+                    '<a href="upload.html" class="active">📤 新机位</a>' +
+                    '<span class="user-name">👤 ' + user.username + (admin ? '<span class="admin-badge">管理员</span>' : '') + '</span>' +
+                    '<button class="btn-logout" onclick="logout()">退出</button>';
+            } else {
+                nav.innerHTML =
+                    '<a href="index.html">🏠 地图</a>' +
+                    '<a href="login.html">登录</a>' +
+                    '<a href="register.html">注册</a>';
+            }
+        }
+
+        function showMessage(text, type) {
+            var el = document.getElementById('message');
+            el.textContent = text;
+            el.className = 'message ' + type;
+            el.style.display = 'block';
+        }
+
+        function showStatus(text, type) {
+            var el = document.getElementById('statusMsg');
+            el.textContent = text;
+            el.className = 'status-msg show ' + type;
+            clearTimeout(el._timer);
+            el._timer = setTimeout(function() {
+                el.className = 'status-msg';
+            }, 4000);
+        }
+
+        // ============================================================
+        //  例图预览
+        // ============================================================
+        var examplePhotoFile = null;
+
+        document.getElementById('examplePhoto').addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) { alert('照片大小不能超过 10MB'); this.value = ''; return; }
+            examplePhotoFile = file;
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                document.getElementById('examplePreviewImg').src = ev.target.result;
+                document.getElementById('examplePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function removeExamplePhoto() {
+            examplePhotoFile = null;
+            document.getElementById('examplePhoto').value = '';
+            document.getElementById('examplePreview').style.display = 'none';
+        }
+
+        // ============================================================
+        //  小地图选点
+        // ============================================================
+        var pickerMap = null;
+        var currentLng = 114.169;
+        var currentLat = 22.300;
+
+        function initPickerMap() {
+            pickerMap = new AMap.Map('pickerMap', {
+                zoom: 15,
+                center: [currentLng, currentLat],
+                mapStyle: 'amap://styles/whitesmoke',
+                viewMode: '2D',
+                pitch: 0,
+                zoomEnable: true,
+                dragEnable: true,
+                showIndoorMap: false
+            });
+
+            pickerMap.on('moveend', function() {
+                var center = pickerMap.getCenter();
+                currentLng = Math.round(center.getLng() * 1000000) / 1000000;
+                currentLat = Math.round(center.getLat() * 1000000) / 1000000;
+                updateCoords();
+            });
+
+            pickerMap.on('zoomend', function() {
+                var center = pickerMap.getCenter();
+                currentLng = Math.round(center.getLng() * 1000000) / 1000000;
+                currentLat = Math.round(center.getLat() * 1000000) / 1000000;
+                updateCoords();
+            });
+
+            pickerMap.on('complete', function() {
+                console.log('🗺️ 小地图加载完成');
+                updateCoords();
+            });
+        }
+
+        function updateCoords() {
+            document.getElementById('displayLng').textContent = currentLng;
+            document.getElementById('displayLat').textContent = currentLat;
+            document.getElementById('lng').value = currentLng;
+            document.getElementById('lat').value = currentLat;
+        }
+
+        function syncFromInputs() {
+            var lng = parseFloat(document.getElementById('lng').value);
+            var lat = parseFloat(document.getElementById('lat').value);
+            if (!isNaN(lng) && !isNaN(lat)) {
+                currentLng = lng;
+                currentLat = lat;
+                if (pickerMap) {
+                    pickerMap.setCenter([currentLng, currentLat]);
+                }
+                updateCoords();
+            }
+        }
+
+        function locateMe() {
+            if (!navigator.geolocation) {
+                alert('您的浏览器不支持定位功能');
+                return;
+            }
+            var btn = document.getElementById('locateBtn');
+            btn.textContent = '⏳';
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    currentLng = Math.round(pos.coords.longitude * 1000000) / 1000000;
+                    currentLat = Math.round(pos.coords.latitude * 1000000) / 1000000;
+                    if (pickerMap) {
+                        pickerMap.setCenter([currentLng, currentLat]);
+                    }
+                    updateCoords();
+                    btn.textContent = '📍';
+                    showMessage('✅ 已定位到您的位置', 'success');
+                    setTimeout(function() {
+                        var msg = document.getElementById('message');
+                        msg.className = 'message';
+                        msg.style.display = 'none';
+                    }, 2000);
+                },
+                function(err) {
+                    btn.textContent = '📍';
+                    alert('定位失败：' + err.message);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 10000
+                }
+            );
+        }
+
+        // ============================================================
+        //  📤 上传图片到 ImgBB
+        // ============================================================
+        function uploadToImgBB(file) {
+            var formData = new FormData();
+            formData.append('image', file);
+            return fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(function(response) {
+                    if (!response.ok) throw new Error('图片上传失败 (HTTP ' + response.status + ')');
+                    return response.json();
+                })
+                .then(function(result) {
+                    if (!result.success) {
+                        throw new Error(result.error?.message || '图片上传失败');
+                    }
+                    return result.data.url;
+                });
+        }
+
+        // ============================================================
+        //  提交表单（保存到 Supabase）
+        // ============================================================
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            var user = getCurrentUser();
+            if (!user) {
+                showMessage('❌ 请先登录再上传机位！', 'error');
+                return;
+            }
+
+            var name = document.getElementById('spotName').value.trim();
+            var lng = parseFloat(document.getElementById('lng').value);
+            var lat = parseFloat(document.getElementById('lat').value);
+            var rank = document.querySelector('input[name="rank"]:checked').value;
+            var description = document.getElementById('description').value.trim();
+
+            if (!name) { showMessage('❌ 请填写机位名称', 'error'); return; }
+            if (isNaN(lng) || isNaN(lat)) { showMessage('❌ 请选择或填写正确的经纬度', 'error'); return; }
+
+            var btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 提交中...';
+            showMessage('⏳ 正在提交审核...', 'loading');
+            showStatus('⏳ 正在提交...', 'loading');
+
+            try {
+                // 1. 上传例图到 ImgBB
+                var examplePhotoUrl = null;
+                if (document.getElementById('examplePhoto').files[0]) {
+                    try {
+                        showStatus('📤 正在上传例图到 ImgBB...', 'loading');
+                        examplePhotoUrl = await uploadToImgBB(document.getElementById('examplePhoto').files[0]);
+                        console.log('✅ 例图上传成功:', examplePhotoUrl);
+                    } catch (uploadErr) {
+                        console.warn('⚠️ 例图上传失败:', uploadErr);
+                        showMessage('⚠️ 例图上传失败，但机位仍可提交：' + uploadErr.message, 'warning');
+                    }
+                }
+
+                // 2. 插入到 Supabase
+                var newSpot = {
+                    name: name,
+                    lng: lng,
+                    lat: lat,
+                    rank: rank,
+                    description: description || '暂无描述',
+                    example_photo: examplePhotoUrl,
+                    photos: [],
+                    created_by: user.username,
+                    created_at: new Date().toISOString().slice(0, 10),
+                    status: 'pending',
+                    reviewed_by: null,
+                    reviewed_at: null,
+                    review_reason: null
+                };
+
+                var result = await supabaseClient
+                    .from('spots')
+                    .insert([newSpot]);
+
+                if (result.error) throw new Error(result.error.message);
+
+                showMessage('✅ 提交成功！等待管理员审核', 'success');
+                showStatus('✅ 机位提交成功！', 'success');
+
+                document.getElementById('uploadForm').reset();
+                removeExamplePhoto();
+                currentLng = 114.169;
+                currentLat = 22.300;
+                if (pickerMap) {
+                    pickerMap.setCenter([currentLng, currentLat]);
+                }
+                updateCoords();
+
+            } catch (error) {
+                console.error('提交失败:', error);
+                showMessage('❌ 提交失败：' + error.message, 'error');
+                showStatus('❌ 提交失败：' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📤 提交审核';
+            }
+        });
+
+        // ============================================================
+        //  启动
+        // ============================================================
+        renderNav();
+
+        if (!getCurrentUser()) {
+            showMessage('⚠️ 请先登录再上传机位', 'warning');
+        }
+
+        setTimeout(function() {
+            initPickerMap();
+        }, 300);
+
+        document.getElementById('locateBtn').addEventListener('click', locateMe);
+
+        console.log('📤 上传页面已加载（Supabase 版）');
+    </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - BusLens</title>
+    <script>
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e8f0fe 0%, #f0f2f5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(26, 115, 232, 0.15);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .login-header .logo {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .login-header h1 {
+            font-size: 24px;
+            color: #1a73e8;
+        }
+        .login-header p {
+            color: #888;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .notice-box {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #e65100;
+            line-height: 1.8;
+        }
+        .notice-box .highlight {
+            font-weight: 600;
+            color: #d84315;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: #1a73e8;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+        .login-footer a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .message.error {
+            display: block;
+            background: #fee8e8;
+            color: #d32f2f;
+        }
+        .message.success {
+            display: block;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .message.loading {
+            display: block;
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: #999;
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            color: #1a73e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <span class="logo">🚌</span>
+            <h1>欢迎回来</h1>
+            <p>登录后可以上传机位和照片</p>
+        </div>
+
+        <!-- ===== 致歉公告 ===== -->
+        <div class="notice-box">
+            <p>🙏 抱歉！<span class="highlight">2026年6月20日之前</span>的旧账号已作废，请重新注册。</p>
+            <p>🚀 网站正在全面升级，未来会更强大、更好用，感谢你的支持！</p>
+        </div>
+
+        <div class="message" id="message"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>👤 用户名</label>
+                <input type="text" id="username" placeholder="请输入用户名" required>
+            </div>
+            <div class="form-group">
+                <label>🔒 密码</label>
+                <input type="password" id="password" placeholder="请输入密码" required>
+            </div>
+            <button type="submit" class="btn-primary" id="loginBtn">登 录</button>
+        </form>
+        <div class="login-footer">还没有账号？<a href="register.html">立即注册</a></div>
+        <a href="index.html" class="back-link">← 返回首页浏览机位</a>
+    </div>
+
+    <script>
+        var supabaseClient = null;
+        var SESSION_KEY = 'bus_user_session';
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+        initSupabase();
+
+        function showMessage(text, type) {
+            var el = document.getElementById('message');
+            el.textContent = text;
+            el.className = 'message ' + type;
+            el.style.display = 'block';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            var username = document.getElementById('username').value.trim();
+            var password = document.getElementById('password').value.trim();
+            var btn = document.getElementById('loginBtn');
+
+            if (!username || !password) {
+                showMessage('❌ 请填写用户名和密码', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ 登录中...';
+            showMessage('⏳ 验证中...', 'loading');
+
+            try {
+                var result = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('username', username)
+                    .single();
+
+                if (result.error) throw new Error('用户不存在，请先注册');
+
+                var user = result.data;
+
+                if (user.password !== password) {
+                    showMessage('❌ 密码错误', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '登 录';
+                    return;
+                }
+
+                var session = {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role,
+                    loginTime: Date.now()
+                };
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+                showMessage('✅ 登录成功！正在跳转...', 'success');
+                setTimeout(function() {
+                    window.location.href = 'index.html';
+                }, 800);
+
+            } catch (error) {
+                console.error('登录失败:', error);
+                showMessage('❌ 登录失败：' + error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '登 录';
+            }
+        });
+
+        if (sessionStorage.getItem(SESSION_KEY)) {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

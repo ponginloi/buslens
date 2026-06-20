@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👤 个人中心 - BusLens</title>
+    <script>
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .navbar .brand {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+        .navbar .brand span {
+            font-size: 26px;
+        }
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .navbar .nav-links a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .navbar .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        .navbar .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .navbar .nav-links .user-name {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        .navbar .nav-links .btn-logout {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .navbar .nav-links .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .navbar .nav-links .admin-badge {
+            background: #ff6b35;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+        .navbar .nav-links .pending-badge {
+            background: #ff9800;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 28px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .profile-card .info h2 {
+            font-size: 22px;
+            color: #1a73e8;
+        }
+        .profile-card .info .sub {
+            color: #888;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        .profile-card .info .title-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+        .profile-card .info .title-badge.beginner {
+            background: #e0e0e0;
+            color: #666;
+        }
+        .profile-card .info .title-badge.recorder {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+        .profile-card .info .title-badge.explorer {
+            background: #b2dfdb;
+            color: #004d40;
+        }
+        .profile-card .info .title-badge.photographer {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+        .profile-card .info .title-badge.master {
+            background: #fff3e0;
+            color: #bf360c;
+        }
+        .profile-card .info .title-badge.legend {
+            background: linear-gradient(135deg, #ffd700, #ff6f00);
+            color: #fff;
+        }
+        .profile-card .stats {
+            display: flex;
+            gap: 24px;
+        }
+        .profile-card .stats .stat {
+            text-align: center;
+        }
+        .profile-card .stats .stat .num {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a73e8;
+        }
+        .profile-card .stats .stat .label {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .progress-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+        }
+        .progress-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .progress-bar-wrap {
+            display: flex;
+            gap: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 24px;
+            background: #f0f0f0;
+        }
+        .progress-bar-wrap .segment {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            transition: width 0.5s;
+        }
+        .progress-bar-wrap .segment.pending {
+            background: #ff9800;
+        }
+        .progress-bar-wrap .segment.approved {
+            background: #4caf50;
+        }
+        .progress-bar-wrap .segment.rejected {
+            background: #f44336;
+        }
+        .progress-legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+        .progress-legend span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .progress-legend .dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+        .progress-legend .dot.pending {
+            background: #ff9800;
+        }
+        .progress-legend .dot.approved {
+            background: #4caf50;
+        }
+        .progress-legend .dot.rejected {
+            background: #f44336;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: white;
+            border-radius: 12px;
+            padding: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        .tabs .tab {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tabs .tab:hover {
+            background: #f0f2f5;
+        }
+        .tabs .tab.active {
+            background: #1a73e8;
+            color: white;
+        }
+        .tabs .tab .badge {
+            background: #ff9800;
+            color: white;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 4px;
+        }
+        .tabs .tab.active .badge {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: box-shadow 0.2s;
+        }
+        .item-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        .item-card .left .title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a73e8;
+        }
+        .item-card .left .meta {
+            font-size: 13px;
+            color: #888;
+            margin-top: 2px;
+        }
+        .item-card .left .meta span {
+            margin-right: 12px;
+        }
+        .item-card .right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-badge.pending {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+        .status-badge.approved {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+        .status-badge.rejected {
+            background: #ffebee;
+            color: #f44336;
+        }
+
+        .rank-badge {
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+        }
+        .rank-badge.high {
+            background: #ff4444;
+        }
+        .rank-badge.medium {
+            background: #ffbb33;
+            color: #333;
+        }
+        .rank-badge.low {
+            background: #00c851;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            background: white;
+            border-radius: 12px;
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .empty-state a {
+            color: #1a73e8;
+        }
+
+        .photo-thumb {
+            width: 60px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .photo-thumb:hover {
+            transform: scale(1.05);
+        }
+
+        .view-link {
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .view-link:hover {
+            text-decoration: underline;
+        }
+
+        .title-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+            line-height: 1.6;
+        }
+        .title-hint .highlight {
+            color: #1a73e8;
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 10px 16px;
+            }
+            .navbar .brand {
+                font-size: 17px;
+            }
+            .navbar .nav-links a {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .profile-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .profile-card .stats {
+                justify-content: center;
+            }
+            .tabs .tab {
+                font-size: 12px;
+                padding: 8px 14px;
+            }
+            .item-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .item-card .right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="brand"><span>🚌</span> BusLens</a>
+            <div class="nav-links" id="navLinks"></div>
+        </nav>
+
+        <div class="profile-card" id="profileCard">
+            <div class="info">
+                <h2 id="userName">👤 用户</h2>
+                <div class="sub" id="userEmail">邮箱</div>
+                <div id="titleBadge" class="title-badge beginner">🌱 巴士萌新</div>
+                <div class="title-hint" id="titleHint">📌 需要 8 个通过机位 + 5 张照片升级</div>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="num" id="statSpots">0</div>
+                    <div class="label">📌 我的机位</div>
+                </div>
+                <div class="stat">
+                    <div class="num" id="statPhotos">0</div>
+                    <div class="label">📸 我的照片</div>
+                </div>
+                <div class="stat">
+                    <div class="num" id="statPending">0</div>
+                    <div class="label">⏳ 审核中</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 审核进度条 -->
+        <div class="progress-section" id="progressSection">
+            <h3>📊 我的审核进度</h3>
+            <div class="progress-bar-wrap">
+                <div class="segment pending" id="progressPending" style="width:0%">⏳ 0</div>
+                <div class="segment approved" id="progressApproved" style="width:0%">✅ 0</div>
+                <div class="segment rejected" id="progressRejected" style="width:0%">❌ 0</div>
+            </div>
+            <div class="progress-legend">
+                <span><span class="dot pending"></span> 待审核</span>
+                <span><span class="dot approved"></span> 已通过</span>
+                <span><span class="dot rejected"></span> 已拒绝</span>
+                <span style="margin-left:auto;color:#999;" id="progressTotal">总计：0 张</span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="pending" onclick="switchTab('pending')">
+                ⏳ 审核进度 <span class="badge" id="pendingBadge">0</span>
+            </button>
+            <button class="tab" data-tab="spots" onclick="switchTab('spots')">
+                📌 我的机位 <span class="badge" id="spotsBadge">0</span>
+            </button>
+            <button class="tab" data-tab="photos" onclick="switchTab('photos')">
+                📸 我的照片 <span class="badge" id="photosBadge">0</span>
+            </button>
+        </div>
+
+        <div id="tabPending" class="tab-content active">
+            <div id="pendingList"></div>
+        </div>
+        <div id="tabSpots" class="tab-content">
+            <div id="spotsList"></div>
+        </div>
+        <div id="tabPhotos" class="tab-content">
+            <div id="photosList"></div>
+        </div>
+    </div>
+
+    <script>
+        var supabaseClient = null;
+        var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAME = 'ponginloi';
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+        initSupabase();
+
+        function getCurrentUser() {
+            try {
+                var raw = sessionStorage.getItem(SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem(SESSION_KEY);
+            window.location.href = 'index.html';
+        }
+
+        function isAdmin() {
+            var user = getCurrentUser();
+            return user && user.username === ADMIN_USERNAME;
+        }
+
+        function renderNav() {
+            var nav = document.getElementById('navLinks');
+            var user = getCurrentUser();
+            if (user) {
+                var admin = isAdmin();
+                var pendingCount = window._pendingCount || 0;
+                nav.innerHTML =
+                    '<a href="index.html">🏠 地图</a>' +
+                    '<a href="profile.html" class="active">👤 个人中心</a>' +
+                    (admin ? '<a href="admin.html">⚙️ 审核</a>' : '') +
+                    (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
+                    '<a href="upload.html">📤 新机位</a>' +
+                    '<span class="user-name">👤 ' + user.username + (admin ? '<span class="admin-badge">管理员</span>' : '') +
+                    '</span>' +
+                    '<button class="btn-logout" onclick="logout()">退出</button>';
+            } else {
+                nav.innerHTML =
+                    '<a href="index.html">🏠 地图</a>' +
+                    '<a href="login.html">登录</a>' +
+                    '<a href="register.html">注册</a>';
+            }
+        }
+
+        // ============================================================
+        //  切换 Tab
+        // ============================================================
+        function switchTab(tab) {
+            document.querySelectorAll('.tabs .tab').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            document.querySelectorAll('.tab-content').forEach(function(el) {
+                el.classList.remove('active');
+            });
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+        }
+
+        // ============================================================
+        //  头衔计算函数（高难度 6 级）
+        // ============================================================
+        function getTitle(spotCount, approvedCount, highRankCount, photoCount) {
+            if (spotCount >= 150 && approvedCount >= 150 && highRankCount >= 35 && photoCount >= 100) {
+                return { title: '⚡ 巴士之神', class: 'legend', next: '🏆 已达最高等级' };
+            }
+            if (spotCount >= 80 && approvedCount >= 80 && highRankCount >= 18 && photoCount >= 50) {
+                return { title: '👑 巴士传奇', class: 'master',
+                next: '⚡ 还需 ' + (150 - spotCount) + ' 个机位、' + (35 - highRankCount) + ' 个上等、' + (100 - photoCount) +
+                        ' 张照片' };
+            }
+            if (spotCount >= 40 && approvedCount >= 40 && highRankCount >= 8 && photoCount >= 25) {
+                return { title: '📷 巴士摄影大师', class: 'photographer',
+                next: '👑 还需 ' + (80 - spotCount) + ' 个机位、' + (18 - highRankCount) + ' 个上等、' + (50 - photoCount) +
+                        ' 张照片' };
+            }
+            if (spotCount >= 20 && approvedCount >= 20 && highRankCount >= 3 && photoCount >= 12) {
+                return { title: '🔍 巴士探索家', class: 'explorer',
+                next: '📷 还需 ' + (40 - spotCount) + ' 个机位、' + (8 - highRankCount) + ' 个上等、' + (25 - photoCount) +
+                        ' 张照片' };
+            }
+            if (spotCount >= 8 && approvedCount >= 8 && photoCount >= 5) {
+                return { title: '📝 巴士记录者', class: 'recorder',
+                next: '🔍 还需 ' + (20 - spotCount) + ' 个机位、' + (3 - highRankCount) + ' 个上等、' + (12 - photoCount) +
+                        ' 张照片' };
+            }
+            return { title: '🌱 巴士萌新', class: 'beginner',
+            next: '📝 还需 ' + (8 - spotCount) + ' 个通过机位、' + (5 - photoCount) + ' 张照片' };
+        }
+
+        // ============================================================
+        //  加载个人数据
+        // ============================================================
+        function loadProfile() {
+            var user = getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('userName').textContent = '👤 ' + user.username;
+            document.getElementById('userEmail').textContent = user.email || '无邮箱';
+
+            supabaseClient
+                .from('spots')
+                .select('*')
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    var allSpots = res.data || [];
+
+                    var mySpots = allSpots.filter(function(s) {
+                        return s.created_by === user.username;
+                    });
+                    var myPending = mySpots.filter(function(s) { return s.status === 'pending'; });
+                    var myApproved = mySpots.filter(function(s) { return s.status === 'approved'; });
+                    var myRejected = mySpots.filter(function(s) { return s.status === 'rejected'; });
+                    var myHighRank = mySpots.filter(function(s) { return s.rank === 'high' && s.status === 'approved'; });
+
+                    // 统计照片
+                    var photoCount = 0;
+                    mySpots.forEach(function(s) {
+                        if (s.photos) {
+                            s.photos.forEach(function(p) {
+                                if (p.uploader === user.username || p.uploaderName === user.username) {
+                                    photoCount++;
+                                }
+                            });
+                        }
+                    });
+
+                    // 更新统计数字
+                    document.getElementById('statSpots').textContent = mySpots.length;
+                    document.getElementById('statPhotos').textContent = photoCount;
+                    document.getElementById('statPending').textContent = myPending.length;
+
+                    // 更新头衔
+                    var titleInfo = getTitle(mySpots.length, myApproved.length, myHighRank.length, photoCount);
+                    var badge = document.getElementById('titleBadge');
+                    badge.textContent = titleInfo.title;
+                    badge.className = 'title-badge ' + titleInfo.class;
+                    document.getElementById('titleHint').innerHTML = '📌 下一级：' + titleInfo.next;
+
+                    // 更新进度条
+                    var total = mySpots.length || 1;
+                    var pendingPct = (myPending.length / total * 100);
+                    var approvedPct = (myApproved.length / total * 100);
+                    var rejectedPct = (myRejected.length / total * 100);
+
+                    document.getElementById('progressPending').style.width = pendingPct + '%';
+                    document.getElementById('progressPending').textContent = '⏳ ' + myPending.length;
+                    document.getElementById('progressApproved').style.width = approvedPct + '%';
+                    document.getElementById('progressApproved').textContent = '✅ ' + myApproved.length;
+                    document.getElementById('progressRejected').style.width = rejectedPct + '%';
+                    document.getElementById('progressRejected').textContent = '❌ ' + myRejected.length;
+                    document.getElementById('progressTotal').textContent = '总计：' + mySpots.length + ' 张';
+
+                    // 存储待审核数量供导航栏使用
+                    window._pendingCount = myPending.length;
+
+                    // 渲染各个列表
+                    renderPending(allSpots, user.username);
+                    renderMySpots(allSpots, user.username);
+                    renderMyPhotos(allSpots, user.username);
+
+                    // 重新渲染导航栏
+                    renderNav();
+
+                })
+                .catch(function(error) {
+                    console.error('加载失败:', error);
+                });
+        }
+
+        // ============================================================
+        //  渲染函数
+        // ============================================================
+        function renderPending(spots, username) {
+            var pending = spots.filter(function(s) {
+                return s.created_by === username && s.status === 'pending';
+            });
+            var container = document.getElementById('pendingList');
+            document.getElementById('pendingBadge').textContent = pending.length;
+
+            if (pending.length === 0) {
+                container.innerHTML =
+                    '<div class="empty-state"><span class="icon">✅</span><p>暂无待审核的机位</p><p style="font-size:13px;margin-top:4px;">去 <a href="upload.html">上传</a> 一个新机位吧</p></div>';
+                return;
+            }
+
+            container.innerHTML = pending.map(function(s) {
+                return '<div class="item-card">' +
+                    '<div class="left">' +
+                    '<div class="title">' + s.name + '</div>' +
+                    '<div class="meta">' +
+                    '<span>📅 ' + (s.created_at || '未知') + '</span>' +
+                    '<span class="rank-badge ' + s.rank + '">' + (s.rank === 'high' ? '上等' : s.rank === 'medium' ?
+                        '中等' : '下等') + '</span>' +
+                    '<span class="status-badge pending">⏳ 待审核</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="right">' +
+                    '<span style="font-size:13px;color:#999;">📍 ' + s.lng + ', ' + s.lat + '</span>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function renderMySpots(spots, username) {
+            var mySpots = spots.filter(function(s) {
+                return s.created_by === username;
+            });
+            var container = document.getElementById('spotsList');
+            document.getElementById('spotsBadge').textContent = mySpots.length;
+
+            if (mySpots.length === 0) {
+                container.innerHTML =
+                    '<div class="empty-state"><span class="icon">📌</span><p>你还没有创建过机位</p><p style="font-size:13px;margin-top:4px;">去 <a href="upload.html">上传</a> 第一个机位吧</p></div>';
+                return;
+            }
+
+            var statusMap = { pending: '⏳ 待审核', approved: '✅ 已通过', rejected: '❌ 已拒绝' };
+
+            container.innerHTML = mySpots.map(function(s) {
+                var statusClass = s.status || 'pending';
+                var reasonHtml = s.review_reason ? '<div style="font-size:12px;color:#f44336;margin-top:2px;">📝 审核意见：' +
+                    s.review_reason + '</div>' : '';
+                return '<div class="item-card">' +
+                    '<div class="left">' +
+                    '<div class="title">' + s.name + '</div>' +
+                    '<div class="meta">' +
+                    '<span>📅 ' + (s.created_at || '未知') + '</span>' +
+                    '<span class="rank-badge ' + s.rank + '">' + (s.rank === 'high' ? '上等' : s.rank === 'medium' ?
+                        '中等' : '下等') + '</span>' +
+                    '<span class="status-badge ' + statusClass + '">' + (statusMap[statusClass] || '未知') + '</span>' +
+                    (s.reviewed_by ? '<span style="font-size:12px;color:#999;">审核人：' + s.reviewed_by + '</span>' : '') +
+                    '</div>' +
+                    reasonHtml +
+                    '</div>' +
+                    '<div class="right">' +
+                    '<span style="font-size:13px;color:#999;">📍 ' + s.lng + ', ' + s.lat + '</span>' +
+                    '<a href="index.html" class="view-link">查看地图 →</a>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function renderMyPhotos(spots, username) {
+            var allPhotos = [];
+            spots.forEach(function(spot) {
+                if (spot.photos && spot.photos.length > 0) {
+                    spot.photos.forEach(function(p) {
+                        if (p.uploader === username || p.uploaderName === username) {
+                            allPhotos.push({
+                                photo: p,
+                                spotName: spot.name,
+                                spotId: spot.id,
+                                spotRank: spot.rank,
+                                spotStatus: spot.status
+                            });
+                        }
+                    });
+                }
+            });
+
+            var container = document.getElementById('photosList');
+            document.getElementById('photosBadge').textContent = allPhotos.length;
+
+            if (allPhotos.length === 0) {
+                container.innerHTML =
+                    '<div class="empty-state"><span class="icon">📸</span><p>你还没有上传过照片</p><p style="font-size:13px;margin-top:4px;">去机位详情页上传照片吧</p></div>';
+                return;
+            }
+
+            container.innerHTML = allPhotos.map(function(item) {
+                var p = item.photo;
+                return '<div class="item-card">' +
+                    '<div class="left">' +
+                    '<div class="title">' + item.spotName + '</div>' +
+                    '<div class="meta">' +
+                    '<span>📅 ' + (p.date || p.created_at || '未知') + '</span>' +
+                    '<span class="rank-badge ' + item.spotRank + '">' + (item.spotRank === 'high' ? '上等' : item
+                        .spotRank === 'medium' ? '中等' : '下等') + '</span>' +
+                    '<span class="status-badge ' + (item.spotStatus || 'pending') + '">' + (item.spotStatus ===
+                        'approved' ? '✅ 已通过' : item.spotStatus === 'pending' ? '⏳ 待审核' : '❌ 已拒绝') +
+                    '</span>' +
+                    '</div>' +
+                    (p.caption ? '<div style="font-size:13px;color:#666;margin-top:2px;">📝 ' + p.caption + '</div>' :
+                        '') +
+                    '</div>' +
+                    '<div class="right">' +
+                    '<img src="' + p.url + '" alt="' + (p.caption || '') + '" class="photo-thumb" onclick="window.open(\'' +
+                    p.url + '\',\'_blank\')" />' +
+                    '<a href="index.html" class="view-link">查看地图 →</a>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        // ============================================================
+        //  启动
+        // ============================================================
+        renderNav();
+        loadProfile();
+
+        console.log('👤 个人中心已加载');
+    </script>
+</body>
+</html>
