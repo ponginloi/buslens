@@ -7,6 +7,8 @@
     <script>
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -140,6 +142,79 @@
             font-size: 14px;
             margin-top: 2px;
         }
+        .profile-card .info .bio {
+            margin-top: 6px;
+            padding: 8px 14px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #555;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+        .profile-card .info .bio .empty-bio {
+            color: #bbb;
+            font-style: italic;
+        }
+        .profile-card .info .bio-edit {
+            display: none;
+            margin-top: 6px;
+        }
+        .profile-card .info .bio-edit textarea {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+            outline: none;
+        }
+        .profile-card .info .bio-edit textarea:focus {
+            border-color: #1a73e8;
+        }
+        .profile-card .info .bio-edit .bio-actions {
+            margin-top: 6px;
+            display: flex;
+            gap: 8px;
+        }
+        .profile-card .info .bio-edit .bio-actions button {
+            padding: 4px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .profile-card .info .bio-edit .bio-actions .btn-save-bio {
+            background: #4caf50;
+            color: white;
+        }
+        .profile-card .info .bio-edit .bio-actions .btn-save-bio:hover {
+            background: #388e3c;
+        }
+        .profile-card .info .bio-edit .bio-actions .btn-cancel-bio {
+            background: #eee;
+            color: #666;
+        }
+        .profile-card .info .bio-edit .bio-actions .btn-cancel-bio:hover {
+            background: #ddd;
+        }
+        .profile-card .info .btn-edit-bio {
+            margin-top: 4px;
+            background: none;
+            border: none;
+            color: #1a73e8;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 0;
+        }
+        .profile-card .info .btn-edit-bio:hover {
+            text-decoration: underline;
+        }
+
         .profile-card .info .title-badge {
             display: inline-block;
             padding: 4px 16px;
@@ -172,6 +247,7 @@
             background: linear-gradient(135deg, #ffd700, #ff6f00);
             color: #fff;
         }
+
         .profile-card .stats {
             display: flex;
             gap: 24px;
@@ -187,6 +263,169 @@
         .profile-card .stats .stat .label {
             font-size: 12px;
             color: #999;
+        }
+
+        .badges-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+        }
+        .badges-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .badges-section .badges-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .badges-section .badge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            min-width: 80px;
+            transition: all 0.2s;
+        }
+        .badges-section .badge-item .badge-icon {
+            font-size: 28px;
+        }
+        .badges-section .badge-item .badge-name {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .badges-section .badge-item.locked {
+            opacity: 0.35;
+            filter: grayscale(1);
+        }
+        .badges-section .badge-item.unlocked {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+        }
+        .badges-section .badge-item.unlocked .badge-name {
+            color: #2e7d32;
+        }
+
+        .recent-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+        }
+        .recent-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .recent-section .recent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .recent-section .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            font-size: 14px;
+            color: #555;
+        }
+        .recent-section .recent-item .recent-icon {
+            font-size: 18px;
+        }
+        .recent-section .recent-item .recent-time {
+            margin-left: auto;
+            color: #999;
+            font-size: 12px;
+        }
+        .recent-section .recent-item a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        .recent-section .recent-item a:hover {
+            text-decoration: underline;
+        }
+
+        .gallery-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+        }
+        .gallery-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .gallery-section .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+        }
+        .gallery-section .gallery-grid .gallery-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .gallery-section .gallery-grid .gallery-item:hover {
+            transform: scale(1.02);
+        }
+        .gallery-section .gallery-grid .gallery-item .lazy-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #ccc;
+            background: #f5f5f5;
+        }
+        .gallery-section .gallery-grid .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .gallery-section .gallery-grid .gallery-item .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 10px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .gallery-section .gallery-grid .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+        .gallery-section .gallery-empty {
+            text-align: center;
+            padding: 40px 0;
+            color: #999;
+        }
+        .gallery-section .gallery-empty .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 8px;
         }
 
         .progress-section {
@@ -400,9 +639,15 @@
             border-radius: 6px;
             cursor: pointer;
             transition: transform 0.2s;
+            background: #f0f0f0;
         }
-        .photo-thumb:hover {
-            transform: scale(1.05);
+        .photo-thumb.lazy-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #ccc;
+            background: #f5f5f5;
         }
 
         .view-link {
@@ -420,9 +665,72 @@
             margin-top: 4px;
             line-height: 1.6;
         }
-        .title-hint .highlight {
-            color: #1a73e8;
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .lightbox.active {
+            display: flex;
+        }
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .lightbox .close-lightbox {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .lightbox .close-lightbox:hover {
+            transform: scale(1.2);
+        }
+
+        .btn-delete-spot {
+            background: #ffebee;
+            color: #f44336;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
             font-weight: 500;
+        }
+        .btn-delete-spot:hover {
+            background: #ffcdd2;
+            transform: translateY(-1px);
+        }
+
+        .btn-delete-photo {
+            background: #ffebee;
+            color: #f44336;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .btn-delete-photo:hover {
+            background: #ffcdd2;
+            transform: translateY(-1px);
         }
 
         @media (max-width: 600px) {
@@ -443,6 +751,12 @@
             .profile-card .stats {
                 justify-content: center;
             }
+            .profile-card .info .bio {
+                max-width: 100%;
+            }
+            .profile-card .info .bio-edit textarea {
+                max-width: 100%;
+            }
             .tabs .tab {
                 font-size: 12px;
                 padding: 8px 14px;
@@ -454,6 +768,19 @@
             .item-card .right {
                 width: 100%;
                 justify-content: flex-start;
+            }
+            .badges-section .badges-grid {
+                gap: 8px;
+            }
+            .badges-section .badge-item {
+                padding: 6px 10px;
+                min-width: 60px;
+            }
+            .badges-section .badge-item .badge-icon {
+                font-size: 20px;
+            }
+            .gallery-section .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             }
         }
     </style>
@@ -472,15 +799,30 @@
                 <div class="sub" id="userEmail">邮箱</div>
                 <div id="titleBadge" class="title-badge beginner">🌱 巴士萌新</div>
                 <div class="title-hint" id="titleHint">📌 需要 8 个通过机位 + 5 张照片升级</div>
+                <div class="bio" id="bioDisplay">
+                    <span class="empty-bio">📝 还没有设置个人简介</span>
+                </div>
+                <div class="bio-edit" id="bioEdit">
+                    <textarea id="bioTextarea" placeholder="写一段自我介绍吧..."></textarea>
+                    <div class="bio-actions">
+                        <button class="btn-save-bio" onclick="saveBio()">💾 保存</button>
+                        <button class="btn-cancel-bio" onclick="cancelBioEdit()">取消</button>
+                    </div>
+                </div>
+                <button class="btn-edit-bio" id="editBioBtn" onclick="enableBioEdit()">✏️ 编辑简介</button>
             </div>
             <div class="stats">
                 <div class="stat">
                     <div class="num" id="statSpots">0</div>
-                    <div class="label">📌 我的机位</div>
+                    <div class="label">📌 机位</div>
                 </div>
                 <div class="stat">
                     <div class="num" id="statPhotos">0</div>
-                    <div class="label">📸 我的照片</div>
+                    <div class="label">📸 照片</div>
+                </div>
+                <div class="stat">
+                    <div class="num" id="statHighRank">0</div>
+                    <div class="label">⭐ 上等</div>
                 </div>
                 <div class="stat">
                     <div class="num" id="statPending">0</div>
@@ -489,9 +831,18 @@
             </div>
         </div>
 
-        <!-- 审核进度条 -->
+        <div class="badges-section" id="badgesSection">
+            <h3>🏅 成就徽章</h3>
+            <div class="badges-grid" id="badgesGrid"></div>
+        </div>
+
+        <div class="recent-section" id="recentSection">
+            <h3>📋 最近活跃</h3>
+            <div class="recent-list" id="recentList"></div>
+        </div>
+
         <div class="progress-section" id="progressSection">
-            <h3>📊 我的审核进度</h3>
+            <h3>📊 审核进度</h3>
             <div class="progress-bar-wrap">
                 <div class="segment pending" id="progressPending" style="width:0%">⏳ 0</div>
                 <div class="segment approved" id="progressApproved" style="width:0%">✅ 0</div>
@@ -505,6 +856,11 @@
             </div>
         </div>
 
+        <div class="gallery-section" id="gallerySection">
+            <h3>🖼️ 作品展示墙</h3>
+            <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+
         <div class="tabs">
             <button class="tab active" data-tab="pending" onclick="switchTab('pending')">
                 ⏳ 审核进度 <span class="badge" id="pendingBadge">0</span>
@@ -514,6 +870,9 @@
             </button>
             <button class="tab" data-tab="photos" onclick="switchTab('photos')">
                 📸 我的照片 <span class="badge" id="photosBadge">0</span>
+            </button>
+            <button class="tab" data-tab="favorites" onclick="switchTab('favorites')">
+                ⭐ 我的收藏 <span class="badge" id="favoritesBadge">0</span>
             </button>
         </div>
 
@@ -526,12 +885,20 @@
         <div id="tabPhotos" class="tab-content">
             <div id="photosList"></div>
         </div>
+        <div id="tabFavorites" class="tab-content">
+            <div id="favoritesList"></div>
+        </div>
+    </div>
+
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <span class="close-lightbox">×</span>
+        <img id="lightboxImg" src="" alt="预览">
     </div>
 
     <script>
         var supabaseClient = null;
         var SESSION_KEY = 'bus_user_session';
-        var ADMIN_USERNAME = 'ponginloi';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
 
         function initSupabase() {
             if (typeof supabase === 'undefined') {
@@ -559,13 +926,34 @@
         }
 
         function logout() {
-            sessionStorage.removeItem(SESSION_KEY);
-            window.location.href = 'index.html';
+            var user = getCurrentUser();
+            if (user) {
+                if (ADMIN_USERNAMES.indexOf(user.username) !== -1) {
+                    supabaseClient
+                        .from('users')
+                        .update({ is_online: false })
+                        .eq('id', user.id)
+                        .then(function() {
+                            sessionStorage.removeItem(SESSION_KEY);
+                            window.location.href = 'index.html';
+                        })
+                        .catch(function() {
+                            sessionStorage.removeItem(SESSION_KEY);
+                            window.location.href = 'index.html';
+                        });
+                } else {
+                    sessionStorage.removeItem(SESSION_KEY);
+                    window.location.href = 'index.html';
+                }
+            } else {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.href = 'index.html';
+            }
         }
 
         function isAdmin() {
             var user = getCurrentUser();
-            return user && user.username === ADMIN_USERNAME;
+            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
         }
 
         function renderNav() {
@@ -576,24 +964,23 @@
                 var pendingCount = window._pendingCount || 0;
                 nav.innerHTML =
                     '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
                     '<a href="profile.html" class="active">👤 个人中心</a>' +
                     (admin ? '<a href="admin.html">⚙️ 审核</a>' : '') +
+                    (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
                     (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
                     '<a href="upload.html">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + user.username + (admin ? '<span class="admin-badge">管理员</span>' : '') +
-                    '</span>' +
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
             } else {
                 nav.innerHTML =
                     '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
                     '<a href="login.html">登录</a>' +
                     '<a href="register.html">注册</a>';
             }
         }
 
-        // ============================================================
-        //  切换 Tab
-        // ============================================================
         function switchTab(tab) {
             document.querySelectorAll('.tabs .tab').forEach(function(btn) {
                 btn.classList.toggle('active', btn.dataset.tab === tab);
@@ -602,51 +989,363 @@
                 el.classList.remove('active');
             });
             document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            setTimeout(function() {
+                initLazyLoad();
+            }, 300);
         }
 
+        function openLightbox(url) {
+            document.getElementById('lightboxImg').src = url;
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
         // ============================================================
-        //  头衔计算函数（高难度 6 级）
+        //  🚀 滚动懒加载
         // ============================================================
+        function initLazyLoad() {
+            if (!('IntersectionObserver' in window)) {
+                document.querySelectorAll('.lazy-placeholder[data-src]').forEach(function(el) {
+                    var src = el.dataset.src;
+                    if (src) {
+                        var img = document.createElement('img');
+                        img.src = src;
+                        img.alt = '';
+                        img.loading = 'lazy';
+                        el.parentNode.replaceChild(img, el);
+                    }
+                });
+                document.querySelectorAll('.photo-thumb.lazy-placeholder[data-src]').forEach(function(el) {
+                    var src = el.dataset.src;
+                    if (src) {
+                        var img = document.createElement('img');
+                        img.src = src;
+                        img.alt = '';
+                        img.className = 'photo-thumb';
+                        img.loading = 'lazy';
+                        img.onclick = function() { window.open(src, '_blank'); };
+                        el.parentNode.replaceChild(img, el);
+                    }
+                });
+                return;
+            }
+
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        var el = entry.target;
+                        var src = el.dataset.src;
+                        if (src) {
+                            if (el.classList.contains('lazy-placeholder')) {
+                                var img = document.createElement('img');
+                                img.src = src;
+                                img.alt = '';
+                                img.loading = 'lazy';
+                                el.parentNode.replaceChild(img, el);
+                            } else if (el.classList.contains('photo-thumb')) {
+                                var img = document.createElement('img');
+                                img.src = src;
+                                img.alt = '';
+                                img.className = 'photo-thumb';
+                                img.loading = 'lazy';
+                                img.onclick = function() { window.open(src, '_blank'); };
+                                el.parentNode.replaceChild(img, el);
+                            }
+                            observer.unobserve(el);
+                        }
+                    }
+                });
+            }, {
+                rootMargin: '100px',
+                threshold: 0.01
+            });
+
+            document.querySelectorAll('.lazy-placeholder[data-src]').forEach(function(el) {
+                observer.observe(el);
+            });
+            document.querySelectorAll('.photo-thumb.lazy-placeholder[data-src]').forEach(function(el) {
+                observer.observe(el);
+            });
+
+            console.log('👤 个人中心懒加载已启动，共 ' +
+                document.querySelectorAll('.lazy-placeholder[data-src]').length + ' 张画廊图片 + ' +
+                document.querySelectorAll('.photo-thumb.lazy-placeholder[data-src]').length + ' 张缩略图待加载');
+        }
+
         function getTitle(spotCount, approvedCount, highRankCount, photoCount) {
             if (spotCount >= 150 && approvedCount >= 150 && highRankCount >= 35 && photoCount >= 100) {
                 return { title: '⚡ 巴士之神', class: 'legend', next: '🏆 已达最高等级' };
             }
             if (spotCount >= 80 && approvedCount >= 80 && highRankCount >= 18 && photoCount >= 50) {
                 return { title: '👑 巴士传奇', class: 'master',
-                next: '⚡ 还需 ' + (150 - spotCount) + ' 个机位、' + (35 - highRankCount) + ' 个上等、' + (100 - photoCount) +
-                        ' 张照片' };
+                    next: '⚡ 还需 ' + (150 - spotCount) + ' 个机位、' + (35 - highRankCount) + ' 个上等、' + (100 - photoCount) +
+                        ' 张照片'
+                };
             }
             if (spotCount >= 40 && approvedCount >= 40 && highRankCount >= 8 && photoCount >= 25) {
                 return { title: '📷 巴士摄影大师', class: 'photographer',
-                next: '👑 还需 ' + (80 - spotCount) + ' 个机位、' + (18 - highRankCount) + ' 个上等、' + (50 - photoCount) +
-                        ' 张照片' };
+                    next: '👑 还需 ' + (80 - spotCount) + ' 个机位、' + (18 - highRankCount) + ' 个上等、' + (50 - photoCount) +
+                        ' 张照片'
+                };
             }
             if (spotCount >= 20 && approvedCount >= 20 && highRankCount >= 3 && photoCount >= 12) {
                 return { title: '🔍 巴士探索家', class: 'explorer',
-                next: '📷 还需 ' + (40 - spotCount) + ' 个机位、' + (8 - highRankCount) + ' 个上等、' + (25 - photoCount) +
-                        ' 张照片' };
+                    next: '📷 还需 ' + (40 - spotCount) + ' 个机位、' + (8 - highRankCount) + ' 个上等、' + (25 - photoCount) +
+                        ' 张照片'
+                };
             }
             if (spotCount >= 8 && approvedCount >= 8 && photoCount >= 5) {
                 return { title: '📝 巴士记录者', class: 'recorder',
-                next: '🔍 还需 ' + (20 - spotCount) + ' 个机位、' + (3 - highRankCount) + ' 个上等、' + (12 - photoCount) +
-                        ' 张照片' };
+                    next: '🔍 还需 ' + (20 - spotCount) + ' 个机位、' + (3 - highRankCount) + ' 个上等、' + (12 - photoCount) +
+                        ' 张照片'
+                };
             }
             return { title: '🌱 巴士萌新', class: 'beginner',
-            next: '📝 还需 ' + (8 - spotCount) + ' 个通过机位、' + (5 - photoCount) + ' 张照片' };
+                next: '📝 还需 ' + (8 - spotCount) + ' 个通过机位、' + (5 - photoCount) + ' 张照片'
+            };
+        }
+
+        function getBadges(spotCount, approvedCount, highRankCount, photoCount) {
+            var badges = [];
+            if (spotCount >= 1) {
+                badges.push({ icon: '📷', name: '首次上传', unlocked: true });
+            } else {
+                badges.push({ icon: '📷', name: '首次上传', unlocked: false });
+            }
+            if (highRankCount >= 1) {
+                badges.push({ icon: '⭐', name: '首次上等', unlocked: true });
+            } else {
+                badges.push({ icon: '⭐', name: '首次上等', unlocked: false });
+            }
+            if (highRankCount >= 10) {
+                badges.push({ icon: '🔥', name: '十全十美', unlocked: true });
+            } else {
+                badges.push({ icon: '🔥', name: '十全十美', unlocked: false });
+            }
+            if (photoCount >= 50) {
+                badges.push({ icon: '📸', name: '摄影达人', unlocked: true });
+            } else {
+                badges.push({ icon: '📸', name: '摄影达人', unlocked: false });
+            }
+            if (spotCount >= 100) {
+                badges.push({ icon: '🏆', name: '百夫长', unlocked: true });
+            } else {
+                badges.push({ icon: '🏆', name: '百夫长', unlocked: false });
+            }
+            if (highRankCount >= 50) {
+                badges.push({ icon: '👑', name: '大神认证', unlocked: true });
+            } else {
+                badges.push({ icon: '👑', name: '大神认证', unlocked: false });
+            }
+            if (spotCount >= 150 && highRankCount >= 35 && photoCount >= 100) {
+                badges.push({ icon: '💎', name: '传奇大师', unlocked: true });
+            } else {
+                badges.push({ icon: '💎', name: '传奇大师', unlocked: false });
+            }
+            return badges;
         }
 
         // ============================================================
-        //  加载个人数据
+        //  个人简介功能
         // ============================================================
-        function loadProfile() {
+        var currentBio = '';
+
+        function loadBio(username) {
+            supabaseClient
+                .from('users')
+                .select('bio')
+                .eq('username', username)
+                .single()
+                .then(function(res) {
+                    if (res.error) {
+                        console.error('加载简介失败:', res.error);
+                        return;
+                    }
+                    var bio = res.data?.bio || '';
+                    currentBio = bio;
+                    var display = document.getElementById('bioDisplay');
+                    if (bio && bio.trim() !== '') {
+                        display.innerHTML = '📝 ' + bio;
+                    } else {
+                        display.innerHTML = '<span class="empty-bio">📝 还没有设置个人简介</span>';
+                    }
+                    document.getElementById('bioTextarea').value = bio;
+                })
+                .catch(function(error) {
+                    console.error('加载简介失败:', error);
+                });
+        }
+
+        function enableBioEdit() {
             var user = getCurrentUser();
             if (!user) {
-                window.location.href = 'login.html';
+                alert('请先登录');
+                return;
+            }
+            document.getElementById('bioDisplay').style.display = 'none';
+            document.getElementById('bioEdit').style.display = 'block';
+            document.getElementById('editBioBtn').style.display = 'none';
+            document.getElementById('bioTextarea').focus();
+        }
+
+        function cancelBioEdit() {
+            document.getElementById('bioDisplay').style.display = '';
+            document.getElementById('bioEdit').style.display = 'none';
+            document.getElementById('editBioBtn').style.display = '';
+            document.getElementById('bioTextarea').value = currentBio;
+        }
+
+        function saveBio() {
+            var user = getCurrentUser();
+            if (!user) {
+                alert('请先登录');
+                return;
+            }
+            var bio = document.getElementById('bioTextarea').value.trim();
+
+            supabaseClient
+                .from('users')
+                .update({ bio: bio })
+                .eq('username', user.username)
+                .then(function(res) {
+                    if (res.error) {
+                        alert('保存失败：' + res.error.message);
+                        return;
+                    }
+                    currentBio = bio;
+                    cancelBioEdit();
+                    loadBio(user.username);
+                    alert('✅ 简介已保存');
+                })
+                .catch(function(error) {
+                    alert('保存失败：' + error.message);
+                });
+        }
+
+        // ============================================================
+        //  渲染成就徽章
+        // ============================================================
+        function renderBadges(badges) {
+            var container = document.getElementById('badgesGrid');
+            container.innerHTML = badges.map(function(b) {
+                var cls = b.unlocked ? 'badge-item unlocked' : 'badge-item locked';
+                return '<div class="' + cls + '" title="' + (b.unlocked ? '已解锁' : '未解锁') + '">' +
+                    '<span class="badge-icon">' + b.icon + '</span>' +
+                    '<span class="badge-name">' + b.name + '</span>' +
+                    '</div>';
+            }).join('');
+        }
+
+        // ============================================================
+        //  渲染最近活跃
+        // ============================================================
+        function renderRecent(mySpots, allSpots) {
+            var container = document.getElementById('recentList');
+
+            var recentItems = [];
+
+            var recentSpots = mySpots.slice(-3).reverse();
+            recentSpots.forEach(function(s) {
+                recentItems.push({
+                    icon: '📌',
+                    text: '上传了机位 <a href="index.html?spot_id=' + s.id + '">' + s.name + '</a>',
+                    time: s.created_at || '最近'
+                });
+            });
+
+            mySpots.forEach(function(s) {
+                if (s.photos) {
+                    s.photos.forEach(function(p) {
+                        if (p.date) {
+                            recentItems.push({
+                                icon: '📸',
+                                text: '在 <a href="index.html?spot_id=' + s.id + '">' + s.name +
+                                '</a> 上传了照片',
+                                time: p.date
+                            });
+                        }
+                    });
+                }
+            });
+
+            recentItems.sort(function(a, b) {
+                return (b.time || '').localeCompare(a.time || '');
+            });
+            recentItems = recentItems.slice(0, 5);
+
+            if (recentItems.length === 0) {
+                container.innerHTML = '<div style="color:#999;font-size:14px;padding:8px 0;">暂无活跃记录</div>';
                 return;
             }
 
-            document.getElementById('userName').textContent = '👤 ' + user.username;
-            document.getElementById('userEmail').textContent = user.email || '无邮箱';
+            container.innerHTML = recentItems.map(function(item) {
+                return '<div class="recent-item">' +
+                    '<span class="recent-icon">' + item.icon + '</span>' +
+                    '<span>' + item.text + '</span>' +
+                    '<span class="recent-time">' + item.time + '</span>' +
+                    '</div>';
+            }).join('');
+        }
+
+        // ============================================================
+        //  渲染作品展示墙（懒加载版）
+        // ============================================================
+        function renderGallery(mySpots, username) {
+            var container = document.getElementById('galleryGrid');
+
+            var allPhotos = [];
+            mySpots.forEach(function(s) {
+                if (s.example_photo && s.created_by === username) {
+                    allPhotos.push({
+                        url: s.example_photo,
+                        caption: '📷 例图 - ' + s.name
+                    });
+                }
+                if (s.photos) {
+                    s.photos.forEach(function(p) {
+                        if ((p.uploader === username || p.uploaderName === username) && p.status !== 'rejected') {
+                            allPhotos.push({
+                                url: p.url,
+                                caption: p.caption || '📸 ' + s.name
+                            });
+                        }
+                    });
+                }
+            });
+
+            if (allPhotos.length === 0) {
+                container.innerHTML = '<div class="gallery-empty"><span class="icon">🖼️</span><p>暂无作品</p></div>';
+                return;
+            }
+
+            var displayPhotos = allPhotos.slice(-20).reverse();
+
+            container.innerHTML = displayPhotos.map(function(p) {
+                return '<div class="gallery-item" onclick="openLightbox(\'' + p.url + '\')">' +
+                    '<div class="lazy-placeholder" data-src="' + p.url + '">📷</div>' +
+                    '<div class="gallery-overlay">' + (p.caption || '作品') + '</div>' +
+                    '</div>';
+            }).join('');
+
+            setTimeout(function() {
+                initLazyLoad();
+            }, 100);
+        }
+
+        // ============================================================
+        //  loadUserProfile - 加载用户数据
+        // ============================================================
+        function loadUserProfile(username, isOwn) {
+            document.getElementById('userName').textContent = '👤 ' + username;
 
             supabaseClient
                 .from('spots')
@@ -656,38 +1355,38 @@
                     var allSpots = res.data || [];
 
                     var mySpots = allSpots.filter(function(s) {
-                        return s.created_by === user.username;
+                        return s.created_by === username;
                     });
                     var myPending = mySpots.filter(function(s) { return s.status === 'pending'; });
                     var myApproved = mySpots.filter(function(s) { return s.status === 'approved'; });
                     var myRejected = mySpots.filter(function(s) { return s.status === 'rejected'; });
                     var myHighRank = mySpots.filter(function(s) { return s.rank === 'high' && s.status === 'approved'; });
 
-                    // 统计照片
                     var photoCount = 0;
                     mySpots.forEach(function(s) {
                         if (s.photos) {
                             s.photos.forEach(function(p) {
-                                if (p.uploader === user.username || p.uploaderName === user.username) {
+                                if (p.uploader === username || p.uploaderName === username) {
                                     photoCount++;
                                 }
                             });
                         }
+                        if (s.example_photo && s.created_by === username) {
+                            photoCount++;
+                        }
                     });
 
-                    // 更新统计数字
                     document.getElementById('statSpots').textContent = mySpots.length;
                     document.getElementById('statPhotos').textContent = photoCount;
+                    document.getElementById('statHighRank').textContent = myHighRank.length;
                     document.getElementById('statPending').textContent = myPending.length;
 
-                    // 更新头衔
                     var titleInfo = getTitle(mySpots.length, myApproved.length, myHighRank.length, photoCount);
                     var badge = document.getElementById('titleBadge');
                     badge.textContent = titleInfo.title;
                     badge.className = 'title-badge ' + titleInfo.class;
                     document.getElementById('titleHint').innerHTML = '📌 下一级：' + titleInfo.next;
 
-                    // 更新进度条
                     var total = mySpots.length || 1;
                     var pendingPct = (myPending.length / total * 100);
                     var approvedPct = (myApproved.length / total * 100);
@@ -701,21 +1400,126 @@
                     document.getElementById('progressRejected').textContent = '❌ ' + myRejected.length;
                     document.getElementById('progressTotal').textContent = '总计：' + mySpots.length + ' 张';
 
-                    // 存储待审核数量供导航栏使用
+                    var badges = getBadges(mySpots.length, myApproved.length, myHighRank.length, photoCount);
+                    renderBadges(badges);
+
+                    renderRecent(mySpots, allSpots);
+
+                    renderGallery(mySpots, username);
+
+                    loadBio(username);
+
                     window._pendingCount = myPending.length;
 
-                    // 渲染各个列表
-                    renderPending(allSpots, user.username);
-                    renderMySpots(allSpots, user.username);
-                    renderMyPhotos(allSpots, user.username);
+                    renderPending(allSpots, username);
+                    renderMySpots(allSpots, username);
+                    renderMyPhotos(allSpots, username);
+                    renderFavorites(username);
 
-                    // 重新渲染导航栏
                     renderNav();
 
+                    if (!isOwn) {
+                        document.getElementById('userEmail').textContent = '📌 查看他人主页';
+                        document.getElementById('editBioBtn').style.display = 'none';
+                    } else {
+                        var user = getCurrentUser();
+                        document.getElementById('userEmail').textContent = user.email || '无邮箱';
+                        document.getElementById('editBioBtn').style.display = '';
+                    }
                 })
                 .catch(function(error) {
                     console.error('加载失败:', error);
                 });
+        }
+
+        // ============================================================
+        //  🗑️ 删除机位功能（仅限自己的机位）
+        // ============================================================
+        function deleteMySpot(spotId, spotName) {
+            var user = getCurrentUser();
+            if (!user) {
+                alert('请先登录');
+                return;
+            }
+
+            if (!confirm('⚠️ 确定要删除「' + spotName + '」吗？\n\n删除后该机位及其所有照片将被永久移除，不可恢复！')) {
+                return;
+            }
+
+            if (!confirm('再次确认：删除「' + spotName + '」？')) {
+                return;
+            }
+
+            supabaseClient
+                .from('spots')
+                .delete()
+                .eq('id', spotId)
+                .eq('created_by', user.username)
+                .then(function(res) {
+                    if (res.error) {
+                        console.error('删除失败:', res.error);
+                        alert('❌ 删除失败：' + res.error.message);
+                        return;
+                    }
+                    alert('✅ 已成功删除机位「' + spotName + '」');
+                    loadUserProfile(user.username, true);
+                })
+                .catch(function(error) {
+                    console.error('删除失败:', error);
+                    alert('❌ 删除失败：' + error.message);
+                });
+        }
+
+        // ============================================================
+        //  🗑️ 删除自己上传的照片
+        // ============================================================
+        async function deleteMyPhoto(spotId, photoId, spotName) {
+            var user = getCurrentUser();
+            if (!user) {
+                alert('请先登录');
+                return;
+            }
+
+            if (!confirm('⚠️ 确定要删除「' + spotName + '」中的这张照片吗？\n\n删除后不可恢复！')) {
+                return;
+            }
+
+            try {
+                var res = await supabaseClient
+                    .from('spots')
+                    .select('photos')
+                    .eq('id', spotId)
+                    .single();
+
+                if (res.error) throw new Error(res.error.message);
+                var spot = res.data;
+                if (!spot) throw new Error('机位不存在');
+
+                var photos = spot.photos || [];
+                var filteredPhotos = photos.filter(function(p) {
+                    return p.id !== photoId;
+                });
+
+                if (filteredPhotos.length === photos.length) {
+                    alert('❌ 照片不存在或已被删除');
+                    return;
+                }
+
+                var updateRes = await supabaseClient
+                    .from('spots')
+                    .update({ photos: filteredPhotos })
+                    .eq('id', spotId);
+
+                if (updateRes.error) throw new Error(updateRes.error.message);
+
+                alert('✅ 已成功删除照片');
+                var currentUser = getCurrentUser();
+                loadUserProfile(currentUser.username, true);
+
+            } catch (error) {
+                console.error('删除失败:', error);
+                alert('❌ 删除失败：' + error.message);
+            }
         }
 
         // ============================================================
@@ -747,6 +1551,7 @@
                     '</div>' +
                     '<div class="right">' +
                     '<span style="font-size:13px;color:#999;">📍 ' + s.lng + ', ' + s.lat + '</span>' +
+                    '<button class="btn-delete-spot" onclick="deleteMySpot(\'' + s.id + '\', \'' + s.name.replace(/'/g, "\\'") + '\')">🗑️ 删除</button>' +
                     '</div>' +
                     '</div>';
             }).join('');
@@ -754,14 +1559,14 @@
 
         function renderMySpots(spots, username) {
             var mySpots = spots.filter(function(s) {
-                return s.created_by === username;
+                return s.created_by === username && s.status === 'approved';
             });
             var container = document.getElementById('spotsList');
             document.getElementById('spotsBadge').textContent = mySpots.length;
 
             if (mySpots.length === 0) {
                 container.innerHTML =
-                    '<div class="empty-state"><span class="icon">📌</span><p>你还没有创建过机位</p><p style="font-size:13px;margin-top:4px;">去 <a href="upload.html">上传</a> 第一个机位吧</p></div>';
+                    '<div class="empty-state"><span class="icon">📌</span><p>暂无已审核通过的机位</p><p style="font-size:13px;margin-top:4px;">去 <a href="upload.html">上传</a> 第一个机位吧</p></div>';
                 return;
             }
 
@@ -785,12 +1590,16 @@
                     '</div>' +
                     '<div class="right">' +
                     '<span style="font-size:13px;color:#999;">📍 ' + s.lng + ', ' + s.lat + '</span>' +
-                    '<a href="index.html" class="view-link">查看地图 →</a>' +
+                    '<a href="index.html?spot_id=' + s.id + '" class="view-link">查看地图 →</a>' +
+                    '<button class="btn-delete-spot" onclick="deleteMySpot(\'' + s.id + '\', \'' + s.name.replace(/'/g, "\\'") + '\')">🗑️ 删除</button>' +
                     '</div>' +
                     '</div>';
             }).join('');
         }
 
+        // ============================================================
+        //  渲染我的照片列表（增加删除按钮）
+        // ============================================================
         function renderMyPhotos(spots, username) {
             var allPhotos = [];
             spots.forEach(function(spot) {
@@ -835,12 +1644,97 @@
                         '') +
                     '</div>' +
                     '<div class="right">' +
-                    '<img src="' + p.url + '" alt="' + (p.caption || '') + '" class="photo-thumb" onclick="window.open(\'' +
-                    p.url + '\',\'_blank\')" />' +
-                    '<a href="index.html" class="view-link">查看地图 →</a>' +
+                    '<div class="photo-thumb lazy-placeholder" data-src="' + p.url + '">📷</div>' +
+                    '<a href="index.html?spot_id=' + item.spotId + '" class="view-link">查看地图 →</a>' +
+                    '<button class="btn-delete-photo" onclick="deleteMyPhoto(\'' + item.spotId + '\', \'' + p.id + '\', \'' + item.spotName.replace(/'/g, "\\'") + '\')">🗑️</button>' +
                     '</div>' +
                     '</div>';
             }).join('');
+
+            setTimeout(function() {
+                initLazyLoad();
+            }, 100);
+        }
+
+        // ============================================================
+        //  ⭐ 我的收藏
+        // ============================================================
+        function renderFavorites(username) {
+            var user = getCurrentUser();
+            if (!user || user.username !== username) {
+                document.getElementById('favoritesList').innerHTML =
+                    '<div class="empty-state"><span class="icon">🔒</span><p>查看他人主页时不可见</p></div>';
+                document.getElementById('favoritesBadge').textContent = '🔒';
+                return;
+            }
+
+            supabaseClient
+                .from('favorites')
+                .select('spot_id')
+                .eq('user_id', user.id)
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    var favoriteIds = (res.data || []).map(function(f) { return f.spot_id; });
+                    document.getElementById('favoritesBadge').textContent = favoriteIds.length;
+
+                    if (favoriteIds.length === 0) {
+                        document.getElementById('favoritesList').innerHTML =
+                            '<div class="empty-state"><span class="icon">⭐</span><p>你还没有收藏任何机位</p><p style="font-size:13px;margin-top:4px;">去地图上寻找喜欢的机位吧</p></div>';
+                        return;
+                    }
+
+                    supabaseClient
+                        .from('spots')
+                        .select('*')
+                        .in('id', favoriteIds)
+                        .then(function(spotRes) {
+                            if (spotRes.error) throw new Error(spotRes.error.message);
+                            var spots = spotRes.data || [];
+
+                            var container = document.getElementById('favoritesList');
+                            container.innerHTML = spots.map(function(spot) {
+                                return '<div class="item-card">' +
+                                    '<div class="left">' +
+                                    '<div class="title">' + spot.name + '</div>' +
+                                    '<div class="meta">' +
+                                    '<span class="rank-badge ' + spot.rank + '">' + (spot.rank === 'high' ?
+                                        '上等' : spot.rank === 'medium' ? '中等' : '下等') + '</span>' +
+                                    '<span>📍 ' + spot.lng + ', ' + spot.lat + '</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<a href="index.html?spot_id=' + spot.id + '" class="view-link">查看地图 →</a>' +
+                                    '</div>' +
+                                    '</div>';
+                            }).join('');
+                        })
+                        .catch(function(error) {
+                            console.error('加载收藏机位失败:', error);
+                        });
+                })
+                .catch(function(error) {
+                    console.error('加载收藏列表失败:', error);
+                });
+        }
+
+        // ============================================================
+        //  loadProfile - 入口
+        // ============================================================
+        function loadProfile() {
+            var params = new URLSearchParams(window.location.search);
+            var targetUser = params.get('user');
+
+            var currentUser = getCurrentUser();
+
+            if (!targetUser || (currentUser && targetUser === currentUser.username)) {
+                if (!currentUser) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                loadUserProfile(currentUser.username, true);
+            } else {
+                loadUserProfile(targetUser, false);
+            }
         }
 
         // ============================================================
@@ -849,7 +1743,7 @@
         renderNav();
         loadProfile();
 
-        console.log('👤 个人中心已加载');
+        console.log('👤 个人中心已加载（懒加载版 - 滚动到才加载图片 + 删除机位 + 删除照片）');
     </script>
 </body>
 </html>

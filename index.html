@@ -7,11 +7,96 @@
     <script>
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
-        var IMGBB_API_KEY = 'd86506f887437861ec18602836a18eec';
+        var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
+        // ✅ 已移除硬编码的 IMGBB_API_KEY 和地图密钥
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
+    <!-- API 工具（安全版） -->
+    <script>
+        // ============================================================
+        //  api.js - BusLens API 调用工具（内联安全版）
+        //  所有第三方 API 密钥通过 Supabase 函数获取，前端不可见
+        // ============================================================
+
+        var apiSupabaseClient = null;
+
+        function initApiClient() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            if (!apiSupabaseClient) {
+                try {
+                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ API 客户端初始化成功');
+                } catch (e) {
+                    console.error('❌ API 客户端初始化失败:', e);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        async function getApiKey(keyName) {
+            if (!initApiClient()) return null;
+            try {
+                const { data, error } = await apiSupabaseClient
+                    .rpc('get_api_key', { key_name: keyName });
+                if (error) {
+                    console.error('❌ 获取 API 密钥失败:', error);
+                    return null;
+                }
+                return data;
+            } catch (e) {
+                console.error('❌ 获取 API 密钥异常:', e);
+                return null;
+            }
+        }
+
+        // ============================================================
+        //  📤 安全上传到 ImgBB（使用安全密钥）
+        // ============================================================
+        async function uploadToImgBB(file) {
+            try {
+                const apiKey = await getApiKey('imgbb_key');
+                if (!apiKey) {
+                    throw new Error('无法获取 ImgBB API 密钥');
+                }
+                const formData = new FormData();
+                formData.append('image', file);
+                const response = await fetch('https://api.imgbb.com/1/upload?key=' + apiKey, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    throw new Error('图片上传失败 (HTTP ' + response.status + ')');
+                }
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error?.message || '图片上传失败');
+                }
+                return result.data.url;
+            } catch (error) {
+                console.error('❌ 上传失败:', error);
+                throw error;
+            }
+        }
+
+        // ============================================================
+        //  🗺️ 获取高德地图密钥
+        // ============================================================
+        async function getAmapKey() {
+            return await getApiKey('amap_key');
+        }
+
+        async function getAmapSecurity() {
+            return await getApiKey('amap_security');
+        }
+    </script>
     <style>
+        /* ===== 原有样式（保持不变） ===== */
         * {
             margin: 0;
             padding: 0;
@@ -25,12 +110,12 @@
         .navbar {
             background: linear-gradient(135deg, #1a73e8, #0d47a1);
             color: white;
-            padding: 12px 24px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             position: sticky;
             top: 0;
@@ -48,17 +133,29 @@
         .navbar .brand span {
             font-size: 26px;
         }
+        .navbar .left-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .navbar .right-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
         .navbar .nav-links {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             flex-wrap: wrap;
         }
         .navbar .nav-links a {
             color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
-            padding: 6px 14px;
-            border-radius: 8px;
+            padding: 5px 12px;
+            border-radius: 6px;
             font-size: 14px;
             transition: all 0.2s;
         }
@@ -70,36 +167,54 @@
             background: rgba(255, 255, 255, 0.2);
             color: white;
         }
-        .navbar .nav-links .user-name {
+        .navbar .user-area {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .navbar .user-area .user-name {
             color: rgba(255, 255, 255, 0.9);
-            padding: 6px 12px;
+            padding: 4px 10px;
             font-size: 14px;
         }
-        .navbar .nav-links .btn-logout {
+        .navbar .user-area .btn-logout {
             background: rgba(255, 255, 255, 0.15);
             color: white;
             border: none;
-            padding: 6px 14px;
-            border-radius: 8px;
+            padding: 5px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             transition: background 0.2s;
         }
-        .navbar .nav-links .btn-logout:hover {
+        .navbar .user-area .btn-logout:hover {
             background: rgba(255, 255, 255, 0.3);
         }
-        .navbar .nav-links .admin-badge {
+        .navbar .user-area a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .navbar .user-area a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        .navbar .admin-badge {
             background: #ff6b35;
-            padding: 2px 10px;
-            border-radius: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
             font-size: 11px;
             font-weight: 600;
             margin-left: 4px;
         }
-        .navbar .nav-links .pending-badge {
+        .navbar .pending-badge {
             background: #ff9800;
-            padding: 2px 10px;
-            border-radius: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
             font-size: 11px;
             font-weight: 600;
             margin-left: 4px;
@@ -114,33 +229,145 @@
                 opacity: 0.6;
             }
         }
+        .navbar .github-badge {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            transition: background 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .navbar .github-badge:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+        }
+        .navbar .github-badge .heart {
+            color: #ff6b6b;
+        }
+        .navbar .changelog-btn {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.85);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .navbar .changelog-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+        }
+
+        .admin-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 12px;
+            border-radius: 16px;
+            white-space: nowrap;
+            flex-wrap: wrap;
+        }
+        .admin-status .admin-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+        .admin-status .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        .admin-status .status-dot.online {
+            background: #4caf50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+        }
+        .admin-status .status-dot.offline {
+            background: #f44336;
+            box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+        }
+
+        .btn-toggle-status {
+            padding: 4px 12px;
+            border: 2px solid #4caf50;
+            border-radius: 6px;
+            background: rgba(76, 175, 80, 0.2);
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .btn-toggle-status:hover {
+            transform: scale(1.05);
+        }
+        .btn-toggle-status.offline {
+            border-color: #f44336;
+            background: rgba(244, 67, 54, 0.2);
+        }
+
+        .btn-favorite {
+            padding: 4px 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            color: #555;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-favorite:hover {
+            background: #f5f5f5;
+            border-color: #ccc;
+        }
+        .btn-favorite.favorited {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+        .btn-favorite.favorited:hover {
+            background: #e55a5a;
+        }
 
         .legend {
             position: absolute;
-            top: 80px;
-            right: 20px;
+            top: 76px;
+            right: 14px;
             background: white;
-            padding: 14px 18px;
+            padding: 12px 16px;
             border-radius: 12px;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
             z-index: 999;
-            font-size: 14px;
-            min-width: 120px;
+            font-size: 13px;
+            min-width: 110px;
         }
         .legend .title {
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: #333;
         }
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin: 6px 0;
+            gap: 8px;
+            margin: 4px 0;
         }
         .legend-dot {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.8);
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
@@ -162,7 +389,7 @@
 
         #container {
             width: 100%;
-            height: calc(100vh - 70px);
+            height: calc(100vh - 64px);
             background: #e8edf3;
         }
 
@@ -170,7 +397,7 @@
             font-size: 18px;
             font-weight: 600;
             color: #1a73e8;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .spot-rank {
             display: inline-block;
@@ -179,7 +406,7 @@
             font-size: 13px;
             font-weight: 500;
             color: white;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .spot-rank.high {
             background: #ff4444;
@@ -195,24 +422,32 @@
             color: #666;
             font-size: 14px;
             line-height: 1.6;
-            margin: 6px 0;
+            margin: 4px 0;
         }
 
         .spot-example-photo {
-            margin-top: 8px;
+            margin-top: 6px;
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid #eee;
+            background: #f8f9fa;
+            min-height: 50px;
         }
         .spot-example-photo img {
             width: 100%;
-            max-height: 180px;
+            max-height: 160px;
             object-fit: cover;
             display: block;
             cursor: pointer;
         }
+        .spot-example-photo .loading-placeholder {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
         .spot-example-photo .no-photo {
-            padding: 12px;
+            padding: 20px;
             text-align: center;
             color: #999;
             font-size: 13px;
@@ -220,8 +455,8 @@
         }
 
         .spot-photos {
-            margin-top: 10px;
-            padding-top: 10px;
+            margin-top: 8px;
+            padding-top: 8px;
             border-top: 1px solid #eee;
         }
         .spot-photos .label {
@@ -231,28 +466,59 @@
         .spot-photos .photo-item {
             display: inline-block;
             margin: 4px 6px 4px 0;
+            text-align: center;
+            vertical-align: top;
+        }
+        .spot-photos .photo-item .photo-placeholder {
+            width: 72px;
+            height: 54px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            border: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #ccc;
         }
         .spot-photos .photo-item img {
-            width: 80px;
-            height: 60px;
+            width: 72px;
+            height: 54px;
             object-fit: cover;
             border-radius: 6px;
             cursor: pointer;
             transition: transform 0.2s;
+            border: 1px solid #eee;
         }
         .spot-photos .photo-item img:hover {
             transform: scale(1.05);
+        }
+        .spot-photos .photo-item .photo-uploader {
+            font-size: 10px;
+            color: #999;
+            margin-top: 2px;
+            max-width: 72px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .spot-photos .photo-item .photo-uploader a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        .spot-photos .photo-item .photo-uploader a:hover {
+            text-decoration: underline;
         }
 
         .spot-actions {
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         .spot-actions .btn-upload-photo {
             display: inline-block;
-            padding: 6px 16px;
+            padding: 5px 14px;
             background: #ff6b35;
             color: white;
             border: none;
@@ -268,7 +534,7 @@
         }
         .spot-actions .btn-new-spot {
             display: inline-block;
-            padding: 6px 16px;
+            padding: 5px 14px;
             background: #1a73e8;
             color: white;
             border: none;
@@ -293,6 +559,216 @@
             margin-right: 2px;
         }
 
+        .changelog-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        .changelog-modal.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .changelog-modal .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 28px 32px;
+            max-width: 560px;
+            width: 92%;
+            max-height: 85vh;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        .changelog-modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            flex-shrink: 0;
+        }
+        .changelog-modal .modal-header h2 {
+            font-size: 20px;
+            color: #1a73e8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .changelog-modal .modal-header h2 .badge-new {
+            font-size: 11px;
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-weight: 400;
+        }
+        .changelog-modal .modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 26px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+        .changelog-modal .modal-header .close-btn:hover {
+            color: #333;
+        }
+        .changelog-modal .modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 4px;
+        }
+        .changelog-modal .modal-body::-webkit-scrollbar {
+            width: 4px;
+        }
+        .changelog-modal .modal-body::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 4px;
+        }
+        .changelog-modal .modal-body .update-content {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .changelog-modal .modal-body .update-content h1 {
+            font-size: 22px;
+            margin: 12px 0 6px 0;
+        }
+        .changelog-modal .modal-body .update-content h2 {
+            font-size: 18px;
+            margin: 10px 0 4px 0;
+        }
+        .changelog-modal .modal-body .update-content h3 {
+            font-size: 16px;
+            margin: 8px 0 4px 0;
+        }
+        .changelog-modal .modal-body .update-content ul {
+            padding-left: 20px;
+            margin: 4px 0;
+        }
+        .changelog-modal .modal-body .update-content li {
+            list-style: disc;
+        }
+        .changelog-modal .modal-body .update-content code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .changelog-modal .modal-body .update-content hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 12px 0;
+        }
+        .changelog-modal .modal-footer {
+            flex-shrink: 0;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .changelog-modal .modal-footer .edit-area {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 8px;
+        }
+        .changelog-modal .modal-footer .edit-area.active {
+            display: flex;
+        }
+        .changelog-modal .modal-footer .edit-area textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+        }
+        .changelog-modal .modal-footer .edit-area textarea:focus {
+            border-color: #1a73e8;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions button {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions .btn-save {
+            background: #4caf50;
+            color: white;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions .btn-save:hover {
+            background: #388e3c;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions .btn-cancel-edit {
+            background: #eee;
+            color: #666;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions .btn-cancel-edit:hover {
+            background: #ddd;
+        }
+        .changelog-modal .modal-footer .btn-edit {
+            padding: 5px 14px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+        .changelog-modal .modal-footer .btn-edit:hover {
+            background: #0d47a1;
+        }
+        .changelog-modal .modal-footer .btn-edit.hidden {
+            display: none;
+        }
+        .changelog-modal .modal-footer .timestamp {
+            font-size: 12px;
+            color: #999;
+        }
+        .changelog-modal .modal-footer .edit-hint {
+            font-size: 12px;
+            color: #ff9800;
+        }
+
         .modal-overlay {
             display: none;
             position: fixed;
@@ -310,10 +786,10 @@
         }
         .modal {
             background: white;
-            border-radius: 20px;
-            padding: 32px;
-            max-width: 480px;
-            width: 90%;
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 460px;
+            width: 92%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-height: 90vh;
             overflow-y: auto;
@@ -326,10 +802,10 @@
         .modal .sub {
             color: #888;
             font-size: 14px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
         .modal .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
         .modal .form-group label {
             display: block;
@@ -360,7 +836,7 @@
         .modal .multi-photo-upload {
             border: 2px dashed #e0e0e0;
             border-radius: 10px;
-            padding: 16px;
+            padding: 14px;
             text-align: center;
             cursor: pointer;
             transition: border-color 0.3s;
@@ -369,7 +845,7 @@
             border-color: #1a73e8;
         }
         .modal .multi-photo-upload .icon {
-            font-size: 28px;
+            font-size: 26px;
             display: block;
         }
         .modal .multi-photo-upload .text {
@@ -383,13 +859,13 @@
         .modal .photo-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
+            gap: 6px;
+            margin-top: 6px;
         }
         .modal .photo-list .photo-item {
             position: relative;
-            width: 80px;
-            height: 80px;
+            width: 72px;
+            height: 72px;
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid #e0e0e0;
@@ -454,7 +930,7 @@
         .modal .modal-msg {
             padding: 8px 12px;
             border-radius: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             display: none;
             font-size: 13px;
         }
@@ -481,10 +957,10 @@
             transform: translate(-50%, -50%);
             z-index: 500;
             background: rgba(255, 255, 255, 0.9);
-            padding: 20px 32px;
+            padding: 18px 28px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            font-size: 16px;
+            font-size: 15px;
             color: #666;
             pointer-events: none;
         }
@@ -504,12 +980,12 @@
 
         .status-msg {
             position: fixed;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 9999;
-            padding: 12px 24px;
-            border-radius: 12px;
+            padding: 10px 20px;
+            border-radius: 10px;
             font-size: 14px;
             font-weight: 500;
             display: none;
@@ -531,42 +1007,89 @@
             color: white;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 640px) {
             .navbar {
-                padding: 10px 16px;
+                padding: 8px 12px;
             }
             .navbar .brand {
                 font-size: 17px;
             }
+            .navbar .brand span {
+                font-size: 22px;
+            }
             .navbar .nav-links a {
                 font-size: 12px;
-                padding: 4px 10px;
+                padding: 4px 8px;
+            }
+            .navbar .user-area .user-name {
+                font-size: 12px;
+                padding: 3px 6px;
+            }
+            .navbar .user-area a {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            .navbar .github-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+            .navbar .changelog-btn {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+            .admin-status {
+                font-size: 10px;
+                padding: 2px 8px;
+                gap: 4px;
+            }
+            .admin-status .admin-item {
+                font-size: 10px;
+            }
+            .btn-toggle-status {
+                font-size: 11px;
+                padding: 3px 8px;
+            }
+            .navbar .left-section {
+                gap: 8px;
+            }
+            .navbar .right-section {
+                gap: 4px;
             }
             .legend {
-                top: 76px;
-                right: 10px;
-                padding: 10px 14px;
-                font-size: 12px;
+                top: 66px;
+                right: 8px;
+                padding: 8px 12px;
+                font-size: 11px;
+                min-width: 90px;
             }
             .legend-dot {
-                width: 14px;
-                height: 14px;
+                width: 12px;
+                height: 12px;
             }
             .spot-example-photo img {
-                max-height: 120px;
+                max-height: 100px;
             }
             .modal {
-                padding: 20px;
+                padding: 18px;
             }
             .modal .photo-list .photo-item {
-                width: 60px;
-                height: 60px;
+                width: 56px;
+                height: 56px;
             }
             .status-msg {
                 font-size: 12px;
-                padding: 10px 16px;
-                bottom: 16px;
-                max-width: 90%;
+                padding: 8px 14px;
+                bottom: 12px;
+                max-width: 92%;
+            }
+            .changelog-modal .modal-content {
+                padding: 16px 18px;
+            }
+            .changelog-modal .modal-header h2 {
+                font-size: 17px;
+            }
+            .changelog-modal .modal-body .update-content {
+                font-size: 13px;
             }
         }
     </style>
@@ -574,8 +1097,19 @@
 <body>
 
     <nav class="navbar">
-        <a href="index.html" class="brand"><span>🚌</span> BusLens</a>
-        <div class="nav-links" id="navLinks"></div>
+        <div class="left-section">
+            <a href="index.html" class="brand"><span>🚌</span> BusLens</a>
+            <div class="nav-links" id="navLinks"></div>
+        </div>
+        <div class="right-section">
+            <div class="admin-status" id="adminStatus"></div>
+            <a href="https://github.com/ponginloi/buslens" target="_blank" class="github-badge">
+                <span>⭐</span> GitHub 开源
+                <span class="heart">❤️</span>
+            </a>
+            <button class="changelog-btn" onclick="openChangelog()">📋 更新日志</button>
+            <div class="user-area" id="userArea"></div>
+        </div>
     </nav>
 
     <div class="legend">
@@ -593,7 +1127,37 @@
 
     <div class="status-msg" id="statusMsg"></div>
 
-    <!-- 上传照片弹窗 -->
+    <!-- ===== 更新日志弹窗 ===== -->
+    <div class="changelog-modal" id="changelogModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 更新日志 <span class="badge-new">NEW</span></h2>
+                <button class="close-btn" onclick="closeChangelog()">×</button>
+            </div>
+            <div class="modal-body" id="changelogBody">
+                <div style="text-align:center;padding:40px 0;color:#999;">
+                    <span class="spinner" style="display:inline-block;animation:spin 1s linear infinite;font-size:24px;">⟳</span>
+                    <p style="margin-top:8px;">加载中...</p>
+                </div>
+            </div>
+            <div class="modal-footer" id="changelogFooter">
+                <div class="edit-area" id="editArea">
+                    <textarea id="editContent" placeholder="用 Markdown 格式写更新内容..."></textarea>
+                    <div class="edit-actions">
+                        <button class="btn-save" onclick="saveChangelog()">💾 保存</button>
+                        <button class="btn-cancel-edit" onclick="cancelEdit()">取消</button>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%;">
+                    <button class="btn-edit hidden" id="editBtn" onclick="enableEdit()">✏️ 编辑</button>
+                    <span class="timestamp" id="changelogTimestamp">最后更新：--</span>
+                    <span class="edit-hint" id="editHint">💡 只有管理员可以编辑</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 上传照片弹窗 ===== -->
     <div class="modal-overlay" id="photoModal">
         <div class="modal">
             <h3>📸 上传照片</h3>
@@ -621,48 +1185,89 @@
     </div>
 
     <script>
-        window._AMapSecurityConfig = {
-            securityJsCode: '32cb0dfc6330c69e2d13dd3164cea242'
-        };
-    </script>
-    <script src="https://webapi.amap.com/maps?v=2.0&key=404164dc78620cbc5d9440e9b2ed5e85">
-    </script>
-
-    <script>
         // ============================================================
-        //  🔐 初始化 Supabase
+        //  高德地图动态加载（使用安全密钥）
         // ============================================================
-        var supabaseClient = null;
+        var mapLoaded = false;
+        var mapReadyCallbacks = [];
 
-        function initSupabase() {
-            if (typeof supabase === 'undefined') {
-                console.error('❌ Supabase SDK 未加载');
-                return false;
-            }
-            try {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log('✅ Supabase 初始化成功');
-                return true;
-            } catch (e) {
-                console.error('❌ Supabase 初始化失败:', e);
-                return false;
+        function onMapReady(callback) {
+            if (mapLoaded) {
+                callback();
+            } else {
+                mapReadyCallbacks.push(callback);
             }
         }
-        initSupabase();
+
+        async function loadAmap() {
+            try {
+                const amapKey = await getAmapKey();
+                const amapSecurity = await getAmapSecurity();
+
+                if (!amapKey) {
+                    console.error('❌ 无法获取高德地图密钥');
+                    return;
+                }
+
+                window._AMapSecurityConfig = {
+                    securityJsCode: amapSecurity
+                };
+
+                if (typeof AMap !== 'undefined') {
+                    mapLoaded = true;
+                    mapReadyCallbacks.forEach(function(cb) { cb(); });
+                    mapReadyCallbacks = [];
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + amapKey;
+                script.onload = function() {
+                    console.log('✅ 高德地图加载成功');
+                    mapLoaded = true;
+                    mapReadyCallbacks.forEach(function(cb) { cb(); });
+                    mapReadyCallbacks = [];
+                };
+                script.onerror = function() {
+                    console.error('❌ 高德地图加载失败');
+                };
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('❌ 加载地图失败:', error);
+            }
+        }
 
         // ============================================================
-        //  用户状态 - 管理员列表（新增 lnx）
+        //  用户状态
         // ============================================================
-        var SESSION_KEY = 'bus_user_session';
-        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
-
         function getCurrentUser() {
             try { var raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
         }
 
         function logout() {
-            sessionStorage.removeItem(SESSION_KEY);
-            location.reload();
+            var user = getCurrentUser();
+            if (user) {
+                if (ADMIN_USERNAMES.indexOf(user.username) !== -1) {
+                    supabaseClient
+                        .from('users')
+                        .update({ is_online: false })
+                        .eq('id', user.id)
+                        .then(function() {
+                            sessionStorage.removeItem(SESSION_KEY);
+                            location.reload();
+                        })
+                        .catch(function() {
+                            sessionStorage.removeItem(SESSION_KEY);
+                            location.reload();
+                        });
+                } else {
+                    sessionStorage.removeItem(SESSION_KEY);
+                    location.reload();
+                }
+            } else {
+                sessionStorage.removeItem(SESSION_KEY);
+                location.reload();
+            }
         }
 
         function isAdmin() {
@@ -670,29 +1275,158 @@
             return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
         }
 
+        // ============================================================
+        //  导航栏
+        // ============================================================
         function renderNav() {
             var nav = document.getElementById('navLinks');
+            var userArea = document.getElementById('userArea');
             var user = getCurrentUser();
+
             if (user) {
                 var admin = isAdmin();
                 var pendingCount = window._pendingCount || 0;
                 nav.innerHTML =
                     '<a href="index.html" class="active">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
                     '<a href="profile.html">👤 个人中心</a>' +
                     (admin ? '<a href="admin.html">⚙️ 审核</a>' : '') +
+                    (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
                     (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
-                    '<a href="upload.html">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + user.username + (admin ? '<span class="admin-badge">管理员</span>' : '') +
-                    '</span>' +
-                    '<button class="btn-logout" onclick="logout()">退出</button>';
+                    '<a href="upload.html">📤 新机位</a>';
             } else {
                 nav.innerHTML =
                     '<a href="index.html" class="active">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>';
+            }
+
+            if (user) {
+                var admin = isAdmin();
+                userArea.innerHTML =
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>' +
+                    (admin ? '<button class="btn-toggle-status" id="statusToggleBtn" onclick="toggleOnlineStatus()">🟢 在线</button>' :
+                        '') +
+                    '<button class="btn-logout" onclick="logout()">退出</button>';
+
+                if (admin) {
+                    updateStatusButton();
+                }
+            } else {
+                userArea.innerHTML =
                     '<a href="login.html">登录</a>' +
                     '<a href="register.html">注册</a>';
             }
         }
 
+        function toggleOnlineStatus() {
+            var user = getCurrentUser();
+            if (!user || !isAdmin()) {
+                alert('只有管理员可以操作');
+                return;
+            }
+
+            supabaseClient
+                .from('users')
+                .select('is_online')
+                .eq('id', user.id)
+                .single()
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    var currentStatus = res.data?.is_online || false;
+                    var newStatus = !currentStatus;
+
+                    return supabaseClient
+                        .from('users')
+                        .update({ is_online: newStatus, last_active: new Date().toISOString() })
+                        .eq('id', user.id);
+                })
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    showStatus('✅ 状态已切换', 'success');
+                    updateStatusButton();
+                    if (typeof getAdminStatus === 'function') {
+                        getAdminStatus();
+                    }
+                })
+                .catch(function(error) {
+                    console.error('切换状态失败:', error);
+                    showStatus('❌ 切换失败：' + error.message, 'error');
+                });
+        }
+
+        function updateStatusButton() {
+            var user = getCurrentUser();
+            if (!user || !isAdmin()) return;
+
+            var btn = document.getElementById('statusToggleBtn');
+            if (!btn) return;
+
+            supabaseClient
+                .from('users')
+                .select('is_online')
+                .eq('id', user.id)
+                .single()
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    var isOnline = res.data?.is_online || false;
+                    btn.textContent = isOnline ? '🟢 在线' : '🔴 离线';
+                    btn.className = 'btn-toggle-status' + (isOnline ? '' : ' offline');
+                })
+                .catch(function(error) {
+                    console.error('获取状态失败:', error);
+                });
+        }
+
+        function getAdminStatus() {
+            var now = new Date();
+            var hour = now.getHours();
+
+            supabaseClient
+                .from('users')
+                .select('username, is_online, last_active')
+                .in('username', ['ponginloi', 'lnx'])
+                .then(function(res) {
+                    if (res.error) {
+                        console.error('获取管理员状态失败:', res.error);
+                        return;
+                    }
+                    var admins = res.data || [];
+                    if (admins.length === 0) {
+                        document.getElementById('adminStatus').innerHTML = '';
+                        return;
+                    }
+
+                    var statusHtml = '';
+                    admins.forEach(function(admin) {
+                        var isOnline = admin.is_online === true;
+                        var dotClass = isOnline ? 'online' : 'offline';
+                        var statusText = '';
+
+                        if (isOnline) {
+                            statusText = '在线';
+                        } else {
+                            if (hour >= 22 || hour < 7) {
+                                statusText = '补充睡眠中 😴';
+                            } else {
+                                statusText = '外出拍车中 📷';
+                            }
+                        }
+
+                        statusHtml +=
+                            '<span class="admin-item">' +
+                            admin.username +
+                            ' <span class="status-dot ' + dotClass + '"></span>' +
+                            ' ' + statusText +
+                            '</span>';
+                    });
+
+                    document.getElementById('adminStatus').innerHTML = statusHtml;
+                });
+        }
+
+        // ============================================================
+        //  工具函数
+        // ============================================================
         function getRankLabel(rank) {
             var map = { high: '上等 ⭐⭐⭐', medium: '中等 ⭐⭐', low: '下等 ⭐' };
             return map[rank] || rank;
@@ -701,6 +1435,30 @@
         function getRankColor(rank) {
             var map = { high: '#ff4444', medium: '#ffbb33', low: '#00c851' };
             return map[rank] || '#999';
+        }
+
+        function getDeviceLabel(device) {
+            var map = { phone: '📱 手机', camera: '📷 相机', both: '📱📷 两者皆可', unknown: '❓ 未指定' };
+            return map[device] || '❓ 未指定';
+        }
+
+        function getUserTitle(spotCount, approvedCount, highRankCount, photoCount) {
+            if (spotCount >= 150 && approvedCount >= 150 && highRankCount >= 35 && photoCount >= 100) {
+                return { title: '⚡ 巴士之神', class: 'legend' };
+            }
+            if (spotCount >= 80 && approvedCount >= 80 && highRankCount >= 18 && photoCount >= 50) {
+                return { title: '👑 巴士传奇', class: 'master' };
+            }
+            if (spotCount >= 40 && approvedCount >= 40 && highRankCount >= 8 && photoCount >= 25) {
+                return { title: '📷 巴士摄影大师', class: 'photographer' };
+            }
+            if (spotCount >= 20 && approvedCount >= 20 && highRankCount >= 3 && photoCount >= 12) {
+                return { title: '🔍 巴士探索家', class: 'explorer' };
+            }
+            if (spotCount >= 8 && approvedCount >= 8 && photoCount >= 5) {
+                return { title: '📝 巴士记录者', class: 'recorder' };
+            }
+            return { title: '🌱 巴士萌新', class: 'beginner' };
         }
 
         function hideLoadingTip() {
@@ -721,25 +1479,112 @@
         }
 
         // ============================================================
-        //  📤 上传图片到 ImgBB
+        //  📦 图片压缩 + 水印（与 upload.html 完全一致）
         // ============================================================
-        function uploadToImgBB(file) {
-            var formData = new FormData();
-            formData.append('image', file);
-            return fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(function(response) {
-                    if (!response.ok) throw new Error('图片上传失败 (HTTP ' + response.status + ')');
-                    return response.json();
-                })
-                .then(function(result) {
-                    if (!result.success) {
-                        throw new Error(result.error?.message || '图片上传失败');
-                    }
-                    return result.data.url;
-                });
+        function processImageWithCanvas(file, options, username) {
+            var defaults = {
+                maxWidth: 1920,
+                maxHeight: 1080,
+                quality: 0.85,
+                maxSizeMB: 4.5,
+                barHeight: 50,
+                watermarkText: 'BusLens',
+                copyrightText: '© 2026 ' + (username || '用户') + ' 版权所有'
+            };
+            var opt = Object.assign({}, defaults, options);
+
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        // 第 1 步：压缩图片
+                        var width = img.width;
+                        var height = img.height;
+
+                        if (width > opt.maxWidth) {
+                            height = height * opt.maxWidth / width;
+                            width = opt.maxWidth;
+                        }
+                        if (height > opt.maxHeight) {
+                            width = width * opt.maxHeight / height;
+                            height = opt.maxHeight;
+                        }
+
+                        var finalWidth = Math.round(width);
+                        var finalHeight = Math.round(height);
+                        var barHeight = opt.barHeight;
+                        var totalHeight = finalHeight + barHeight;
+
+                        var canvas = document.createElement('canvas');
+                        canvas.width = finalWidth;
+                        canvas.height = totalHeight;
+                        var ctx = canvas.getContext('2d');
+
+                        // 第 2 步：绘制压缩后的图片
+                        ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+
+                        // 第 3 步：底部黑色版权栏
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(0, finalHeight, finalWidth, barHeight);
+
+                        // 左下角：BusLens
+                        var fontSize = Math.max(11, Math.min(16, Math.round(finalWidth * 0.012)));
+                        ctx.textBaseline = 'middle';
+                        ctx.textAlign = 'left';
+                        ctx.font = 'bold ' + fontSize + 'px Arial, sans-serif';
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillText(opt.watermarkText, 14, finalHeight + barHeight / 2 + 1);
+
+                        // 右下角：版权信息
+                        ctx.textAlign = 'right';
+                        ctx.font = fontSize + 'px Arial, sans-serif';
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillText(opt.copyrightText, finalWidth - 14, finalHeight + barHeight / 2 + 1);
+
+                        // 第 4 步：图片左下角半透明水印（4倍大，50%透明度）
+                        var watermarkFontSize = Math.max(40, Math.min(90, Math.round(finalWidth * 0.048)));
+                        ctx.save();
+                        ctx.globalAlpha = 0.75;
+                        ctx.font = 'bold ' + watermarkFontSize + 'px Arial, sans-serif';
+                        ctx.textBaseline = 'bottom';
+                        ctx.textAlign = 'left';
+                        ctx.fillStyle = '#FFFFFF';
+                        var padding = Math.max(16, Math.round(finalWidth * 0.02));
+                        ctx.fillText(opt.watermarkText, padding, finalHeight - padding);
+                        ctx.restore();
+
+                        // 第 5 步：导出
+                        var quality = opt.quality;
+                        var needCompress = file.size > opt.maxSizeMB * 1024 * 1024;
+
+                        function tryExport() {
+                            canvas.toBlob(function(blob) {
+                                if (needCompress && blob.size > opt.maxSizeMB * 1024 * 1024 && quality > 0.1) {
+                                    quality -= 0.05;
+                                    tryExport();
+                                    return;
+                                }
+                                var processedFile = new File([blob], file.name, { type: 'image/jpeg' });
+                                console.log('✅ 处理完成：' +
+                                    (file.size / 1024 / 1024).toFixed(2) + 'MB → ' +
+                                    (blob.size / 1024 / 1024).toFixed(2) + 'MB'
+                                );
+                                resolve(processedFile);
+                            }, 'image/jpeg', quality);
+                        }
+                        tryExport();
+                    };
+                    img.onerror = function() {
+                        reject(new Error('图片加载失败'));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function() {
+                    reject(new Error('文件读取失败'));
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
         // ============================================================
@@ -820,9 +1665,9 @@
         }
 
         // ============================================================
-        //  📤 提交照片（保存到 Supabase）
+        //  📤 提交照片（压缩 + 水印 + 安全上传）
         // ============================================================
-        function submitPhotos() {
+        async function submitPhotos() {
             var user = getCurrentUser();
             if (!user) { alert('请先登录'); return; }
 
@@ -835,88 +1680,283 @@
 
             var btn = document.getElementById('photoSubmitBtn');
             btn.disabled = true;
-            btn.textContent = '⏳ 上传中...';
-            showModalMsg('⏳ 正在上传照片到图床...', 'loading');
-            showStatus('⏳ 正在上传照片...', 'loading');
+            btn.textContent = '⏳ 压缩上传中...';
+            showModalMsg('⏳ 正在压缩并上传照片...', 'loading');
+            showStatus('📦 正在压缩图片...', 'loading');
 
-            var uploadPromises = selectedPhotoFiles.map(function(file) {
-                return uploadToImgBB(file);
+            var uploadPromises = selectedPhotoFiles.map(async function(file) {
+                try {
+                    if (file.size > 1024 * 1024) {
+                        // ✅ 使用带水印的处理函数
+                        var processed = await processImageWithCanvas(file, {
+                            maxWidth: 1920,
+                            maxHeight: 1080,
+                            quality: 0.85,
+                            maxSizeMB: 4.5,
+                            barHeight: 50,
+                            watermarkText: 'BusLens',
+                            copyrightText: '© 2026 ' + user.username + ' 版权所有'
+                        }, user.username);
+                        return await uploadToImgBB(processed);
+                    } else {
+                        // 小图片也走水印处理（但压缩跳过）
+                        var processed = await processImageWithCanvas(file, {
+                            maxWidth: 1920,
+                            maxHeight: 1080,
+                            quality: 0.85,
+                            maxSizeMB: 4.5,
+                            barHeight: 50,
+                            watermarkText: 'BusLens',
+                            copyrightText: '© 2026 ' + user.username + ' 版权所有'
+                        }, user.username);
+                        return await uploadToImgBB(processed);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ 处理失败，使用原图:', error);
+                    return await uploadToImgBB(file);
+                }
             });
 
-            Promise.all(uploadPromises)
-                .then(function(imageUrls) {
-                    showModalMsg('✅ 照片已上传到图床，正在保存到数据库...', 'loading');
-                    showStatus('📝 正在保存到数据库...', 'loading');
+            try {
+                var imageUrls = await Promise.all(uploadPromises);
 
-                    return supabaseClient
-                        .from('spots')
-                        .select('photos')
-                        .eq('id', currentSpotId)
-                        .single()
-                        .then(function(res) {
-                            if (res.error) throw new Error(res.error.message);
-                            var spot = res.data;
-                            if (!spot) throw new Error('机位不存在');
+                showModalMsg('✅ 上传完成，正在保存...', 'loading');
+                showStatus('📝 正在保存到数据库...', 'loading');
 
-                            var photos = spot.photos || [];
+                var result = await supabaseClient
+                    .from('spots')
+                    .select('photos')
+                    .eq('id', currentSpotId)
+                    .single();
 
-                            imageUrls.forEach(function(url, index) {
-                                photos.push({
-                                    id: 'photo_' + Date.now() + '_' + index,
-                                    url: url,
-                                    caption: caption || '',
-                                    uploader: user.username,
-                                    uploaderName: user.username,
-                                    date: new Date().toISOString().slice(0, 10),
-                                    status: 'pending'
-                                });
-                            });
+                if (result.error) throw new Error(result.error.message);
+                var spot = result.data;
+                if (!spot) throw new Error('机位不存在');
 
-                            return supabaseClient
-                                .from('spots')
-                                .update({ photos: photos })
-                                .eq('id', currentSpotId);
-                        });
+                var photos = spot.photos || [];
+                imageUrls.forEach(function(url, index) {
+                    photos.push({
+                        id: 'photo_' + Date.now() + '_' + index,
+                        url: url,
+                        caption: caption || '',
+                        uploader: user.username,
+                        uploaderName: user.username,
+                        date: new Date().toISOString().slice(0, 10),
+                        status: 'pending'
+                    });
+                });
+
+                await supabaseClient
+                    .from('spots')
+                    .update({ photos: photos })
+                    .eq('id', currentSpotId);
+
+                showModalMsg('✅ ' + selectedPhotoFiles.length + ' 张照片已保存！等待审核', 'success');
+                showStatus('✅ 照片保存成功！', 'success');
+                btn.textContent = '✅ 已上传';
+                setTimeout(function() {
+                    closePhotoModal();
+                    loadMapData();
+                }, 1500);
+
+            } catch (error) {
+                console.error('上传失败:', error);
+                showModalMsg('❌ 上传失败：' + error.message, 'error');
+                showStatus('❌ 上传失败：' + error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '📤 重新上传';
+            }
+        }
+
+        // ============================================================
+        //  ⭐ 收藏功能
+        // ============================================================
+        function toggleFavorite(spotId, btn) {
+            var user = getCurrentUser();
+            if (!user) {
+                alert('请先登录才能收藏！');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            supabaseClient
+                .from('favorites')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('spot_id', spotId)
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    if (res.data && res.data.length > 0) {
+                        return supabaseClient
+                            .from('favorites')
+                            .delete()
+                            .eq('user_id', user.id)
+                            .eq('spot_id', spotId);
+                    } else {
+                        return supabaseClient
+                            .from('favorites')
+                            .insert([{ user_id: user.id, spot_id: spotId }]);
+                    }
                 })
-                .then(function(result) {
-                    if (result.error) throw new Error(result.error.message);
-                    showModalMsg('✅ ' + selectedPhotoFiles.length + ' 张照片已保存到数据库！等待审核', 'success');
-                    showStatus('✅ 照片保存成功！', 'success');
-                    btn.textContent = '✅ 已上传';
-                    setTimeout(function() {
-                        closePhotoModal();
-                        loadMapData();
-                    }, 1500);
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    updateFavoriteButton(spotId, btn);
+                    showStatus('✅ 收藏已更新', 'success');
                 })
                 .catch(function(error) {
-                    console.error('上传失败:', error);
-                    showModalMsg('❌ 上传失败：' + error.message, 'error');
-                    showStatus('❌ 上传失败：' + error.message, 'error');
-                    btn.disabled = false;
-                    btn.textContent = '📤 重新上传';
+                    console.error('收藏操作失败:', error);
+                    showStatus('❌ 操作失败：' + error.message, 'error');
+                });
+        }
+
+        function updateFavoriteButton(spotId, btn) {
+            var user = getCurrentUser();
+            if (!user) return;
+
+            supabaseClient
+                .from('favorites')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('spot_id', spotId)
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    var isFavorite = res.data && res.data.length > 0;
+                    btn.textContent = isFavorite ? '⭐ 已收藏 ❤️' : '⭐ 收藏';
+                    btn.className = isFavorite ? 'btn-favorite favorited' : 'btn-favorite';
+                })
+                .catch(function(error) {
+                    console.error('更新按钮状态失败:', error);
                 });
         }
 
         // ============================================================
-        //  头衔计算函数（高难度 6 级）- 与 profile.html 保持一致
+        //  📍 定位
         // ============================================================
-        function getUserTitle(spotCount, approvedCount, highRankCount, photoCount) {
-            if (spotCount >= 150 && approvedCount >= 150 && highRankCount >= 35 && photoCount >= 100) {
-                return { title: '⚡ 巴士之神', class: 'legend' };
+        function getSpotIdFromURL() {
+            var params = new URLSearchParams(window.location.search);
+            return params.get('spot_id');
+        }
+
+        function locateSpot(spotId) {
+            if (!spotId || !map) return;
+
+            var allSpots = allSpotsCache || [];
+            var spot = allSpots.find(function(s) {
+                return s.id == spotId && s.status === 'approved';
+            });
+
+            if (!spot) {
+                console.log('⚠️ 找不到机位 ID:', spotId);
+                showStatus('⚠️ 该机位不存在或未审核通过', 'error');
+                return;
             }
-            if (spotCount >= 80 && approvedCount >= 80 && highRankCount >= 18 && photoCount >= 50) {
-                return { title: '👑 巴士传奇', class: 'master' };
+
+            map.setCenter([spot.lng, spot.lat]);
+            map.setZoom(15);
+
+            setTimeout(function() {
+                var markers = map.getAllOverlays('marker');
+                for (var i = 0; i < markers.length; i++) {
+                    var marker = markers[i];
+                    var pos = marker.getPosition();
+                    if (pos.getLng() === spot.lng && pos.getLat() === spot.lat) {
+                        marker.emit('click');
+                        console.log('✅ 已定位到机位:', spot.name);
+                        break;
+                    }
+                }
+            }, 500);
+        }
+
+        // ============================================================
+        //  🖼️ 弹窗图片懒加载
+        // ============================================================
+        function loadImageForSpot(spotId, imgElement, url) {
+            if (!imgElement) return;
+            if (imgElement.dataset && imgElement.dataset.loaded === 'true') return;
+
+            var img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                var newImg = document.createElement('img');
+                newImg.src = url;
+                newImg.alt = '';
+                newImg.style.width = '100%';
+                newImg.style.maxHeight = '160px';
+                newImg.style.objectFit = 'cover';
+                newImg.style.display = 'block';
+                newImg.style.cursor = 'pointer';
+                newImg.onclick = function(e) {
+                    e.stopPropagation();
+                    window.open(url, '_blank');
+                };
+                imgElement.parentNode.replaceChild(newImg, imgElement);
+                if (imgElement.dataset) imgElement.dataset.loaded = 'true';
+            };
+            img.onerror = function() {
+                imgElement.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">❌ 加载失败</div>';
+                if (imgElement.dataset) imgElement.dataset.loaded = 'true';
+            };
+            img.src = url;
+        }
+
+        function loadSpotImages(spotId) {
+            var container = document.getElementById('spot_images_' + spotId);
+            if (!container) return;
+            if (container.dataset.loaded === 'true') return;
+            container.dataset.loaded = 'true';
+
+            var spot = allSpotsCache.find(function(s) { return s.id == spotId; });
+            if (!spot) return;
+
+            // 例图
+            var exampleContainer = container.querySelector('.example-container');
+            if (exampleContainer && spot.example_photo) {
+                var placeholder = exampleContainer.querySelector('.loading-placeholder');
+                if (placeholder) {
+                    loadImageForSpot(spotId, placeholder, spot.example_photo);
+                }
             }
-            if (spotCount >= 40 && approvedCount >= 40 && highRankCount >= 8 && photoCount >= 25) {
-                return { title: '📷 巴士摄影大师', class: 'photographer' };
+
+            // 用户照片
+            var photoItems = container.querySelectorAll('.photo-item');
+            if (photoItems.length > 0 && spot.photos) {
+                var validPhotos = spot.photos.filter(function(p) { return p.status !== 'rejected'; });
+                photoItems.forEach(function(item, index) {
+                    if (index < validPhotos.length) {
+                        var p = validPhotos[index];
+                        var placeholder = item.querySelector('.photo-placeholder');
+                        if (placeholder) {
+                            var img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.onload = function() {
+                                var newImg = document.createElement('img');
+                                newImg.src = p.url;
+                                newImg.alt = p.caption || '';
+                                newImg.style.width = '72px';
+                                newImg.style.height = '54px';
+                                newImg.style.objectFit = 'cover';
+                                newImg.style.borderRadius = '6px';
+                                newImg.style.cursor = 'pointer';
+                                newImg.style.border = '1px solid #eee';
+                                newImg.onclick = function(e) {
+                                    e.stopPropagation();
+                                    window.open(p.url, '_blank');
+                                };
+                                placeholder.parentNode.replaceChild(newImg, placeholder);
+                            };
+                            img.onerror = function() {
+                                placeholder.textContent = '❌';
+                                placeholder.style.fontSize = '20px';
+                                placeholder.style.display = 'flex';
+                                placeholder.style.alignItems = 'center';
+                                placeholder.style.justifyContent = 'center';
+                            };
+                            img.src = p.url;
+                        }
+                    }
+                });
             }
-            if (spotCount >= 20 && approvedCount >= 20 && highRankCount >= 3 && photoCount >= 12) {
-                return { title: '🔍 巴士探索家', class: 'explorer' };
-            }
-            if (spotCount >= 8 && approvedCount >= 8 && photoCount >= 5) {
-                return { title: '📝 巴士记录者', class: 'recorder' };
-            }
-            return { title: '🌱 巴士萌新', class: 'beginner' };
         }
 
         // ============================================================
@@ -943,14 +1983,12 @@
                     var allSpots = allSpotsCache;
                     console.log('📦 从数据库读取到', allSpots.length, '个机位');
 
-                    // ✅ 只显示已审核通过的机位
                     var spots = allSpots.filter(function(s) {
                         return s.status === 'approved';
                     });
 
                     console.log('📍 已审核机位:', spots.length, '个');
 
-                    // 更新待审核数量（供导航栏使用）
                     var pending = allSpots.filter(function(s) { return s.status === 'pending'; });
                     window._pendingCount = pending.length;
                     renderNav();
@@ -993,7 +2031,6 @@
 
                     spots.forEach(function(spot, index) {
                         var color = getRankColor(spot.rank);
-                        console.log('📍 添加标记 ' + (index + 1) + ': ' + spot.name + ' (' + spot.rank + ')');
 
                         var markerContent = document.createElement('div');
                         markerContent.style.cssText =
@@ -1021,12 +2058,14 @@
                             zIndex: 100
                         });
 
+                        var deviceLabel = getDeviceLabel(spot.device_type);
+
+                        // 弹窗内容
                         var exampleHtml = '';
                         if (spot.example_photo) {
                             exampleHtml =
-                                '<div class="spot-example-photo">' +
-                                '<img src="' + spot.example_photo + '" alt="' + spot.name + ' 例图" onclick="window.open(\'' +
-                                spot.example_photo + '\',\'_blank\')" />' +
+                                '<div class="spot-example-photo example-container">' +
+                                '<div class="loading-placeholder">📷 点击加载例图</div>' +
                                 '</div>';
                         } else {
                             exampleHtml =
@@ -1041,16 +2080,17 @@
                                 return p.status !== 'rejected';
                             });
                             if (validPhotos.length > 0) {
-                                photosHtml = validPhotos.map(function(p) {
-                                    return '<div class="photo-item"><img src="' + p.url + '" alt="' + (p.caption ||
-                                        '') + '" onclick="window.open(\'' + p.url + '\',\'_blank\')" /></div>';
+                                var photoItemsHtml = validPhotos.map(function(p) {
+                                    var uploaderName = p.uploader || p.uploaderName || '未知';
+                                    return '<div class="photo-item">' +
+                                        '<div class="photo-placeholder">📷</div>' +
+                                        '<div class="photo-uploader">📤 <a href="profile.html?user=' + encodeURIComponent(uploaderName) + '" onclick="event.stopPropagation();">' + uploaderName + '</a></div>' +
+                                        '</div>';
                                 }).join('');
-                                photosHtml = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">' +
-                                    photosHtml + '</div>';
+                                photosHtml = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">' + photoItemsHtml + '</div>';
                             }
                         }
 
-                        // ✅ 获取用户头衔（高难度 6 级）
                         var userSpots = allSpots.filter(function(s) {
                             return s.created_by === spot.created_by && s.status === 'approved';
                         });
@@ -1069,20 +2109,30 @@
                             '<div style="padding:4px 2px;max-width:320px;">' +
                             '<div class="spot-name">' + spot.name + '</div>' +
                             '<span class="spot-rank ' + spot.rank + '">' + getRankLabel(spot.rank) + '</span>' +
+                            '<div style="font-size:13px;color:#888;margin:4px 0;">📱 ' + deviceLabel + '</div>' +
                             '<div class="spot-desc">' + (spot.description || '暂无描述') + '</div>' +
+                            '<div id="spot_images_' + spot.id + '" data-loaded="false">' +
                             exampleHtml +
                             '<div class="spot-photos">' +
                             photosHtml +
                             '<div style="margin-top:6px;font-size:12px;color:#999;">' +
-                            '📤 上传者：' + (spot.created_by || '未知') +
+                            '📤 上传者：<a href="profile.html?user=' + (spot.created_by || '') +
+                            '" style="color:#1a73e8;text-decoration:none;font-weight:500;" onclick="event.stopPropagation();">' +
+                            (spot.created_by || '未知') + '</a>' +
                             '<span class="uploader-title"><span class="title-icon">' + titleInfo.title +
                             '</span></span>' +
                             ' ｜ ' + (spot.created_at || '') +
+                            '</div>' +
+                            '<div style="margin-top:8px;">' +
+                            '<button class="btn-favorite" onclick="toggleFavorite(\'' + spot.id + '\', this)" data-spot-id="' +
+                            spot.id + '">' +
+                            '⭐ 收藏</button>' +
                             '</div>' +
                             '<div class="spot-actions">' +
                             '<button class="btn-upload-photo" onclick="openPhotoModal(\'' + spot.id + '\',\'' + spot.name +
                             '\')">📸 上传照片</button>' +
                             '<a href="upload.html" class="btn-new-spot">➕ 新机位</a>' +
+                            '</div>' +
                             '</div>' +
                             '</div>' +
                             '</div>';
@@ -1095,10 +2145,36 @@
 
                         marker.on('click', function() {
                             infoWindow.open(map, marker.getPosition());
+                            setTimeout(function() {
+                                loadSpotImages(spot.id);
+                            }, 150);
                         });
 
                         map.add(marker);
                     });
+
+                    // 加载收藏状态
+                    var user = getCurrentUser();
+                    if (user) {
+                        supabaseClient
+                            .from('favorites')
+                            .select('spot_id')
+                            .eq('user_id', user.id)
+                            .then(function(res) {
+                                if (res.error) throw new Error(res.error.message);
+                                var favoriteIds = (res.data || []).map(function(f) { return f.spot_id; });
+                                document.querySelectorAll('.btn-favorite').forEach(function(btn) {
+                                    var spotId = btn.getAttribute('data-spot-id');
+                                    if (favoriteIds.indexOf(Number(spotId)) !== -1) {
+                                        btn.textContent = '⭐ 已收藏 ❤️';
+                                        btn.className = 'btn-favorite favorited';
+                                    }
+                                });
+                            })
+                            .catch(function(error) {
+                                console.error('加载收藏状态失败:', error);
+                            });
+                    }
 
                     setTimeout(function() {
                         if (spots.length > 0 && map) {
@@ -1107,13 +2183,174 @@
                         }
                     }, 300);
 
-                    console.log('✅ 数据加载成功，共 ' + spots.length + ' 个已审核机位');
+                    var targetSpotId = getSpotIdFromURL();
+                    if (targetSpotId) {
+                        setTimeout(function() {
+                            locateSpot(targetSpotId);
+                        }, 800);
+                    }
+
+                    console.log('✅ 数据加载成功，共 ' + spots.length + ' 个已审核机位（图片点击后加载，上传带水印）');
                 })
                 .catch(function(error) {
                     console.error('❌ 加载数据失败:', error);
                     showStatus('❌ 读取数据失败：' + error.message, 'error');
                 });
         }
+
+        // ============================================================
+        //  📋 更新日志功能
+        // ============================================================
+        var currentEditId = null;
+
+        function openChangelog() {
+            document.getElementById('changelogModal').classList.add('active');
+            loadChangelog();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeChangelog() {
+            document.getElementById('changelogModal').classList.remove('active');
+            document.body.style.overflow = '';
+            cancelEdit();
+        }
+
+        function loadChangelog() {
+            var body = document.getElementById('changelogBody');
+            body.innerHTML =
+                '<div style="text-align:center;padding:40px 0;color:#999;"><span class="spinner" style="display:inline-block;animation:spin 1s linear infinite;font-size:24px;">⟳</span><p style="margin-top:8px;">加载中...</p></div>';
+
+            supabaseClient
+                .from('updates')
+                .select('*')
+                .order('id', { ascending: false })
+                .limit(1)
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    var data = res.data;
+                    if (!data || data.length === 0) {
+                        body.innerHTML =
+                            '<div style="text-align:center;padding:40px 0;color:#999;"><p>暂无更新日志</p></div>';
+                        document.getElementById('changelogTimestamp').textContent = '暂无更新';
+                        return;
+                    }
+                    var update = data[0];
+                    currentEditId = update.id;
+                    document.getElementById('changelogTimestamp').textContent = '最后更新：' + formatDate(update.updated_at);
+
+                    var contentHtml = update.content || '暂无内容';
+                    contentHtml = contentHtml
+                        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/^\- (.*$)/gim, '<li>$1</li>')
+                        .replace(/(<li>.*?<\/li>)/g, '<ul>$1</ul>')
+                        .replace(/<\/ul><ul>/g, '');
+
+                    body.innerHTML =
+                        '<div class="update-content">' + contentHtml + '</div>';
+
+                    document.getElementById('editContent').value = update.content || '';
+
+                    var user = getCurrentUser();
+                    var editBtn = document.getElementById('editBtn');
+                    var editHint = document.getElementById('editHint');
+                    if (user && isAdmin()) {
+                        editBtn.classList.remove('hidden');
+                        editHint.textContent = '💡 支持 Markdown 语法（标题 #, ##, ### / 列表 - / 粗体 **）';
+                    } else {
+                        editBtn.classList.add('hidden');
+                        editHint.textContent = '💡 只有管理员可以编辑';
+                    }
+                })
+                .catch(function(error) {
+                    console.error('加载更新日志失败:', error);
+                    body.innerHTML = '<div style="text-align:center;padding:40px 0;color:#f44336;"><p>❌ 加载失败</p></div>';
+                });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '未知';
+            var d = new Date(dateStr);
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2,
+                '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        }
+
+        function enableEdit() {
+            document.getElementById('editArea').classList.add('active');
+            document.getElementById('editBtn').style.display = 'none';
+        }
+
+        function cancelEdit() {
+            document.getElementById('editArea').classList.remove('active');
+            document.getElementById('editBtn').style.display = '';
+        }
+
+        function saveChangelog() {
+            var content = document.getElementById('editContent').value.trim();
+            if (!content) {
+                alert('内容不能为空');
+                return;
+            }
+
+            var user = getCurrentUser();
+            if (!user) {
+                alert('请先登录');
+                return;
+            }
+            if (!isAdmin()) {
+                alert('只有管理员可以编辑');
+                return;
+            }
+
+            var btn = document.querySelector('.btn-save');
+            btn.disabled = true;
+            btn.textContent = '⏳ 保存中...';
+
+            var data = {
+                content: content,
+                updated_by: user.username,
+                updated_at: new Date().toISOString()
+            };
+
+            var promise;
+            if (currentEditId) {
+                promise = supabaseClient
+                    .from('updates')
+                    .update(data)
+                    .eq('id', currentEditId);
+            } else {
+                promise = supabaseClient
+                    .from('updates')
+                    .insert([data]);
+            }
+
+            promise.then(function(res) {
+                if (res.error) throw new Error(res.error.message);
+                showStatus('✅ 更新日志已保存！', 'success');
+                cancelEdit();
+                loadChangelog();
+                btn.disabled = false;
+                btn.textContent = '💾 保存';
+            }).catch(function(error) {
+                console.error('保存失败:', error);
+                alert('保存失败：' + error.message);
+                btn.disabled = false;
+                btn.textContent = '💾 保存';
+            });
+        }
+
+        document.getElementById('changelogModal').addEventListener('click', function(e) {
+            if (e.target === this) closeChangelog();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('changelogModal').classList.contains('active')) closeChangelog();
+                if (document.getElementById('photoModal').classList.contains('active')) closePhotoModal();
+            }
+        });
 
         // ============================================================
         //  初始化地图
@@ -1142,6 +2379,9 @@
                 console.log('✅ 地图加载完成！');
                 hideLoadingTip();
                 loadMapData();
+                setTimeout(function() {
+                    getAdminStatus();
+                }, 1000);
             });
 
             map.on('error', function() {
@@ -1154,14 +2394,40 @@
         // ============================================================
         //  启动
         // ============================================================
-        renderNav();
-        initMap();
+        var supabaseClient = null;
 
-        console.log('🚌 BusLens 地图已加载！');
+        function initSupabaseMain() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 主客户端初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 主客户端初始化失败:', e);
+                return false;
+            }
+        }
+        initSupabaseMain();
+
+        renderNav();
+        loadAmap();
+
+        onMapReady(function() {
+            initMap();
+        });
+
+        setInterval(getAdminStatus, 30000);
+
+        console.log('🚌 BusLens 地图已加载！（安全 API + 水印版）');
         console.log('📌 数据源: Supabase');
-        console.log('📌 只显示 status === "approved" 的机位');
+        console.log('🔑 API 密钥已安全存储（前端不可见）');
+        console.log('📸 图片加载模式: 点击弹窗后加载');
+        console.log('🖼️ 图片上传已启用水印（底部版权栏 + 左下角半透明水印）');
         console.log('📌 管理员：ponginloi, lnx');
-        console.log('📌 用户头衔：高难度 6 级系统');
+        console.log('📌 GitHub 开源项目：https://github.com/ponginloi/buslens');
     </script>
 </body>
 </html>

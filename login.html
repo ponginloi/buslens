@@ -7,6 +7,7 @@
     <script>
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var SESSION_KEY = 'bus_user_session';
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -52,19 +53,20 @@
             margin-top: 4px;
         }
 
-        .notice-box {
-            background: #fff3e0;
-            border-left: 4px solid #ff9800;
-            padding: 14px 16px;
+        .welcome-box {
+            background: linear-gradient(135deg, #e8f0fe, #d2e3fc);
+            border-left: 4px solid #1a73e8;
+            padding: 16px 20px;
             border-radius: 10px;
             margin-bottom: 20px;
             font-size: 14px;
-            color: #e65100;
+            color: #333;
             line-height: 1.8;
+            text-align: center;
         }
-        .notice-box .highlight {
+        .welcome-box .highlight {
             font-weight: 600;
-            color: #d84315;
+            color: #1a73e8;
         }
 
         .form-group {
@@ -170,10 +172,14 @@
             <p>登录后可以上传机位和照片</p>
         </div>
 
-        <!-- ===== 致歉公告 ===== -->
-        <div class="notice-box">
-            <p>🙏 抱歉！<span class="highlight">2026年6月20日之前</span>的旧账号已作废，请重新注册。</p>
-            <p>🚀 网站正在全面升级，未来会更强大、更好用，感谢你的支持！</p>
+        <!-- ===== 欢迎语 ===== -->
+        <div class="welcome-box">
+            <p>📢Buslens公告📢</p>
+            <p>由于后台批量添加水印失误</p>
+            <p>导致6月24日及以前的图片出现不同程度的版权和图片问题</p>
+            <p>现增加删除图片功能，往后更新的图片不会受到版权归属的影响</p>
+            <p>问题图片将不会以错误版权归属在社交平台展出</p>
+            <p style="margin-top:6px;font-weight:600;color:#1a73e8;font-size:15px;">⭐我们对此深感抱歉，因此事给您带来了诸多不便，以后一定会先备份后更改，望谅解⭐</p>
         </div>
 
         <div class="message" id="message"></div>
@@ -242,7 +248,17 @@
                     .eq('username', username)
                     .single();
 
-                if (result.error) throw new Error('用户不存在，请先注册');
+                if (result.error) {
+                    // 如果用户不存在，提供更友好的提示
+                    if (result.error.code === 'PGRST116') {
+                        showMessage('❌ 用户不存在，请先注册', 'error');
+                    } else {
+                        throw new Error(result.error.message);
+                    }
+                    btn.disabled = false;
+                    btn.textContent = '登 录';
+                    return;
+                }
 
                 var user = result.data;
 
@@ -275,6 +291,7 @@
             }
         });
 
+        // 如果已登录，跳转到首页
         if (sessionStorage.getItem(SESSION_KEY)) {
             window.location.href = 'index.html';
         }

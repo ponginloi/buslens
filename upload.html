@@ -5,14 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📤 上传机位 - BusLens</title>
     <script>
-        // ============================================================
-        //  🔐 Supabase 配置
-        // ============================================================
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
-        var IMGBB_API_KEY = 'd86506f887437861ec18602836a18eec';
+        var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <!-- API 工具（安全版） -->
+    <script>
+        var apiSupabaseClient = null;
+
+        function initApiClient() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            if (!apiSupabaseClient) {
+                try {
+                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ API 客户端初始化成功');
+                } catch (e) {
+                    console.error('❌ API 客户端初始化失败:', e);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        async function getApiKey(keyName) {
+            if (!initApiClient()) return null;
+            try {
+                const { data, error } = await apiSupabaseClient
+                    .rpc('get_api_key', { key_name: keyName });
+                if (error) {
+                    console.error('❌ 获取 API 密钥失败:', error);
+                    return null;
+                }
+                return data;
+            } catch (e) {
+                console.error('❌ 获取 API 密钥异常:', e);
+                return null;
+            }
+        }
     </script>
     <style>
         * {
@@ -103,6 +138,24 @@
             font-size: 11px;
             font-weight: 600;
             margin-left: 4px;
+        }
+        .navbar .nav-links .pending-badge {
+            background: #ff9800;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
         }
 
         .upload-card {
@@ -320,6 +373,37 @@
             color: #00c851;
         }
 
+        .device-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .device-options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 400;
+            font-size: 14px;
+            color: #555;
+        }
+        .device-options label:hover {
+            border-color: #1a73e8;
+        }
+        .device-options input[type="radio"] {
+            accent-color: #1a73e8;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .device-options input[type="radio"]:checked+span {
+            font-weight: 500;
+        }
+
         .example-preview {
             margin-top: 8px;
             display: none;
@@ -454,6 +538,41 @@
             color: white;
         }
 
+        .watermark-preview {
+            margin-top: 6px;
+            padding: 8px 12px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #555;
+            display: none;
+            border-left: 3px solid #1a73e8;
+        }
+        .watermark-preview .label {
+            font-weight: 600;
+            color: #333;
+        }
+        .watermark-preview .preview-text {
+            font-family: monospace;
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .compress-info {
+            background: #e8f0fe;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #1a73e8;
+            margin-top: 6px;
+            display: none;
+        }
+        .compress-info .saved {
+            color: #4caf50;
+            font-weight: 600;
+        }
+
         @media (max-width: 600px) {
             .navbar {
                 padding: 10px 16px;
@@ -489,6 +608,14 @@
                 bottom: 16px;
                 max-width: 90%;
             }
+            .device-options label {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+            .rank-options label {
+                font-size: 13px;
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -508,7 +635,10 @@
             </div>
 
             <div class="message" id="message"></div>
-            <div class="notice">⏳ 提交后将进入审核队列，管理员审核通过后才会在地图上显示</div>
+            <div class="notice">
+                ⏳ 提交后将进入审核队列，管理员审核通过后才会在地图上显示<br>
+                🖼️ 上传的图片将自动添加 <strong>BusLens</strong> 版权标识
+            </div>
 
             <form id="uploadForm">
                 <div class="form-group">
@@ -554,6 +684,13 @@
                     <label>📸 机位例图 <span style="font-size:12px;color:#999;font-weight:400;">（选填，建议上传）</span></label>
                     <input type="file" id="examplePhoto" accept="image/*">
                     <div class="hint">上传一张示例照片，帮助审核员和用户了解这个机位</div>
+                    <div class="watermark-preview" id="watermarkPreview">
+                        <span class="label">🖼️ 水印说明</span>
+                        <div class="preview-text" id="watermarkText">
+                            • 图片左下角将叠加半透明 "<strong>BusLens</strong>" 水印<br>
+                            • 底部黑色区域显示 "<strong>BusLens</strong>" 和版权信息
+                        </div>
+                    </div>
                     <div class="example-preview" id="examplePreview">
                         <img id="examplePreviewImg" src="" alt="例图预览">
                         <button type="button" class="remove-btn" onclick="removeExamplePhoto()">×</button>
@@ -561,8 +698,31 @@
                 </div>
 
                 <div class="form-group">
+                    <label>📱 设备类型 <span class="required">*</span></label>
+                    <div class="device-options">
+                        <label>
+                            <input type="radio" name="device_type" value="phone" checked>
+                            <span>📱 手机</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="device_type" value="camera">
+                            <span>📷 相机</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="device_type" value="both">
+                            <span>📱📷 两者皆可</span>
+                        </label>
+                    </div>
+                    <div class="hint">💡 选择你推荐使用的拍摄设备</div>
+                </div>
+
+                <div class="form-group">
                     <label>📝 拍摄建议</label>
                     <textarea id="description" placeholder="描述这个机位的拍摄角度、最佳时间、注意事项等..."></textarea>
+                </div>
+
+                <div class="compress-info" id="compressInfo">
+                    📦 图片将在上传前自动压缩（1920×1080，质量85%），<span class="saved">节省流量、加速加载</span>
                 </div>
 
                 <button type="submit" class="btn-primary" id="submitBtn">📤 提交审核</button>
@@ -584,7 +744,7 @@
 
     <script>
         // ============================================================
-        //  初始化 Supabase
+        //  初始化 Supabase（主客户端）
         // ============================================================
         var supabaseClient = null;
 
@@ -607,38 +767,57 @@
         // ============================================================
         //  用户状态
         // ============================================================
-        var SESSION_KEY = 'bus_user_session';
-        var ADMIN_USERNAME = 'ponginloi';
-
         function getCurrentUser() {
             try { var raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
         }
 
         function logout() {
-            sessionStorage.removeItem(SESSION_KEY);
-            location.reload();
+            var user = getCurrentUser();
+            if (user && ADMIN_USERNAMES.indexOf(user.username) !== -1) {
+                supabaseClient
+                    .from('users')
+                    .update({ is_online: false })
+                    .eq('id', user.id)
+                    .then(function() {
+                        sessionStorage.removeItem(SESSION_KEY);
+                        window.location.href = 'index.html';
+                    })
+                    .catch(function() {
+                        sessionStorage.removeItem(SESSION_KEY);
+                        window.location.href = 'index.html';
+                    });
+            } else {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.href = 'index.html';
+            }
         }
 
         function isAdmin() {
             var user = getCurrentUser();
-            return user && user.username === ADMIN_USERNAME;
+            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
         }
 
         function renderNav() {
             var nav = document.getElementById('navLinks');
             var user = getCurrentUser();
+
             if (user) {
                 var admin = isAdmin();
+                var pendingCount = window._pendingCount || 0;
                 nav.innerHTML =
                     '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
                     '<a href="profile.html">👤 个人中心</a>' +
                     (admin ? '<a href="admin.html">⚙️ 审核</a>' : '') +
+                    (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
+                    (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
                     '<a href="upload.html" class="active">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + user.username + (admin ? '<span class="admin-badge">管理员</span>' : '') + '</span>' +
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
             } else {
                 nav.innerHTML =
                     '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
                     '<a href="login.html">登录</a>' +
                     '<a href="register.html">注册</a>';
             }
@@ -662,6 +841,147 @@
         }
 
         // ============================================================
+        //  📤 安全上传到 ImgBB（使用安全密钥）
+        // ============================================================
+        async function uploadToImgBB(file) {
+            try {
+                const apiKey = await getApiKey('imgbb_key');
+                if (!apiKey) {
+                    throw new Error('无法获取 ImgBB API 密钥');
+                }
+                const formData = new FormData();
+                formData.append('image', file);
+                const response = await fetch('https://api.imgbb.com/1/upload?key=' + apiKey, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    throw new Error('图片上传失败 (HTTP ' + response.status + ')');
+                }
+                const result = await response.json();
+                console.log('✅ ImgBB 返回:', result);
+                if (!result.success) {
+                    throw new Error(result.error?.message || '图片上传失败');
+                }
+                return result.data.url;
+            } catch (error) {
+                console.error('❌ 上传失败:', error);
+                throw error;
+            }
+        }
+
+        // ============================================================
+        //  🖼️ Canvas 图片处理（压缩 + 黑色版权栏 + 左下角水印）
+        // ============================================================
+        function processImageWithCanvas(file, options, username) {
+            var defaults = {
+                maxWidth: 1920,
+                maxHeight: 1080,
+                quality: 0.85,
+                maxSizeMB: 4.5,
+                barHeight: 50,
+                watermarkText: 'BusLens',
+                copyrightText: '© 2026 ' + (username || '用户') + ' 版权所有'
+            };
+            var opt = Object.assign({}, defaults, options);
+
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        // 第 1 步：压缩图片
+                        var width = img.width;
+                        var height = img.height;
+
+                        if (width > opt.maxWidth) {
+                            height = height * opt.maxWidth / width;
+                            width = opt.maxWidth;
+                        }
+                        if (height > opt.maxHeight) {
+                            width = width * opt.maxHeight / height;
+                            height = opt.maxHeight;
+                        }
+
+                        var finalWidth = Math.round(width);
+                        var finalHeight = Math.round(height);
+                        var barHeight = opt.barHeight;
+                        var totalHeight = finalHeight + barHeight;
+
+                        var canvas = document.createElement('canvas');
+                        canvas.width = finalWidth;
+                        canvas.height = totalHeight;
+                        var ctx = canvas.getContext('2d');
+
+                        // 第 2 步：绘制压缩后的图片
+                        ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+
+                        // 第 3 步：底部黑色版权栏
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(0, finalHeight, finalWidth, barHeight);
+
+                        // 左下角：BusLens
+                        var fontSize = Math.max(11, Math.min(16, Math.round(finalWidth * 0.012)));
+                        ctx.textBaseline = 'middle';
+                        ctx.textAlign = 'left';
+                        ctx.font = 'bold ' + fontSize + 'px Arial, sans-serif';
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillText(opt.watermarkText, 14, finalHeight + barHeight / 2 + 1);
+
+                        // 右下角：版权信息
+                        ctx.textAlign = 'right';
+                        ctx.font = fontSize + 'px Arial, sans-serif';
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillText(opt.copyrightText, finalWidth - 14, finalHeight + barHeight / 2 + 1);
+
+                        // 第 4 步：图片左下角半透明水印（4倍大，75%透明度）
+                        var watermarkFontSize = Math.max(40, Math.min(90, Math.round(finalWidth * 0.048)));
+                        ctx.save();
+                        ctx.globalAlpha = 0.75;
+                        ctx.font = 'bold ' + watermarkFontSize + 'px Arial, sans-serif';
+                        ctx.textBaseline = 'bottom';
+                        ctx.textAlign = 'left';
+                        ctx.fillStyle = '#FFFFFF';
+                        var padding = Math.max(16, Math.round(finalWidth * 0.02));
+                        ctx.fillText(opt.watermarkText, padding, finalHeight - padding);
+                        ctx.restore();
+
+                        // 第 5 步：导出
+                        var quality = opt.quality;
+                        var needCompress = file.size > opt.maxSizeMB * 1024 * 1024;
+
+                        function tryExport() {
+                            canvas.toBlob(function(blob) {
+                                if (needCompress && blob.size > opt.maxSizeMB * 1024 * 1024 && quality > 0.1) {
+                                    quality -= 0.05;
+                                    tryExport();
+                                    return;
+                                }
+                                // ✅ 保留原始文件名
+                                var originalName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+                                var processedFile = new File([blob], originalName, { type: 'image/jpeg' });
+                                console.log('✅ 处理完成：' +
+                                    (file.size / 1024 / 1024).toFixed(2) + 'MB → ' +
+                                    (blob.size / 1024 / 1024).toFixed(2) + 'MB'
+                                );
+                                resolve(processedFile);
+                            }, 'image/jpeg', quality);
+                        }
+                        tryExport();
+                    };
+                    img.onerror = function() {
+                        reject(new Error('图片加载失败'));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function() {
+                    reject(new Error('文件读取失败'));
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ============================================================
         //  例图预览
         // ============================================================
         var examplePhotoFile = null;
@@ -669,12 +989,18 @@
         document.getElementById('examplePhoto').addEventListener('change', function(e) {
             var file = e.target.files[0];
             if (!file) return;
-            if (file.size > 10 * 1024 * 1024) { alert('照片大小不能超过 10MB'); this.value = ''; return; }
+            if (file.size > 50 * 1024 * 1024) {
+                alert('照片大小不能超过 50MB');
+                this.value = '';
+                return;
+            }
             examplePhotoFile = file;
             var reader = new FileReader();
             reader.onload = function(ev) {
                 document.getElementById('examplePreviewImg').src = ev.target.result;
                 document.getElementById('examplePreview').style.display = 'block';
+                document.getElementById('compressInfo').style.display = 'block';
+                document.getElementById('watermarkPreview').style.display = 'block';
             };
             reader.readAsDataURL(file);
         });
@@ -683,6 +1009,8 @@
             examplePhotoFile = null;
             document.getElementById('examplePhoto').value = '';
             document.getElementById('examplePreview').style.display = 'none';
+            document.getElementById('compressInfo').style.display = 'none';
+            document.getElementById('watermarkPreview').style.display = 'none';
         }
 
         // ============================================================
@@ -731,19 +1059,6 @@
             document.getElementById('lat').value = currentLat;
         }
 
-        function syncFromInputs() {
-            var lng = parseFloat(document.getElementById('lng').value);
-            var lat = parseFloat(document.getElementById('lat').value);
-            if (!isNaN(lng) && !isNaN(lat)) {
-                currentLng = lng;
-                currentLat = lat;
-                if (pickerMap) {
-                    pickerMap.setCenter([currentLng, currentLat]);
-                }
-                updateCoords();
-            }
-        }
-
         function locateMe() {
             if (!navigator.geolocation) {
                 alert('您的浏览器不支持定位功能');
@@ -778,29 +1093,7 @@
         }
 
         // ============================================================
-        //  📤 上传图片到 ImgBB
-        // ============================================================
-        function uploadToImgBB(file) {
-            var formData = new FormData();
-            formData.append('image', file);
-            return fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(function(response) {
-                    if (!response.ok) throw new Error('图片上传失败 (HTTP ' + response.status + ')');
-                    return response.json();
-                })
-                .then(function(result) {
-                    if (!result.success) {
-                        throw new Error(result.error?.message || '图片上传失败');
-                    }
-                    return result.data.url;
-                });
-        }
-
-        // ============================================================
-        //  提交表单（保存到 Supabase）
+        //  提交表单（压缩 + 水印 + 安全上传）
         // ============================================================
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -815,6 +1108,7 @@
             var lng = parseFloat(document.getElementById('lng').value);
             var lat = parseFloat(document.getElementById('lat').value);
             var rank = document.querySelector('input[name="rank"]:checked').value;
+            var deviceType = document.querySelector('input[name="device_type"]:checked').value;
             var description = document.getElementById('description').value.trim();
 
             if (!name) { showMessage('❌ 请填写机位名称', 'error'); return; }
@@ -822,30 +1116,53 @@
 
             var btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.textContent = '⏳ 提交中...';
-            showMessage('⏳ 正在提交审核...', 'loading');
-            showStatus('⏳ 正在提交...', 'loading');
+            btn.textContent = '⏳ 处理中...';
+            showMessage('⏳ 正在处理图片（压缩 + 水印）...', 'loading');
+            showStatus('🖼️ 正在添加水印...', 'loading');
+
+            var examplePhotoUrl = null;
 
             try {
-                // 1. 上传例图到 ImgBB
-                var examplePhotoUrl = null;
-                if (document.getElementById('examplePhoto').files[0]) {
+                // ============================================================
+                //  1. 处理例图
+                // ============================================================
+                var exampleFileInput = document.getElementById('examplePhoto');
+                if (exampleFileInput && exampleFileInput.files && exampleFileInput.files.length > 0) {
                     try {
-                        showStatus('📤 正在上传例图到 ImgBB...', 'loading');
-                        examplePhotoUrl = await uploadToImgBB(document.getElementById('examplePhoto').files[0]);
-                        console.log('✅ 例图上传成功:', examplePhotoUrl);
+                        var exampleFile = exampleFileInput.files[0];
+                        showStatus('🖼️ 正在处理例图...', 'loading');
+
+                        var processedExample = await processImageWithCanvas(exampleFile, {
+                            maxWidth: 1920,
+                            maxHeight: 1080,
+                            quality: 0.85,
+                            maxSizeMB: 4.5,
+                            barHeight: 50,
+                            watermarkText: 'BusLens',
+                            copyrightText: '© 2026 ' + user.username + ' 版权所有'
+                        }, user.username);
+
+                        showStatus('📤 正在上传例图...', 'loading');
+                        examplePhotoUrl = await uploadToImgBB(processedExample);
+                        console.log('✅ 例图上传成功，URL:', examplePhotoUrl);
                     } catch (uploadErr) {
-                        console.warn('⚠️ 例图上传失败:', uploadErr);
-                        showMessage('⚠️ 例图上传失败，但机位仍可提交：' + uploadErr.message, 'warning');
+                        console.warn('⚠️ 例图处理失败:', uploadErr);
+                        showMessage('⚠️ 例图上传失败：' + uploadErr.message, 'warning');
+                        // 例图失败不影响机位提交
                     }
+                } else {
+                    console.log('ℹ️ 用户未选择例图');
                 }
 
-                // 2. 插入到 Supabase
+                // ============================================================
+                //  2. 提交机位
+                // ============================================================
                 var newSpot = {
                     name: name,
                     lng: lng,
                     lat: lat,
                     rank: rank,
+                    device_type: deviceType,
                     description: description || '暂无描述',
                     example_photo: examplePhotoUrl,
                     photos: [],
@@ -857,11 +1174,18 @@
                     review_reason: null
                 };
 
+                console.log('📤 提交数据:', newSpot);
+
                 var result = await supabaseClient
                     .from('spots')
                     .insert([newSpot]);
 
-                if (result.error) throw new Error(result.error.message);
+                if (result.error) {
+                    console.error('❌ 插入失败:', result.error);
+                    throw new Error(result.error.message);
+                }
+
+                console.log('✅ 机位提交成功，ID:', result.data);
 
                 showMessage('✅ 提交成功！等待管理员审核', 'success');
                 showStatus('✅ 机位提交成功！', 'success');
@@ -876,7 +1200,7 @@
                 updateCoords();
 
             } catch (error) {
-                console.error('提交失败:', error);
+                console.error('❌ 提交失败:', error);
                 showMessage('❌ 提交失败：' + error.message, 'error');
                 showStatus('❌ 提交失败：' + error.message, 'error');
             } finally {
@@ -900,7 +1224,9 @@
 
         document.getElementById('locateBtn').addEventListener('click', locateMe);
 
-        console.log('📤 上传页面已加载（Supabase 版）');
+        console.log('📤 上传页面已加载（压缩 + 黑色版权栏 + 左下角水印 + 安全 API）');
+        console.log('🖼️ 水印位置：图片左下角，透明度 75%，大小为底部文字的 4 倍');
+        console.log('🔑 API 密钥已安全存储（前端不可见）');
     </script>
 </body>
 </html>

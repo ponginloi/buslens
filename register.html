@@ -7,6 +7,7 @@
     <script>
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var SESSION_KEY = 'bus_user_session';
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -153,6 +154,22 @@
         .back-link:hover {
             color: #1a73e8;
         }
+
+        .welcome-box {
+            background: linear-gradient(135deg, #e8f0fe, #d2e3fc);
+            border-left: 4px solid #1a73e8;
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+            text-align: center;
+        }
+        .welcome-box .highlight {
+            font-weight: 600;
+            color: #1a73e8;
+        }
     </style>
 </head>
 <body>
@@ -162,6 +179,16 @@
             <h1>加入我们</h1>
             <p>注册后可以上传机位和照片</p>
         </div>
+
+        <!-- ===== 欢迎语 ===== -->
+        <div class="welcome-box">
+            <p>📸 每一张照片，都是你独一无二的视角。</p>
+            <p>记录巴士的瞬间，分享城市的故事。</p>
+            <p>无论你是初来乍到，还是相伴已久，</p>
+            <p>BusLens 都因你的每一次快门而更精彩。</p>
+            <p style="margin-top:6px;font-weight:600;color:#1a73e8;font-size:15px;">期待你的下一张好图！🚌✨</p>
+        </div>
+
         <div class="message" id="message"></div>
         <form id="registerForm">
             <div class="form-group">
@@ -190,7 +217,6 @@
 
     <script>
         var supabaseClient = null;
-        var SESSION_KEY = 'bus_user_session';
 
         function initSupabase() {
             if (typeof supabase === 'undefined') {
