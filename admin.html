@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚙️ 审核管理 - BusLens</title>
     <script>
-        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
-        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
+        var SUPABASE_URL = '{{ env.SUPABASE_URL }}';
+        var SUPABASE_KEY = '{{ env.SUPABASE_KEY }}';
         var SESSION_KEY = 'bus_user_session';
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
@@ -104,13 +103,8 @@
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.6;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
         .navbar .changelog-btn {
             background: rgba(255, 255, 255, 0.15);
@@ -544,14 +538,8 @@
             display: flex;
         }
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
         .changelog-modal .modal-content {
             background: white;
@@ -914,7 +902,8 @@
         function logout() {
             var user = getCurrentUser();
             if (user) {
-                if (ADMIN_USERNAMES.indexOf(user.username) !== -1) {
+                // ✅ 使用后端返回的 role 判断
+                if (user.role === 'admin') {
                     supabaseClient
                         .from('users')
                         .update({ is_online: false })
@@ -937,9 +926,10 @@
             }
         }
 
+        // ✅ 直接从 session 读取角色（后端返回的，安全）
         function isAdmin() {
             var user = getCurrentUser();
-            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
+            return user && user.role === 'admin';
         }
 
         // ============================================================
@@ -1303,7 +1293,7 @@
         }
 
         // ============================================================
-        //  📸 渲染机位列表（已修复 XSS）
+        //  📸 渲染机位列表
         // ============================================================
         function renderSpots() {
             var pending = allSpots.filter(function(s) { return s.status === 'pending'; });
@@ -1484,7 +1474,7 @@
         }
 
         // ============================================================
-        //  更新日志功能（保持不变）
+        //  更新日志功能
         // ============================================================
         var currentEditId = null;
 
@@ -1685,6 +1675,7 @@
                 return;
             }
 
+            // ✅ 使用后端返回的 role 判断
             if (!isAdmin()) {
                 document.getElementById('spotList').innerHTML =
                     '<div class="access-denied"><span class="icon">🚫</span><h2>权限不足</h2><p>只有管理员可以审核</p><p><a href="index.html">返回地图 →</a></p></div>';
