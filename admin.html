@@ -7,6 +7,9 @@
     <script>
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
+        var SESSION_KEY = 'bus_user_session';
+        // ✅ 已移除硬编码的 API 密钥
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -91,14 +94,6 @@
         .navbar .nav-links .btn-logout:hover {
             background: rgba(255, 255, 255, 0.3);
         }
-        .navbar .nav-links .admin-badge {
-            background: #ff6b35;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 4px;
-        }
         .navbar .nav-links .pending-badge {
             background: #ff9800;
             padding: 2px 10px;
@@ -116,6 +111,38 @@
             50% {
                 opacity: 0.6;
             }
+        }
+        .navbar .changelog-btn {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 5px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .navbar .changelog-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-toggle-status {
+            padding: 4px 12px;
+            border: 2px solid #4caf50;
+            border-radius: 6px;
+            background: rgba(76, 175, 80, 0.2);
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .btn-toggle-status:hover {
+            transform: scale(1.05);
+        }
+        .btn-toggle-status.offline {
+            border-color: #f44336;
+            background: rgba(244, 67, 54, 0.2);
         }
 
         .stats-bar {
@@ -272,7 +299,7 @@
             gap: 8px;
             margin-top: 8px;
         }
-        .spot-card .photo-grid img {
+        .spot-card .photo-grid .lazy-img {
             width: 120px;
             height: 90px;
             object-fit: cover;
@@ -280,8 +307,9 @@
             border: 1px solid #eee;
             cursor: pointer;
             transition: transform 0.2s;
+            background: #f0f0f0;
         }
-        .spot-card .photo-grid img:hover {
+        .spot-card .photo-grid .lazy-img:hover {
             transform: scale(1.05);
         }
         .spot-card .photo-grid .no-photo {
@@ -345,31 +373,50 @@
             font-size: 14px;
             font-weight: 500;
             color: #333;
-            min-width: 60px;
+            min-width: 70px;
         }
-        .spot-card .review-form .form-row select {
+        .spot-card .review-form .form-row select,
+        .spot-card .review-form .form-row input[type="text"],
+        .spot-card .review-form .form-row textarea {
             padding: 8px 14px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
             outline: none;
-            background: white;
-            cursor: pointer;
-        }
-        .spot-card .review-form .form-row select:focus {
-            border-color: #1a73e8;
-        }
-        .spot-card .review-form .form-row input[type="text"] {
+            font-family: inherit;
             flex: 1;
             min-width: 150px;
-            padding: 8px 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
         }
-        .spot-card .review-form .form-row input[type="text"]:focus {
+        .spot-card .review-form .form-row select:focus,
+        .spot-card .review-form .form-row input[type="text"]:focus,
+        .spot-card .review-form .form-row textarea:focus {
             border-color: #1a73e8;
+        }
+        .spot-card .review-form .form-row textarea {
+            resize: vertical;
+            min-height: 60px;
+            width: 100%;
+        }
+        .spot-card .review-form .form-row .device-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .spot-card .review-form .form-row .device-options label {
+            font-weight: 400;
+            font-size: 14px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            min-width: auto;
+        }
+        .spot-card .review-form .form-row .device-options input[type="radio"] {
+            accent-color: #1a73e8;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
         }
 
         .spot-card .actions {
@@ -480,8 +527,199 @@
             text-decoration: underline;
         }
 
+        .changelog-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        .changelog-modal.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .changelog-modal .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 28px 32px;
+            max-width: 560px;
+            width: 92%;
+            max-height: 85vh;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        .changelog-modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            flex-shrink: 0;
+        }
+        .changelog-modal .modal-header h2 {
+            font-size: 20px;
+            color: #1a73e8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .changelog-modal .modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 26px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+        .changelog-modal .modal-header .close-btn:hover {
+            color: #333;
+        }
+        .changelog-modal .modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 4px;
+        }
+        .changelog-modal .modal-body::-webkit-scrollbar {
+            width: 4px;
+        }
+        .changelog-modal .modal-body::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 4px;
+        }
+        .changelog-modal .modal-body .update-content {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .changelog-modal .modal-body .update-content h1 {
+            font-size: 22px;
+            margin: 12px 0 6px 0;
+        }
+        .changelog-modal .modal-body .update-content h2 {
+            font-size: 18px;
+            margin: 10px 0 4px 0;
+        }
+        .changelog-modal .modal-body .update-content h3 {
+            font-size: 16px;
+            margin: 8px 0 4px 0;
+        }
+        .changelog-modal .modal-body .update-content ul {
+            padding-left: 20px;
+            margin: 4px 0;
+        }
+        .changelog-modal .modal-body .update-content li {
+            list-style: disc;
+        }
+        .changelog-modal .modal-footer {
+            flex-shrink: 0;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .changelog-modal .modal-footer .edit-area {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 8px;
+        }
+        .changelog-modal .modal-footer .edit-area.active {
+            display: flex;
+        }
+        .changelog-modal .modal-footer .edit-area textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+        }
+        .changelog-modal .modal-footer .edit-area textarea:focus {
+            border-color: #1a73e8;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions button {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions .btn-save {
+            background: #4caf50;
+            color: white;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions .btn-save:hover {
+            background: #388e3c;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions .btn-cancel-edit {
+            background: #eee;
+            color: #666;
+        }
+        .changelog-modal .modal-footer .edit-area .edit-actions .btn-cancel-edit:hover {
+            background: #ddd;
+        }
+        .changelog-modal .modal-footer .btn-edit {
+            padding: 5px 14px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+        .changelog-modal .modal-footer .btn-edit:hover {
+            background: #0d47a1;
+        }
+        .changelog-modal .modal-footer .btn-edit.hidden {
+            display: none;
+        }
+        .changelog-modal .modal-footer .timestamp {
+            font-size: 12px;
+            color: #999;
+        }
+        .changelog-modal .modal-footer .edit-hint {
+            font-size: 12px;
+            color: #ff9800;
+        }
+
         @media (max-width: 600px) {
-            .spot-card .photo-grid img {
+            .spot-card .photo-grid .lazy-img {
                 width: 80px;
                 height: 60px;
             }
@@ -499,6 +737,9 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+            .changelog-modal .modal-content {
+                padding: 16px 18px;
+            }
         }
     </style>
 </head>
@@ -508,6 +749,9 @@
         <nav class="navbar">
             <a href="index.html" class="brand"><span>🚌</span> BusLens</a>
             <div class="nav-links" id="navLinks"></div>
+            <div>
+                <button class="changelog-btn" onclick="openChangelog()">📋 更新日志</button>
+            </div>
         </nav>
 
         <div class="stats-bar">
@@ -531,7 +775,104 @@
 
     <div class="toast" id="toast"></div>
 
+    <!-- ===== 更新日志弹窗 ===== -->
+    <div class="changelog-modal" id="changelogModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 更新日志</h2>
+                <button class="close-btn" onclick="closeChangelog()">×</button>
+            </div>
+            <div class="modal-body" id="changelogBody">
+                <div style="text-align:center;padding:40px 0;color:#999;">
+                    <span style="display:inline-block;animation:spin 1s linear infinite;font-size:24px;">⟳</span>
+                    <p style="margin-top:8px;">加载中...</p>
+                </div>
+            </div>
+            <div class="modal-footer" id="changelogFooter">
+                <div class="edit-area" id="editArea">
+                    <textarea id="editContent" placeholder="用 Markdown 格式写更新内容..."></textarea>
+                    <div class="edit-actions">
+                        <button class="btn-save" onclick="saveChangelog()">💾 保存</button>
+                        <button class="btn-cancel-edit" onclick="cancelEdit()">取消</button>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%;">
+                    <button class="btn-edit hidden" id="editBtn" onclick="enableEdit()">✏️ 编辑</button>
+                    <span class="timestamp" id="changelogTimestamp">最后更新：--</span>
+                    <span class="edit-hint" id="editHint">💡 只有管理员可以编辑</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ============================================================
+        //  API 工具（安全版）
+        // ============================================================
+        var apiSupabaseClient = null;
+
+        function initApiClient() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            if (!apiSupabaseClient) {
+                try {
+                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ API 客户端初始化成功');
+                } catch (e) {
+                    console.error('❌ API 客户端初始化失败:', e);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        async function getApiKey(keyName) {
+            if (!initApiClient()) return null;
+            try {
+                const { data, error } = await apiSupabaseClient
+                    .rpc('get_api_key', { key_name: keyName });
+                if (error) {
+                    console.error('❌ 获取 API 密钥失败:', error);
+                    return null;
+                }
+                return data;
+            } catch (e) {
+                console.error('❌ 获取 API 密钥异常:', e);
+                return null;
+            }
+        }
+
+        // ============================================================
+        //  📤 安全上传到 ImgBB（使用安全密钥）
+        // ============================================================
+        async function uploadToImgBB(file) {
+            try {
+                const apiKey = await getApiKey('imgbb_key');
+                if (!apiKey) {
+                    throw new Error('无法获取 ImgBB API 密钥');
+                }
+                const formData = new FormData();
+                formData.append('image', file);
+                const response = await fetch('https://api.imgbb.com/1/upload?key=' + apiKey, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    throw new Error('图片上传失败 (HTTP ' + response.status + ')');
+                }
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error?.message || '图片上传失败');
+                }
+                return result.data.url;
+            } catch (error) {
+                console.error('❌ 上传失败:', error);
+                throw error;
+            }
+        }
+
         // ============================================================
         //  初始化 Supabase
         // ============================================================
@@ -556,40 +897,142 @@
         // ============================================================
         //  用户状态
         // ============================================================
-        var SESSION_KEY = 'bus_user_session';
-        var ADMIN_USERNAME = 'ponginloi';
-
         function getCurrentUser() {
             try { var raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
         }
 
         function logout() {
-            sessionStorage.removeItem(SESSION_KEY);
-            window.location.href = 'index.html';
+            var user = getCurrentUser();
+            if (user) {
+                if (ADMIN_USERNAMES.indexOf(user.username) !== -1) {
+                    supabaseClient
+                        .from('users')
+                        .update({ is_online: false })
+                        .eq('id', user.id)
+                        .then(function() {
+                            sessionStorage.removeItem(SESSION_KEY);
+                            window.location.href = 'index.html';
+                        })
+                        .catch(function() {
+                            sessionStorage.removeItem(SESSION_KEY);
+                            window.location.href = 'index.html';
+                        });
+                } else {
+                    sessionStorage.removeItem(SESSION_KEY);
+                    window.location.href = 'index.html';
+                }
+            } else {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.href = 'index.html';
+            }
         }
 
         function isAdmin() {
             var user = getCurrentUser();
-            return user && user.username === ADMIN_USERNAME;
+            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
         }
 
+        // ============================================================
+        //  🔘 管理员在线状态切换
+        // ============================================================
+
+        function toggleOnlineStatus() {
+            var user = getCurrentUser();
+            if (!user || !isAdmin()) {
+                alert('只有管理员可以操作');
+                return;
+            }
+
+            supabaseClient
+                .from('users')
+                .select('is_online')
+                .eq('id', user.id)
+                .single()
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    var currentStatus = res.data?.is_online || false;
+                    var newStatus = !currentStatus;
+
+                    return supabaseClient
+                        .from('users')
+                        .update({ is_online: newStatus, last_active: new Date().toISOString() })
+                        .eq('id', user.id);
+                })
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    showToast('✅ 状态已切换', 'success');
+                    updateStatusButton();
+                    if (typeof getAdminStatus === 'function') {
+                        getAdminStatus();
+                    }
+                })
+                .catch(function(error) {
+                    console.error('切换状态失败:', error);
+                    showToast('❌ 切换失败：' + error.message, 'error');
+                });
+        }
+
+        function updateStatusButton() {
+            var user = getCurrentUser();
+            if (!user || !isAdmin()) return;
+
+            var btn = document.getElementById('statusToggleBtn');
+            if (!btn) return;
+
+            supabaseClient
+                .from('users')
+                .select('is_online')
+                .eq('id', user.id)
+                .single()
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    var isOnline = res.data?.is_online || false;
+                    btn.textContent = isOnline ? '🟢 在线' : '🔴 离线';
+                    btn.className = 'btn-toggle-status' + (isOnline ? '' : ' offline');
+                })
+                .catch(function(error) {
+                    console.error('获取状态失败:', error);
+                });
+        }
+
+        // ============================================================
+        //  🧭 导航栏渲染
+        // ============================================================
         function renderNav() {
             var nav = document.getElementById('navLinks');
             var user = getCurrentUser();
+
             if (user) {
                 var admin = isAdmin();
                 var pendingCount = window._pendingCount || 0;
-                nav.innerHTML =
+
+                var html =
                     '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
                     '<a href="profile.html">👤 个人中心</a>' +
                     (admin ? '<a href="admin.html" class="active">⚙️ 审核</a>' : '') +
+                    (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
                     (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
                     '<a href="upload.html">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + user.username + (admin ? '<span class="admin-badge">管理员</span>' : '') +
-                    '</span>' +
-                    '<button class="btn-logout" onclick="logout()">退出</button>';
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>';
+
+                if (admin) {
+                    html += '<button class="btn-toggle-status" id="statusToggleBtn" onclick="toggleOnlineStatus()">🟢 在线</button>';
+                }
+
+                html += '<button class="btn-logout" onclick="logout()">退出</button>';
+
+                nav.innerHTML = html;
+
+                if (admin) {
+                    updateStatusButton();
+                }
             } else {
-                nav.innerHTML = '<a href="index.html">🏠 地图</a><a href="login.html">登录</a><a href="register.html">注册</a>';
+                nav.innerHTML =
+                    '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
+                    '<a href="login.html">登录</a>' +
+                    '<a href="register.html">注册</a>';
             }
         }
 
@@ -612,6 +1055,10 @@
                 el.classList.remove('active');
             });
             document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            // 切换 Tab 后重新触发懒加载
+            setTimeout(function() {
+                initLazyLoad();
+            }, 300);
         }
 
         // ============================================================
@@ -633,12 +1080,23 @@
 
             var rankSelect = document.getElementById('spot_rank_' + index);
             var reasonInput = document.getElementById('spot_reason_' + index);
+            var descInput = document.getElementById('spot_desc_' + index);
+
+            var deviceRadios = document.getElementsByName('device_' + index);
+            var selectedDevice = 'unknown';
+            for (var i = 0; i < deviceRadios.length; i++) {
+                if (deviceRadios[i].checked) {
+                    selectedDevice = deviceRadios[i].value;
+                    break;
+                }
+            }
 
             var selectedRank = rankSelect ? rankSelect.value : 'medium';
             var reason = reasonInput ? reasonInput.value.trim() || '审核通过' : '审核通过';
+            var newDescription = descInput ? descInput.value.trim() : spot.description;
 
-            if (!confirm('确认通过「' + spot.name + '」？\n等级：' + getRankLabel(selectedRank))) return;
-            handleSpotAction(spot, 'approved', selectedRank, reason);
+            if (!confirm('确认通过「' + spot.name + '」？\n等级：' + getRankLabel(selectedRank) + '\n设备：' + getDeviceLabel(selectedDevice))) return;
+            handleSpotAction(spot, 'approved', selectedRank, selectedDevice, reason, newDescription);
         }
 
         function rejectSpot(index) {
@@ -646,14 +1104,14 @@
             if (!spot) { showToast('❌ 未找到目标', 'error'); return; }
             var reason = document.getElementById('spot_reason_' + index)?.value.trim() || '审核拒绝';
             if (!confirm('确认拒绝「' + spot.name + '」？')) return;
-            handleSpotAction(spot, 'rejected', null, reason);
+            handleSpotAction(spot, 'rejected', null, null, reason, null);
         }
 
         function deleteSpot(index) {
             var spot = findPendingSpot(index);
             if (!spot) { showToast('❌ 未找到目标', 'error'); return; }
             if (!confirm('确认删除「' + spot.name + '」？此操作不可恢复！')) return;
-            handleSpotAction(spot, 'deleted', null, null);
+            handleSpotAction(spot, 'deleted', null, null, null, null);
         }
 
         function getRankLabel(rank) {
@@ -661,7 +1119,12 @@
             return map[rank] || rank;
         }
 
-        function handleSpotAction(spot, action, rank, reason) {
+        function getDeviceLabel(device) {
+            var map = { phone: '📱 手机', camera: '📷 相机', both: '📱📷 两者皆可', unknown: '❓ 未指定' };
+            return map[device] || device;
+        }
+
+        function handleSpotAction(spot, action, rank, device, reason, description) {
             if (!isAdmin()) { showToast('❌ 只有管理员可以审核', 'error'); return; }
 
             try {
@@ -686,8 +1149,10 @@
                         review_reason: reason
                     };
 
-                    if (action === 'approved' && rank) {
-                        updateData.rank = rank;
+                    if (action === 'approved') {
+                        if (rank) updateData.rank = rank;
+                        if (device) updateData.device_type = device;
+                        if (description) updateData.description = description;
                     }
 
                     supabaseClient
@@ -696,9 +1161,8 @@
                         .eq('id', spot.id)
                         .then(function(res) {
                             if (res.error) throw new Error(res.error.message);
-                            showToast(action === 'approved' ? '✅ 已通过（等级：' + getRankLabel(rank) + '）' :
-                                '❌ 已拒绝',
-                                action === 'approved' ? 'success' : 'error');
+                            var msg = action === 'approved' ? '✅ 已通过（等级：' + getRankLabel(rank) + '，设备：' + getDeviceLabel(device) + '）' : '❌ 已拒绝';
+                            showToast(msg, action === 'approved' ? 'success' : 'error');
                             loadData();
                         })
                         .catch(function(error) {
@@ -722,7 +1186,7 @@
         function rejectPhoto(photoId) {
             var reason = document.getElementById('photo_reason_' + photoId)?.value || '审核拒绝';
             if (!confirm('确认拒绝此照片？')) return;
-            handlePhotoAction(photoId, 'rejected', reason);
+            handlePhotoAction(photoId, 'rejected', null);
         }
 
         function deletePhoto(photoId) {
@@ -788,7 +1252,51 @@
         }
 
         // ============================================================
-        //  渲染机位列表
+        //  🚀 滚动懒加载
+        // ============================================================
+        function initLazyLoad() {
+            if (!('IntersectionObserver' in window)) {
+                // 降级方案：直接加载所有图片
+                document.querySelectorAll('.lazy-img[data-src]').forEach(function(img) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                });
+                return;
+            }
+
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        var img = entry.target;
+                        var src = img.dataset.src;
+                        if (src) {
+                            img.src = src;
+                            img.removeAttribute('data-src');
+                            observer.unobserve(img);
+                            // 加载完成后触发下一批
+                            setTimeout(function() {
+                                initLazyLoad();
+                            }, 50);
+                        }
+                    }
+                });
+            }, {
+                rootMargin: '200px',
+                threshold: 0
+            });
+
+            var lazyImages = document.querySelectorAll('.lazy-img[data-src]');
+            lazyImages.forEach(function(img) {
+                observer.observe(img);
+            });
+
+            if (lazyImages.length > 0) {
+                console.log('✅ 审核页懒加载已启动，共 ' + lazyImages.length + ' 张图片待加载');
+            }
+        }
+
+        // ============================================================
+        //  📸 渲染机位列表
         // ============================================================
         function renderSpots() {
             var pending = allSpots.filter(function(s) { return s.status === 'pending'; });
@@ -803,17 +1311,16 @@
             var html = '';
             pending.forEach(function(spot, idx) {
                 var userRank = spot.rank || '未选择';
+                var userDevice = spot.device_type || '未指定';
 
                 var photosHtml = '';
                 if (spot.example_photo) {
-                    photosHtml += '<img src="' + spot.example_photo + '" onclick="window.open(\'' + spot.example_photo +
-                        '\',\'_blank\')" title="例图" />';
+                    photosHtml += '<img class="lazy-img" data-src="' + spot.example_photo + '" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'90\'%3E%3Crect fill=\'%23f0f0f0\' width=\'120\' height=\'90\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23ccc\' font-size=\'12\' font-family=\'sans-serif\'%3E📷%3C/text%3E%3C/svg%3E" onclick="window.open(\'' + spot.example_photo + '\',\'_blank\')" title="例图" referrerpolicy="no-referrer" />';
                 }
                 if (spot.photos && spot.photos.length > 0) {
                     spot.photos.forEach(function(p) {
                         if (p.status !== 'rejected') {
-                            photosHtml += '<img src="' + p.url + '" onclick="window.open(\'' + p.url +
-                                '\',\'_blank\')" title="' + (p.caption || '用户照片') + '" />';
+                            photosHtml += '<img class="lazy-img" data-src="' + p.url + '" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'90\'%3E%3Crect fill=\'%23f0f0f0\' width=\'120\' height=\'90\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23ccc\' font-size=\'12\' font-family=\'sans-serif\'%3E📷%3C/text%3E%3C/svg%3E" onclick="window.open(\'' + p.url + '\',\'_blank\')" title="' + (p.caption || '用户照片') + '" referrerpolicy="no-referrer" />';
                         }
                     });
                 }
@@ -830,6 +1337,7 @@
                     '<span>👤 ' + (spot.created_by || '未知') + '</span>' +
                     '<span>📅 ' + (spot.created_at || '未知') + '</span>' +
                     '<span>📌 用户建议等级：<strong>' + userRank + '</strong></span>' +
+                    '<span>📱 用户设备：<strong>' + userDevice + '</strong></span>' +
                     '<span class="status-badge pending">⏳ 待审核</span>' +
                     '</div>' +
                     '</div>' +
@@ -847,6 +1355,8 @@
                         '未知') + '</span></div>' +
                     '<div class="row"><span class="label">⭐ 用户建议等级</span><span class="value">' + userRank +
                     '</span></div>' +
+                    '<div class="row"><span class="label">📱 用户设备</span><span class="value">' + userDevice +
+                    '</span></div>' +
                     '<div class="row"><span class="label">📝 描述</span><span class="value">' + (spot.description ||
                         '暂无描述') + '</span></div>' +
                     '</div>' +
@@ -859,6 +1369,24 @@
                     '<option value="medium" ' + (spot.rank === 'medium' || !spot.rank ? 'selected' : '') + '>🟡 中等</option>' +
                     '<option value="low" ' + (spot.rank === 'low' ? 'selected' : '') + '>🟢 下等</option>' +
                     '</select>' +
+                    '</div>' +
+                    '<div class="form-row">' +
+                    '<label>📱 设备类型</label>' +
+                    '<div class="device-options">' +
+                    '<label><input type="radio" name="device_' + idx + '" value="phone" ' + (spot.device_type ===
+                        'phone' ? 'checked' : '') + '> 📱 手机</label>' +
+                    '<label><input type="radio" name="device_' + idx + '" value="camera" ' + (spot.device_type ===
+                        'camera' ? 'checked' : '') + '> 📷 相机</label>' +
+                    '<label><input type="radio" name="device_' + idx + '" value="both" ' + (spot.device_type ===
+                        'both' ? 'checked' : '') + '> 📱📷 两者皆可</label>' +
+                    '<label><input type="radio" name="device_' + idx + '" value="unknown" ' + (spot.device_type ===
+                        'unknown' || !spot.device_type ? 'checked' : '') + '> ❓ 未指定</label>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="form-row" style="flex-direction:column;align-items:stretch;">' +
+                    '<label>📝 机位描述（可修改）</label>' +
+                    '<textarea id="spot_desc_' + idx + '" rows="2" placeholder="修改机位描述...">' + (spot
+                        .description || '') + '</textarea>' +
                     '</div>' +
                     '<div class="form-row">' +
                     '<label>📝 审核理由</label>' +
@@ -874,10 +1402,14 @@
                     '</div>';
             });
             container.innerHTML = html;
+
+            setTimeout(function() {
+                initLazyLoad();
+            }, 200);
         }
 
         // ============================================================
-        //  渲染照片列表
+        //  📸 渲染照片列表
         // ============================================================
         function renderPhotos() {
             var pendingPhotos = [];
@@ -918,7 +1450,7 @@
                     '</div>' +
                     '</div>' +
                     '<div class="photo-grid">' +
-                    '<img src="' + p.url + '" onclick="window.open(\'' + p.url + '\',\'_blank\')" style="width:200px;height:150px;" />' +
+                    '<img class="lazy-img" data-src="' + p.url + '" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'150\'%3E%3Crect fill=\'%23f0f0f0\' width=\'200\' height=\'150\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23ccc\' font-size=\'14\' font-family=\'sans-serif\'%3E📷%3C/text%3E%3C/svg%3E" onclick="window.open(\'' + p.url + '\',\'_blank\')" style="width:200px;height:150px;object-fit:cover;border-radius:8px;border:1px solid #eee;cursor:pointer;background:#f0f0f0;" referrerpolicy="no-referrer" />' +
                     '</div>' +
                     '<div class="review-form">' +
                     '<div class="form-row">' +
@@ -934,6 +1466,10 @@
                     '</div>';
             });
             container.innerHTML = html;
+
+            setTimeout(function() {
+                initLazyLoad();
+            }, 200);
         }
 
         // ============================================================
@@ -945,6 +1481,159 @@
                 panel.classList.toggle('open');
             }
         }
+
+        // ============================================================
+        //  更新日志功能
+        // ============================================================
+        var currentEditId = null;
+
+        function openChangelog() {
+            document.getElementById('changelogModal').classList.add('active');
+            loadChangelog();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeChangelog() {
+            document.getElementById('changelogModal').classList.remove('active');
+            document.body.style.overflow = '';
+            cancelEdit();
+        }
+
+        function loadChangelog() {
+            var body = document.getElementById('changelogBody');
+            body.innerHTML =
+                '<div style="text-align:center;padding:40px 0;color:#999;"><span style="display:inline-block;animation:spin 1s linear infinite;font-size:24px;">⟳</span><p style="margin-top:8px;">加载中...</p></div>';
+
+            supabaseClient
+                .from('updates')
+                .select('*')
+                .order('id', { ascending: false })
+                .limit(1)
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    var data = res.data;
+                    if (!data || data.length === 0) {
+                        body.innerHTML =
+                            '<div style="text-align:center;padding:40px 0;color:#999;"><p>暂无更新日志</p></div>';
+                        document.getElementById('changelogTimestamp').textContent = '暂无更新';
+                        return;
+                    }
+                    var update = data[0];
+                    currentEditId = update.id;
+                    document.getElementById('changelogTimestamp').textContent = '最后更新：' + formatDate(update.updated_at);
+
+                    var contentHtml = update.content || '暂无内容';
+                    contentHtml = contentHtml
+                        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/^\- (.*$)/gim, '<li>$1</li>')
+                        .replace(/(<li>.*?<\/li>)/g, '<ul>$1</ul>')
+                        .replace(/<\/ul><ul>/g, '');
+
+                    body.innerHTML =
+                        '<div class="update-content">' + contentHtml + '</div>';
+
+                    document.getElementById('editContent').value = update.content || '';
+
+                    var user = getCurrentUser();
+                    var editBtn = document.getElementById('editBtn');
+                    var editHint = document.getElementById('editHint');
+                    if (user && isAdmin()) {
+                        editBtn.classList.remove('hidden');
+                        editHint.textContent = '💡 支持 Markdown 语法（标题 #, ##, ### / 列表 - / 粗体 **）';
+                    } else {
+                        editBtn.classList.add('hidden');
+                        editHint.textContent = '💡 只有管理员可以编辑';
+                    }
+                })
+                .catch(function(error) {
+                    console.error('加载更新日志失败:', error);
+                    body.innerHTML = '<div style="text-align:center;padding:40px 0;color:#f44336;"><p>❌ 加载失败</p></div>';
+                });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '未知';
+            var d = new Date(dateStr);
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2,
+                '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        }
+
+        function enableEdit() {
+            document.getElementById('editArea').classList.add('active');
+            document.getElementById('editBtn').style.display = 'none';
+        }
+
+        function cancelEdit() {
+            document.getElementById('editArea').classList.remove('active');
+            document.getElementById('editBtn').style.display = '';
+        }
+
+        function saveChangelog() {
+            var content = document.getElementById('editContent').value.trim();
+            if (!content) {
+                alert('内容不能为空');
+                return;
+            }
+
+            var user = getCurrentUser();
+            if (!user) {
+                alert('请先登录');
+                return;
+            }
+            if (!isAdmin()) {
+                alert('只有管理员可以编辑');
+                return;
+            }
+
+            var btn = document.querySelector('.btn-save');
+            btn.disabled = true;
+            btn.textContent = '⏳ 保存中...';
+
+            var data = {
+                content: content,
+                updated_by: user.username,
+                updated_at: new Date().toISOString()
+            };
+
+            var promise;
+            if (currentEditId) {
+                promise = supabaseClient
+                    .from('updates')
+                    .update(data)
+                    .eq('id', currentEditId);
+            } else {
+                promise = supabaseClient
+                    .from('updates')
+                    .insert([data]);
+            }
+
+            promise.then(function(res) {
+                if (res.error) throw new Error(res.error.message);
+                showToast('✅ 更新日志已保存！', 'success');
+                cancelEdit();
+                loadChangelog();
+                btn.disabled = false;
+                btn.textContent = '💾 保存';
+            }).catch(function(error) {
+                console.error('保存失败:', error);
+                alert('保存失败：' + error.message);
+                btn.disabled = false;
+                btn.textContent = '💾 保存';
+            });
+        }
+
+        document.getElementById('changelogModal').addEventListener('click', function(e) {
+            if (e.target === this) closeChangelog();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('changelogModal').classList.contains('active')) closeChangelog();
+            }
+        });
 
         // ============================================================
         //  加载数据
@@ -966,7 +1655,6 @@
                     document.getElementById('statRejected').textContent = rejected.length;
                     document.getElementById('statTotal').textContent = allSpots.length;
 
-                    // ✅ 更新待审核数量，供导航栏使用
                     window._pendingCount = pending.length;
                     renderNav();
 
@@ -996,10 +1684,9 @@
                 return;
             }
 
-            if (user.username !== ADMIN_USERNAME) {
+            if (!isAdmin()) {
                 document.getElementById('spotList').innerHTML =
-                    '<div class="access-denied"><span class="icon">🚫</span><h2>权限不足</h2><p>只有管理员 <strong>' +
-                    ADMIN_USERNAME + '</strong> 可以审核</p><p><a href="index.html">返回地图 →</a></p></div>';
+                    '<div class="access-denied"><span class="icon">🚫</span><h2>权限不足</h2><p>只有管理员可以审核</p><p><a href="index.html">返回地图 →</a></p></div>';
                 document.getElementById('photoList').innerHTML = '';
                 return;
             }
