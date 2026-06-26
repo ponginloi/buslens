@@ -1,0 +1,17 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[build.environment]
+  SUPABASE_URL = "https://keeybzxxkjxvlvhjjdpr.supabase.co"
+  SUPABASE_KEY = "sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci"
+  AMAP_KEY = "404164dc78620cbc5d9440e9b2ed5e85"
+  AMAP_SECURITY = "32cb0dfc6330c69e2d13dd3164cea242"
+  IMGBB_KEY = "8e3090df223d722b14abf8aaed4ed7e4"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
