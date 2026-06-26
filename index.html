@@ -4,12 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚌 BusLens - 巴士机位地图</title>
+    <script src="config.js"></script>
+
     <script>
-        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
         var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
-        // ✅ 已移除硬编码的 IMGBB_API_KEY 和地图密钥
+        var supabaseClient = null;
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+                console.error('❌ 配置未加载，等待...');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+                console.log('✅ Supabase 初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+
+        // 等待配置加载完成
+        document.addEventListener('configLoaded', function() {
+            initSupabase();
+            // 原有的初始化代码放在这里
+            renderNav();
+            loadAmap();
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>

@@ -4,11 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📸 精选照片管理 - BusLens</title>
+    <script src="config.js"></script>
+
     <script>
-        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
         var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
+        var supabaseClient = null;
+    
+        function initSupabase() {
+            if (typeof supabase === 'undefined') return false;
+            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) return false;
+            try {
+                supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+                return true;
+            } catch (e) {
+                console.error('Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+
+        document.addEventListener('configLoaded', function() {
+            initSupabase();
+            renderNav();
+            loadFeaturedPhotos();
+            loadAllPhotosForSelect();
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>

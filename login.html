@@ -4,10 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录 - BusLens</title>
+    <script src="config.js"></script>
+
     <script>
-        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
+        var supabaseClient = null;
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') return false;
+            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) return false;
+            try {
+                supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+                return true;
+            } catch (e) {
+                console.error('Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+
+        document.addEventListener('configLoaded', function() {
+            initSupabase();
+            document.getElementById('loginForm').addEventListener('submit', loginHandler);
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -199,6 +217,9 @@
     </div>
 
     <script>
+        // ============================================================
+        //  登录逻辑
+        // ============================================================
         var supabaseClient = null;
         var SESSION_KEY = 'bus_user_session';
 
@@ -207,8 +228,12 @@
                 console.error('❌ Supabase SDK 未加载');
                 return false;
             }
+            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+                console.error('❌ 配置未加载');
+                return false;
+            }
             try {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
                 console.log('✅ Supabase 初始化成功');
                 return true;
             } catch (e) {
@@ -216,7 +241,6 @@
                 return false;
             }
         }
-        initSupabase();
 
         function showMessage(text, type) {
             var el = document.getElementById('message');
@@ -225,7 +249,7 @@
             el.style.display = 'block';
         }
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        async function loginHandler(e) {
             e.preventDefault();
 
             var username = document.getElementById('username').value.trim();
@@ -242,38 +266,28 @@
             showMessage('⏳ 验证中...', 'loading');
 
             try {
-                var result = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('username', username)
-                    .single();
+                const response = await fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + window.SUPABASE_KEY
+                    },
+                    body: JSON.stringify({ username, password })
+                });
 
-                if (result.error) {
-                    // 如果用户不存在，提供更友好的提示
-                    if (result.error.code === 'PGRST116') {
-                        showMessage('❌ 用户不存在，请先注册', 'error');
-                    } else {
-                        throw new Error(result.error.message);
-                    }
-                    btn.disabled = false;
-                    btn.textContent = '登 录';
-                    return;
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || '登录失败');
                 }
 
-                var user = result.data;
-
-                if (user.password !== password) {
-                    showMessage('❌ 密码错误', 'error');
-                    btn.disabled = false;
-                    btn.textContent = '登 录';
-                    return;
-                }
+                console.log('✅ 登录成功:', result.user);
 
                 var session = {
-                    id: user.id,
-                    username: user.username,
-                    email: user.email,
-                    role: user.role,
+                    id: result.user.id,
+                    username: result.user.username,
+                    email: result.user.email,
+                    role: result.user.role,
                     loginTime: Date.now()
                 };
                 sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -285,16 +299,22 @@
 
             } catch (error) {
                 console.error('登录失败:', error);
-                showMessage('❌ 登录失败：' + error.message, 'error');
+                showMessage('❌ ' + error.message, 'error');
                 btn.disabled = false;
                 btn.textContent = '登 录';
             }
-        });
+        }
 
         // 如果已登录，跳转到首页
         if (sessionStorage.getItem(SESSION_KEY)) {
             window.location.href = 'index.html';
         }
+
+        // 初始化 Supabase
+        document.addEventListener('configLoaded', function() {
+            initSupabase();
+            document.getElementById('loginForm').addEventListener('submit', loginHandler);
+        });
     </script>
 </body>
 </html>
