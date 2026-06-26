@@ -5,16 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📸 精选照片管理 - BusLens</title>
     <script>
-    var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
-    var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
-    var SESSION_KEY = 'bus_user_session';
-    var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
-</script>
-<script src="config.js"></script>
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        /* ... 样式保持不变 ... */
         * {
             margin: 0;
             padding: 0;
@@ -186,7 +184,6 @@
             color: #4caf50;
         }
 
-        /* ===== 添加弹窗 ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -397,7 +394,6 @@
             color: #1a73e8;
         }
 
-        /* ===== 精选照片列表 ===== */
         .photo-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -676,7 +672,7 @@
         }
 
         // ============================================================
-        //  API 工具（安全版）
+        //  API 工具
         // ============================================================
         var apiSupabaseClient = null;
 
@@ -713,9 +709,6 @@
             }
         }
 
-        // ============================================================
-        //  📤 安全上传到 ImgBB
-        // ============================================================
         async function uploadToImgBB(file) {
             try {
                 const apiKey = await getApiKey('imgbb_key');
@@ -849,84 +842,69 @@
         });
 
         // ============================================================
-        //  加载精选照片列表
+        //  精选照片管理
         // ============================================================
         var featuredPhotos = [];
         var allSpots = [];
 
-        function loadFeaturedPhotos() {
+        function renderFeaturedPhotos() {
             var container = document.getElementById('photoGrid');
-            container.innerHTML = '<div class="empty-state"><span class="icon">⟳</span><p>加载中...</p></div>';
 
-            supabaseClient
-                .from('featured_photos')
-                .select('*')
-                .order('selected_at', { ascending: false })
-                .then(function(res) {
-                    if (res.error) throw new Error(res.error.message);
-                    featuredPhotos = res.data || [];
+            if (featuredPhotos.length === 0) {
+                container.innerHTML = '<div class="empty-state"><span class="icon">📭</span><p>暂无精选照片</p><p style="font-size:13px;color:#bbb;">点击「添加精选」从已有照片中挑选 5 张</p></div>';
+                return;
+            }
 
-                    var today = new Date().toISOString().slice(0, 10);
-                    var yesterday = new Date();
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    var yesterdayStr = yesterday.toISOString().slice(0, 10);
+            var html = '';
+            featuredPhotos.forEach(function(p, index) {
+                var isActive = p.is_active !== false;
+                var statusText = isActive ? '✅ 展示中' : '⛔ 已隐藏';
+                var statusClass = isActive ? '' : 'off';
+                var dateStr = p.selected_at ? p.selected_at.slice(0, 10) : '未知';
 
-                    var todayCount = featuredPhotos.filter(function(p) {
-                        return p.selected_at && p.selected_at.slice(0, 10) === today && p.is_active !== false;
-                    }).length;
-                    var yesterdayCount = featuredPhotos.filter(function(p) {
-                        return p.selected_at && p.selected_at.slice(0, 10) === yesterdayStr && p.is_active !== false;
-                    }).length;
+                html +=
+                    '<div class="photo-card" data-id="' + p.id + '">' +
+                    '<div class="photo-img lazy-placeholder" data-src="' + escapeHtml(p.photo_url) + '" onclick="openLightbox(\'' + escapeHtml(p.photo_url) + '\')">📷</div>' +
+                    '<div class="photo-body">' +
+                    '<div class="photo-spot">📍 ' + escapeHtml(p.spot_name || '未知机位') + '</div>' +
+                    '<div class="photo-meta">' +
+                    '<span>📤 ' + escapeHtml(p.uploader || '未知') + '</span>' +
+                    '<span>📅 ' + escapeHtml(dateStr) + '</span>' +
+                    '</div>' +
+                    (p.reason ? '<div class="photo-reason-box"><span class="label">💡 入选理由：</span>' + escapeHtml(p.reason) + '</div>' : '') +
+                    '<div style="margin-top:4px;font-size:12px;color:#999;">🔢 顺序：' + (p.display_order || 0) + ' ｜ ' + statusText + '</div>' +
+                    '</div>' +
+                    '<div class="photo-actions">' +
+                    '<button class="btn-up" onclick="movePhoto(' + index + ', -1)">⬆ 上移</button>' +
+                    '<button class="btn-down" onclick="movePhoto(' + index + ', 1)">⬇ 下移</button>' +
+                    '<button class="btn-toggle ' + statusClass + '" onclick="togglePhoto(' + index + ')">' + (isActive ? '🙈 隐藏' : '👀 显示') + '</button>' +
+                    '<button class="btn-remove" onclick="removePhoto(' + index + ')">🗑️ 删除</button>' +
+                    '</div>' +
+                    '</div>';
+            });
 
-                    document.getElementById('statToday').textContent = todayCount;
-                    document.getElementById('statYesterday').textContent = yesterdayCount;
-                    document.getElementById('statTotal').textContent = featuredPhotos.length;
-
-                    if (featuredPhotos.length === 0) {
-                        container.innerHTML = '<div class="empty-state"><span class="icon">📭</span><p>暂无精选照片</p><p style="font-size:13px;color:#bbb;">点击「添加精选」从已有照片中挑选 5 张</p></div>';
-                        return;
-                    }
-
-                    var html = '';
-                    featuredPhotos.forEach(function(p, index) {
-                        var isActive = p.is_active !== false;
-                        var statusText = isActive ? '✅ 展示中' : '⛔ 已隐藏';
-                        var statusClass = isActive ? '' : 'off';
-                        var dateStr = p.selected_at ? p.selected_at.slice(0, 10) : '未知';
-
-                        html +=
-                            '<div class="photo-card" data-id="' + p.id + '">' +
-                            '<div class="photo-img lazy-placeholder" data-src="' + escapeHtml(p.photo_url) + '" onclick="openLightbox(\'' + escapeHtml(p.photo_url) + '\')">📷</div>' +
-                            '<div class="photo-body">' +
-                            '<div class="photo-spot">📍 ' + escapeHtml(p.spot_name || '未知机位') + '</div>' +
-                            '<div class="photo-meta">' +
-                            '<span>📤 ' + escapeHtml(p.uploader || '未知') + '</span>' +
-                            '<span>📅 ' + escapeHtml(dateStr) + '</span>' +
-                            '</div>' +
-                            (p.reason ? '<div class="photo-reason-box"><span class="label">💡 入选理由：</span>' + escapeHtml(p.reason) + '</div>' : '') +
-                            '<div style="margin-top:4px;font-size:12px;color:#999;">🔢 顺序：' + (p.display_order || 0) + ' ｜ ' + statusText + '</div>' +
-                            '</div>' +
-                            '<div class="photo-actions">' +
-                            '<button class="btn-up" onclick="movePhoto(' + index + ', -1)">⬆ 上移</button>' +
-                            '<button class="btn-down" onclick="movePhoto(' + index + ', 1)">⬇ 下移</button>' +
-                            '<button class="btn-toggle ' + statusClass + '" onclick="togglePhoto(' + index + ')">' + (isActive ? '🙈 隐藏' : '👀 显示') + '</button>' +
-                            '<button class="btn-remove" onclick="removePhoto(' + index + ')">🗑️ 删除</button>' +
-                            '</div>' +
-                            '</div>';
-                    });
-
-                    container.innerHTML = html;
-                    initLazyLoad();
-                })
-                .catch(function(error) {
-                    console.error('加载精选照片失败:', error);
-                    container.innerHTML = '<div class="empty-state"><span class="icon">❌</span><p>加载失败：' + error.message + '</p></div>';
-                });
+            container.innerHTML = html;
+            initLazyLoad();
         }
 
-        // ============================================================
-        //  🚀 滚动懒加载
-        // ============================================================
+        function updateStats() {
+            var today = new Date().toISOString().slice(0, 10);
+            var yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            var yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+            var todayCount = featuredPhotos.filter(function(p) {
+                return p.selected_at && p.selected_at.slice(0, 10) === today && p.is_active !== false;
+            }).length;
+            var yesterdayCount = featuredPhotos.filter(function(p) {
+                return p.selected_at && p.selected_at.slice(0, 10) === yesterdayStr && p.is_active !== false;
+            }).length;
+
+            document.getElementById('statToday').textContent = todayCount;
+            document.getElementById('statYesterday').textContent = yesterdayCount;
+            document.getElementById('statTotal').textContent = featuredPhotos.length;
+        }
+
         function initLazyLoad() {
             if (!('IntersectionObserver' in window)) {
                 document.querySelectorAll('.lazy-placeholder[data-src]').forEach(function(el) {
@@ -965,8 +943,27 @@
             document.querySelectorAll('.lazy-placeholder[data-src]').forEach(function(el) {
                 observer.observe(el);
             });
+        }
 
-            console.log('✅ 精选照片懒加载已启动，共 ' + document.querySelectorAll('.lazy-placeholder[data-src]').length + ' 张待加载');
+        function loadFeaturedPhotos() {
+            var container = document.getElementById('photoGrid');
+            container.innerHTML = '<div class="empty-state"><span class="icon">⟳</span><p>加载中...</p></div>';
+
+            supabaseClient
+                .from('featured_photos')
+                .select('*')
+                .order('selected_at', { ascending: false })
+                .then(function(res) {
+                    if (res.error) throw new Error(res.error.message);
+                    featuredPhotos = res.data || [];
+
+                    renderFeaturedPhotos();
+                    updateStats();
+                })
+                .catch(function(error) {
+                    console.error('加载精选照片失败:', error);
+                    container.innerHTML = '<div class="empty-state"><span class="icon">❌</span><p>加载失败：' + error.message + '</p></div>';
+                });
         }
 
         // ============================================================
@@ -1022,8 +1019,6 @@
                 seen[p.url] = true;
                 return true;
             });
-
-            console.log('📸 加载了 ' + allAvailablePhotos.length + ' 张可用照片');
         }
 
         // ============================================================
@@ -1055,9 +1050,6 @@
             el.style.display = 'block';
         }
 
-        // ============================================================
-        //  渲染照片选择网格
-        // ============================================================
         function renderPhotoSelectGrid() {
             var container = document.getElementById('photoSelectGrid');
 
@@ -1082,9 +1074,6 @@
             updateSelectedCount();
         }
 
-        // ============================================================
-        //  切换照片选择
-        // ============================================================
         function togglePhotoSelect(index) {
             var p = allAvailablePhotos[index];
             var idx = selectedPhotoUrls.indexOf(p.url);
@@ -1111,9 +1100,6 @@
             btn.disabled = selectedPhotoUrls.length === 0;
         }
 
-        // ============================================================
-        //  提交精选照片
-        // ============================================================
         function submitFeatured() {
             if (selectedPhotoUrls.length === 0) {
                 showModalMsg('❌ 请至少选择 1 张照片', 'error');
@@ -1227,23 +1213,49 @@
         }
 
         // ============================================================
-        //  删除精选照片
+        //  ✅ 删除精选照片（修复版）
         // ============================================================
         function removePhoto(index) {
             var p = featuredPhotos[index];
+            if (!p) {
+                showToast('❌ 照片不存在', 'error');
+                return;
+            }
+
+            var user = getCurrentUser();
+            if (!user || user.role !== 'admin') {
+                showToast('❌ 只有管理员可以删除', 'error');
+                return;
+            }
+
             if (!confirm('确认删除「' + escapeHtml(p.spot_name || '未命名') + '」的精选照片？')) return;
+
+            console.log('🗑️ 删除精选照片 ID:', p.id);
 
             supabaseClient
                 .from('featured_photos')
                 .delete()
                 .eq('id', p.id)
                 .then(function(res) {
-                    if (res.error) throw new Error(res.error.message);
-                    showToast('🗑️ 已删除', 'error');
-                    loadFeaturedPhotos();
+                    if (res.error) {
+                        console.error('❌ 删除失败:', res.error);
+                        showToast('❌ 删除失败：' + res.error.message, 'error');
+                        return;
+                    }
+                    console.log('✅ 删除成功');
+                    showToast('🗑️ 已删除', 'success');
+
+                    // ✅ 从本地数组中移除
+                    featuredPhotos.splice(index, 1);
+
+                    // ✅ 重新渲染
+                    renderFeaturedPhotos();
+
+                    // ✅ 更新统计
+                    updateStats();
                 })
                 .catch(function(error) {
-                    console.error('删除失败:', error);
+                    console.error('❌ 删除异常:', error);
                     showToast('❌ 删除失败：' + error.message, 'error');
                 });
         }
