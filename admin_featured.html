@@ -1213,7 +1213,7 @@
         }
 
         // ============================================================
-        //  ✅ 删除精选照片（修复版）
+        //  ✅ 删除精选照片（修复版 - 真正删除数据库记录）
         // ============================================================
         function removePhoto(index) {
             var p = featuredPhotos[index];
@@ -1232,31 +1232,36 @@
 
             console.log('🗑️ 删除精选照片 ID:', p.id);
 
+            // ✅ 调用 Supabase 删除数据库记录
             supabaseClient
                 .from('featured_photos')
                 .delete()
                 .eq('id', p.id)
                 .then(function(res) {
                     if (res.error) {
-                        console.error('❌ 删除失败:', res.error);
+                        console.error('❌ 数据库删除失败:', res.error);
                         showToast('❌ 删除失败：' + res.error.message, 'error');
+                        // 删除失败，重新加载数据恢复显示
+                        loadFeaturedPhotos();
                         return;
                     }
-                    console.log('✅ 删除成功');
-                    showToast('🗑️ 已删除', 'success');
+                    console.log('✅ 数据库删除成功');
 
-                    // ✅ 从本地数组中移除
+                    // 从本地数组中移除
                     featuredPhotos.splice(index, 1);
 
-                    // ✅ 重新渲染
+                    // 重新渲染
                     renderFeaturedPhotos();
 
-                    // ✅ 更新统计
+                    // 更新统计
                     updateStats();
+
+                    showToast('🗑️ 已删除', 'success');
                 })
                 .catch(function(error) {
                     console.error('❌ 删除异常:', error);
                     showToast('❌ 删除失败：' + error.message, 'error');
+                    loadFeaturedPhotos();
                 });
         }
 
