@@ -4,39 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚌 BusLens - 巴士机位地图</title>
-    <script src="config.js"></script>
-
     <script>
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
         var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
-        var supabaseClient = null;
-
-        function initSupabase() {
-            if (typeof supabase === 'undefined') {
-                console.error('❌ Supabase SDK 未加载');
-                return false;
-            }
-            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
-                console.error('❌ 配置未加载，等待...');
-                return false;
-            }
-            try {
-                supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-                console.log('✅ Supabase 初始化成功');
-                return true;
-            } catch (e) {
-                console.error('❌ Supabase 初始化失败:', e);
-                return false;
-            }
-        }
-
-        // 等待配置加载完成
-        document.addEventListener('configLoaded', function() {
-            initSupabase();
-            // 原有的初始化代码放在这里
-            renderNav();
-            loadAmap();
-        });
+        // ✅ 已移除硬编码的 IMGBB_API_KEY 和地图密钥
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -47,67 +20,24 @@
         //  所有第三方 API 密钥通过 Supabase 函数获取，前端不可见
         // ============================================================
 
-        // ============================================================
-//  🗺️ 高德地图动态加载（使用安全密钥）
-// ============================================================
-var mapLoaded = false;
-var mapReadyCallbacks = [];
+        var apiSupabaseClient = null;
 
-function onMapReady(callback) {
-    if (mapLoaded) {
-        callback();
-    } else {
-        mapReadyCallbacks.push(callback);
-    }
-}
-
-async function loadAmap() {
-    // ✅ 等待配置加载完成
-    if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
-        console.log('⏳ 等待配置加载...');
-        // 监听 configLoaded 事件
-        document.addEventListener('configLoaded', function() {
-            loadAmap();
-        });
-        return;
-    }
-
-    try {
-        const amapKey = await getAmapKey();
-        const amapSecurity = await getAmapSecurity();
-
-        if (!amapKey) {
-            console.error('❌ 无法获取高德地图密钥');
-            return;
+        function initApiClient() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            if (!apiSupabaseClient) {
+                try {
+                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ API 客户端初始化成功');
+                } catch (e) {
+                    console.error('❌ API 客户端初始化失败:', e);
+                    return false;
+                }
+            }
+            return true;
         }
-
-        window._AMapSecurityConfig = {
-            securityJsCode: amapSecurity
-        };
-
-        if (typeof AMap !== 'undefined') {
-            mapLoaded = true;
-            mapReadyCallbacks.forEach(function(cb) { cb(); });
-            mapReadyCallbacks = [];
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + amapKey;
-        script.onload = function() {
-            console.log('✅ 高德地图加载成功');
-            mapLoaded = true;
-            mapReadyCallbacks.forEach(function(cb) { cb(); });
-            mapReadyCallbacks = [];
-        };
-        script.onerror = function() {
-            console.error('❌ 高德地图加载失败');
-        };
-        document.head.appendChild(script);
-    } catch (error) {
-        console.error('❌ 加载地图失败:', error);
-    }
-}
 
         async function getApiKey(keyName) {
             if (!initApiClient()) return null;
@@ -1767,6 +1697,7 @@ async function loadAmap() {
             var uploadPromises = selectedPhotoFiles.map(async function(file) {
                 try {
                     if (file.size > 1024 * 1024) {
+                        // ✅ 使用带水印的处理函数
                         var processed = await processImageWithCanvas(file, {
                             maxWidth: 1920,
                             maxHeight: 1080,
@@ -1778,6 +1709,7 @@ async function loadAmap() {
                         }, user.username);
                         return await uploadToImgBB(processed);
                     } else {
+                        // 小图片也走水印处理（但压缩跳过）
                         var processed = await processImageWithCanvas(file, {
                             maxWidth: 1920,
                             maxHeight: 1080,
@@ -1987,6 +1919,7 @@ async function loadAmap() {
             var spot = allSpotsCache.find(function(s) { return s.id == spotId; });
             if (!spot) return;
 
+            // 例图
             var exampleContainer = container.querySelector('.example-container');
             if (exampleContainer && spot.example_photo) {
                 var placeholder = exampleContainer.querySelector('.loading-placeholder');
@@ -1995,6 +1928,7 @@ async function loadAmap() {
                 }
             }
 
+            // 用户照片
             var photoItems = container.querySelectorAll('.photo-item');
             if (photoItems.length > 0 && spot.photos) {
                 var validPhotos = spot.photos.filter(function(p) { return p.status !== 'rejected'; });
@@ -2136,6 +2070,7 @@ async function loadAmap() {
 
                         var deviceLabel = getDeviceLabel(spot.device_type);
 
+                        // 弹窗内容
                         var exampleHtml = '';
                         if (spot.example_photo) {
                             exampleHtml =
@@ -2228,6 +2163,7 @@ async function loadAmap() {
                         map.add(marker);
                     });
 
+                    // 加载收藏状态
                     var user = getCurrentUser();
                     if (user) {
                         supabaseClient
@@ -2468,9 +2404,6 @@ async function loadAmap() {
         // ============================================================
         //  启动
         // ============================================================
-        // ============================================================
-//  启动
-// ============================================================
         var supabaseClient = null;
 
         function initSupabaseMain() {
@@ -2478,12 +2411,8 @@ async function loadAmap() {
                 console.error('❌ Supabase SDK 未加载');
                 return false;
             }
-            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
-                console.error('❌ 配置未加载，等待 configLoaded 事件...');
-                return false;
-            }
             try {
-                supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 console.log('✅ Supabase 主客户端初始化成功');
                 return true;
             } catch (e) {
@@ -2491,33 +2420,10 @@ async function loadAmap() {
                 return false;
             }
         }
-
-        // 等待配置加载完成后再初始化
-        document.addEventListener('configLoaded', function() {
-            console.log('📦 configLoaded 事件触发，开始初始化...');
-            initSupabaseMain();
-            // 确保 supabaseClient 在 loadMapData 中可用
-            if (supabaseClient) {
-                loadMapData();
-            }
-        });
-
-        // 如果配置已经加载，直接初始化
-        if (window.SUPABASE_URL && window.SUPABASE_KEY) {
-            console.log('📦 配置已加载，直接初始化...');
-            initSupabaseMain();
-        }
+        initSupabaseMain();
 
         renderNav();
-
-        // 高德地图加载 - 等待配置
-        if (window.SUPABASE_URL && window.SUPABASE_KEY) {
-            loadAmap();
-        } else {
-            document.addEventListener('configLoaded', function() {
-                loadAmap();
-            });
-        }
+        loadAmap();
 
         onMapReady(function() {
             initMap();

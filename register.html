@@ -4,28 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册 - BusLens</title>
-    <script src="config.js"></script>
-
     <script>
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
-        var supabaseClient = null;
-
-        function initSupabase() {
-            if (typeof supabase === 'undefined') return false;
-            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) return false;
-            try {
-                supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-                return true;
-            } catch (e) {
-                console.error('Supabase 初始化失败:', e);
-                return false;
-            }
-        }
-
-        document.addEventListener('configLoaded', function() {
-            initSupabase();
-            document.getElementById('registerForm').addEventListener('submit', registerHandler);
-        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -245,23 +227,15 @@
     </div>
 
     <script>
-        // ============================================================
-        //  注册逻辑
-        // ============================================================
         var supabaseClient = null;
-        var SESSION_KEY = 'bus_user_session';
 
         function initSupabase() {
             if (typeof supabase === 'undefined') {
                 console.error('❌ Supabase SDK 未加载');
                 return false;
             }
-            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
-                console.error('❌ 配置未加载');
-                return false;
-            }
             try {
-                supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 console.log('✅ Supabase 初始化成功');
                 return true;
             } catch (e) {
@@ -269,6 +243,7 @@
                 return false;
             }
         }
+        initSupabase();
 
         function showMessage(text, type) {
             var el = document.getElementById('message');
@@ -277,7 +252,7 @@
             el.style.display = 'block';
         }
 
-        async function registerHandler(e) {
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             var username = document.getElementById('username').value.trim();
@@ -308,6 +283,7 @@
             showMessage('⏳ 提交中...', 'loading');
 
             try {
+                // 检查用户名是否已存在
                 var checkResult = await supabaseClient
                     .from('users')
                     .select('username')
@@ -321,6 +297,7 @@
                     return;
                 }
 
+                // 插入新用户
                 var newUser = {
                     username: username,
                     email: email,
@@ -335,6 +312,7 @@
 
                 if (insertResult.error) throw new Error(insertResult.error.message);
 
+                // 自动登录
                 var session = {
                     id: insertResult.data ? insertResult.data[0].id : 'user_' + Date.now(),
                     username: username,
@@ -355,16 +333,11 @@
                 btn.disabled = false;
                 btn.textContent = '注 册';
             }
-        }
+        });
 
         if (sessionStorage.getItem(SESSION_KEY)) {
             window.location.href = 'index.html';
         }
-
-        document.addEventListener('configLoaded', function() {
-            initSupabase();
-            document.getElementById('registerForm').addEventListener('submit', registerHandler);
-        });
     </script>
 </body>
 </html>
