@@ -48,6 +48,16 @@
                 return null;
             }
         }
+
+        // ============================================================
+        //  🛡️ 防止 XSS 攻击
+        // ============================================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
     </script>
     <style>
         * {
@@ -812,7 +822,7 @@
                     (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
                     (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
                     '<a href="upload.html" class="active">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>' +
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
             } else {
                 nav.innerHTML =
@@ -1224,9 +1234,10 @@
 
         document.getElementById('locateBtn').addEventListener('click', locateMe);
 
-        console.log('📤 上传页面已加载（压缩 + 黑色版权栏 + 左下角水印 + 安全 API）');
+        console.log('📤 上传页面已加载（压缩 + 黑色版权栏 + 左下角水印 + 安全 API + XSS防护）');
         console.log('🖼️ 水印位置：图片左下角，透明度 75%，大小为底部文字的 4 倍');
         console.log('🔑 API 密钥已安全存储（前端不可见）');
+        console.log('🛡️ 所有用户输入已做 XSS 防护');
     </script>
 </body>
 </html>

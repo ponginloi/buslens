@@ -12,6 +12,53 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
+    <!-- API 工具（安全版） -->
+    <script>
+        var apiSupabaseClient = null;
+
+        function initApiClient() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            if (!apiSupabaseClient) {
+                try {
+                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ API 客户端初始化成功');
+                } catch (e) {
+                    console.error('❌ API 客户端初始化失败:', e);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        async function getApiKey(keyName) {
+            if (!initApiClient()) return null;
+            try {
+                const { data, error } = await apiSupabaseClient
+                    .rpc('get_api_key', { key_name: keyName });
+                if (error) {
+                    console.error('❌ 获取 API 密钥失败:', error);
+                    return null;
+                }
+                return data;
+            } catch (e) {
+                console.error('❌ 获取 API 密钥异常:', e);
+                return null;
+            }
+        }
+
+        // ============================================================
+        //  🛡️ 防止 XSS 攻击
+        // ============================================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -896,9 +943,10 @@
     </div>
 
     <script>
+        // ============================================================
+        //  Supabase 主客户端
+        // ============================================================
         var supabaseClient = null;
-        var SESSION_KEY = 'bus_user_session';
-        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
 
         function initSupabase() {
             if (typeof supabase === 'undefined') {
@@ -916,6 +964,9 @@
         }
         initSupabase();
 
+        // ============================================================
+        //  用户状态
+        // ============================================================
         function getCurrentUser() {
             try {
                 var raw = sessionStorage.getItem(SESSION_KEY);
@@ -970,7 +1021,7 @@
                     (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
                     (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
                     '<a href="upload.html">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>' +
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
             } else {
                 nav.innerHTML =
@@ -1174,7 +1225,7 @@
                     currentBio = bio;
                     var display = document.getElementById('bioDisplay');
                     if (bio && bio.trim() !== '') {
-                        display.innerHTML = '📝 ' + bio;
+                        display.innerHTML = '📝 ' + escapeHtml(bio);
                     } else {
                         display.innerHTML = '<span class="empty-bio">📝 还没有设置个人简介</span>';
                     }
@@ -1240,7 +1291,7 @@
                 var cls = b.unlocked ? 'badge-item unlocked' : 'badge-item locked';
                 return '<div class="' + cls + '" title="' + (b.unlocked ? '已解锁' : '未解锁') + '">' +
                     '<span class="badge-icon">' + b.icon + '</span>' +
-                    '<span class="badge-name">' + b.name + '</span>' +
+                    '<span class="badge-name">' + escapeHtml(b.name) + '</span>' +
                     '</div>';
             }).join('');
         }
@@ -1257,7 +1308,7 @@
             recentSpots.forEach(function(s) {
                 recentItems.push({
                     icon: '📌',
-                    text: '上传了机位 <a href="index.html?spot_id=' + s.id + '">' + s.name + '</a>',
+                    text: '上传了机位 <a href="index.html?spot_id=' + s.id + '">' + escapeHtml(s.name) + '</a>',
                     time: s.created_at || '最近'
                 });
             });
@@ -1268,7 +1319,7 @@
                         if (p.date) {
                             recentItems.push({
                                 icon: '📸',
-                                text: '在 <a href="index.html?spot_id=' + s.id + '">' + s.name +
+                                text: '在 <a href="index.html?spot_id=' + s.id + '">' + escapeHtml(s.name) +
                                 '</a> 上传了照片',
                                 time: p.date
                             });
@@ -1330,9 +1381,9 @@
             var displayPhotos = allPhotos.slice(-20).reverse();
 
             container.innerHTML = displayPhotos.map(function(p) {
-                return '<div class="gallery-item" onclick="openLightbox(\'' + p.url + '\')">' +
-                    '<div class="lazy-placeholder" data-src="' + p.url + '">📷</div>' +
-                    '<div class="gallery-overlay">' + (p.caption || '作品') + '</div>' +
+                return '<div class="gallery-item" onclick="openLightbox(\'' + escapeHtml(p.url) + '\')">' +
+                    '<div class="lazy-placeholder" data-src="' + escapeHtml(p.url) + '">📷</div>' +
+                    '<div class="gallery-overlay">' + escapeHtml(p.caption || '作品') + '</div>' +
                     '</div>';
             }).join('');
 
@@ -1345,7 +1396,7 @@
         //  loadUserProfile - 加载用户数据
         // ============================================================
         function loadUserProfile(username, isOwn) {
-            document.getElementById('userName').textContent = '👤 ' + username;
+            document.getElementById('userName').textContent = '👤 ' + escapeHtml(username);
 
             supabaseClient
                 .from('spots')
@@ -1442,11 +1493,11 @@
                 return;
             }
 
-            if (!confirm('⚠️ 确定要删除「' + spotName + '」吗？\n\n删除后该机位及其所有照片将被永久移除，不可恢复！')) {
+            if (!confirm('⚠️ 确定要删除「' + escapeHtml(spotName) + '」吗？\n\n删除后该机位及其所有照片将被永久移除，不可恢复！')) {
                 return;
             }
 
-            if (!confirm('再次确认：删除「' + spotName + '」？')) {
+            if (!confirm('再次确认：删除「' + escapeHtml(spotName) + '」？')) {
                 return;
             }
 
@@ -1461,7 +1512,7 @@
                         alert('❌ 删除失败：' + res.error.message);
                         return;
                     }
-                    alert('✅ 已成功删除机位「' + spotName + '」');
+                    alert('✅ 已成功删除机位「' + escapeHtml(spotName) + '」');
                     loadUserProfile(user.username, true);
                 })
                 .catch(function(error) {
@@ -1480,7 +1531,7 @@
                 return;
             }
 
-            if (!confirm('⚠️ 确定要删除「' + spotName + '」中的这张照片吗？\n\n删除后不可恢复！')) {
+            if (!confirm('⚠️ 确定要删除「' + escapeHtml(spotName) + '」中的这张照片吗？\n\n删除后不可恢复！')) {
                 return;
             }
 
@@ -1541,17 +1592,17 @@
             container.innerHTML = pending.map(function(s) {
                 return '<div class="item-card">' +
                     '<div class="left">' +
-                    '<div class="title">' + s.name + '</div>' +
+                    '<div class="title">' + escapeHtml(s.name) + '</div>' +
                     '<div class="meta">' +
-                    '<span>📅 ' + (s.created_at || '未知') + '</span>' +
+                    '<span>📅 ' + escapeHtml(s.created_at || '未知') + '</span>' +
                     '<span class="rank-badge ' + s.rank + '">' + (s.rank === 'high' ? '上等' : s.rank === 'medium' ?
                         '中等' : '下等') + '</span>' +
                     '<span class="status-badge pending">⏳ 待审核</span>' +
                     '</div>' +
                     '</div>' +
                     '<div class="right">' +
-                    '<span style="font-size:13px;color:#999;">📍 ' + s.lng + ', ' + s.lat + '</span>' +
-                    '<button class="btn-delete-spot" onclick="deleteMySpot(\'' + s.id + '\', \'' + s.name.replace(/'/g, "\\'") + '\')">🗑️ 删除</button>' +
+                    '<span style="font-size:13px;color:#999;">📍 ' + escapeHtml(s.lng + ', ' + s.lat) + '</span>' +
+                    '<button class="btn-delete-spot" onclick="deleteMySpot(\'' + s.id + '\', \'' + escapeHtml(s.name.replace(/'/g, "\\'")) + '\')">🗑️ 删除</button>' +
                     '</div>' +
                     '</div>';
             }).join('');
@@ -1575,23 +1626,23 @@
             container.innerHTML = mySpots.map(function(s) {
                 var statusClass = s.status || 'pending';
                 var reasonHtml = s.review_reason ? '<div style="font-size:12px;color:#f44336;margin-top:2px;">📝 审核意见：' +
-                    s.review_reason + '</div>' : '';
+                    escapeHtml(s.review_reason) + '</div>' : '';
                 return '<div class="item-card">' +
                     '<div class="left">' +
-                    '<div class="title">' + s.name + '</div>' +
+                    '<div class="title">' + escapeHtml(s.name) + '</div>' +
                     '<div class="meta">' +
-                    '<span>📅 ' + (s.created_at || '未知') + '</span>' +
+                    '<span>📅 ' + escapeHtml(s.created_at || '未知') + '</span>' +
                     '<span class="rank-badge ' + s.rank + '">' + (s.rank === 'high' ? '上等' : s.rank === 'medium' ?
                         '中等' : '下等') + '</span>' +
                     '<span class="status-badge ' + statusClass + '">' + (statusMap[statusClass] || '未知') + '</span>' +
-                    (s.reviewed_by ? '<span style="font-size:12px;color:#999;">审核人：' + s.reviewed_by + '</span>' : '') +
+                    (s.reviewed_by ? '<span style="font-size:12px;color:#999;">审核人：' + escapeHtml(s.reviewed_by) + '</span>' : '') +
                     '</div>' +
                     reasonHtml +
                     '</div>' +
                     '<div class="right">' +
-                    '<span style="font-size:13px;color:#999;">📍 ' + s.lng + ', ' + s.lat + '</span>' +
+                    '<span style="font-size:13px;color:#999;">📍 ' + escapeHtml(s.lng + ', ' + s.lat) + '</span>' +
                     '<a href="index.html?spot_id=' + s.id + '" class="view-link">查看地图 →</a>' +
-                    '<button class="btn-delete-spot" onclick="deleteMySpot(\'' + s.id + '\', \'' + s.name.replace(/'/g, "\\'") + '\')">🗑️ 删除</button>' +
+                    '<button class="btn-delete-spot" onclick="deleteMySpot(\'' + s.id + '\', \'' + escapeHtml(s.name.replace(/'/g, "\\'")) + '\')">🗑️ 删除</button>' +
                     '</div>' +
                     '</div>';
             }).join('');
@@ -1631,22 +1682,22 @@
                 var p = item.photo;
                 return '<div class="item-card">' +
                     '<div class="left">' +
-                    '<div class="title">' + item.spotName + '</div>' +
+                    '<div class="title">' + escapeHtml(item.spotName) + '</div>' +
                     '<div class="meta">' +
-                    '<span>📅 ' + (p.date || p.created_at || '未知') + '</span>' +
+                    '<span>📅 ' + escapeHtml(p.date || p.created_at || '未知') + '</span>' +
                     '<span class="rank-badge ' + item.spotRank + '">' + (item.spotRank === 'high' ? '上等' : item
                         .spotRank === 'medium' ? '中等' : '下等') + '</span>' +
                     '<span class="status-badge ' + (item.spotStatus || 'pending') + '">' + (item.spotStatus ===
                         'approved' ? '✅ 已通过' : item.spotStatus === 'pending' ? '⏳ 待审核' : '❌ 已拒绝') +
                     '</span>' +
                     '</div>' +
-                    (p.caption ? '<div style="font-size:13px;color:#666;margin-top:2px;">📝 ' + p.caption + '</div>' :
+                    (p.caption ? '<div style="font-size:13px;color:#666;margin-top:2px;">📝 ' + escapeHtml(p.caption) + '</div>' :
                         '') +
                     '</div>' +
                     '<div class="right">' +
-                    '<div class="photo-thumb lazy-placeholder" data-src="' + p.url + '">📷</div>' +
+                    '<div class="photo-thumb lazy-placeholder" data-src="' + escapeHtml(p.url) + '">📷</div>' +
                     '<a href="index.html?spot_id=' + item.spotId + '" class="view-link">查看地图 →</a>' +
-                    '<button class="btn-delete-photo" onclick="deleteMyPhoto(\'' + item.spotId + '\', \'' + p.id + '\', \'' + item.spotName.replace(/'/g, "\\'") + '\')">🗑️</button>' +
+                    '<button class="btn-delete-photo" onclick="deleteMyPhoto(\'' + item.spotId + '\', \'' + p.id + '\', \'' + escapeHtml(item.spotName.replace(/'/g, "\\'")) + '\')">🗑️</button>' +
                     '</div>' +
                     '</div>';
             }).join('');
@@ -1695,11 +1746,11 @@
                             container.innerHTML = spots.map(function(spot) {
                                 return '<div class="item-card">' +
                                     '<div class="left">' +
-                                    '<div class="title">' + spot.name + '</div>' +
+                                    '<div class="title">' + escapeHtml(spot.name) + '</div>' +
                                     '<div class="meta">' +
                                     '<span class="rank-badge ' + spot.rank + '">' + (spot.rank === 'high' ?
                                         '上等' : spot.rank === 'medium' ? '中等' : '下等') + '</span>' +
-                                    '<span>📍 ' + spot.lng + ', ' + spot.lat + '</span>' +
+                                    '<span>📍 ' + escapeHtml(spot.lng + ', ' + spot.lat) + '</span>' +
                                     '</div>' +
                                     '</div>' +
                                     '<div class="right">' +
@@ -1743,7 +1794,7 @@
         renderNav();
         loadProfile();
 
-        console.log('👤 个人中心已加载（懒加载版 - 滚动到才加载图片 + 删除机位 + 删除照片）');
+        console.log('👤 个人中心已加载（懒加载版 - 滚动到才加载图片 + 删除机位 + 删除照片 + XSS防护）');
     </script>
 </body>
 </html>

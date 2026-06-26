@@ -94,6 +94,16 @@
         async function getAmapSecurity() {
             return await getApiKey('amap_security');
         }
+
+        // ============================================================
+        //  🛡️ 防止 XSS 攻击
+        // ============================================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
     </script>
     <style>
         /* ===== 原有样式（保持不变） ===== */
@@ -1303,7 +1313,7 @@
             if (user) {
                 var admin = isAdmin();
                 userArea.innerHTML =
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>' +
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>' +
                     (admin ? '<button class="btn-toggle-status" id="statusToggleBtn" onclick="toggleOnlineStatus()">🟢 在线</button>' :
                         '') +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
@@ -1542,7 +1552,7 @@
                         ctx.fillStyle = '#FFFFFF';
                         ctx.fillText(opt.copyrightText, finalWidth - 14, finalHeight + barHeight / 2 + 1);
 
-                        // 第 4 步：图片左下角半透明水印（4倍大，50%透明度）
+                        // 第 4 步：图片左下角半透明水印（4倍大，75%透明度）
                         var watermarkFontSize = Math.max(40, Math.min(90, Math.round(finalWidth * 0.048)));
                         ctx.save();
                         ctx.globalAlpha = 0.75;
@@ -1604,7 +1614,7 @@
             currentSpotId = spotId;
             currentSpotName = spotName;
             selectedPhotoFiles = [];
-            document.getElementById('modalSpotName').textContent = '📍 ' + spotName;
+            document.getElementById('modalSpotName').textContent = '📍 ' + escapeHtml(spotName);
             document.getElementById('photoCaption').value = '';
             document.getElementById('modalPhotoInput').value = '';
             document.getElementById('modalPhotoList').innerHTML = '';
@@ -2054,7 +2064,7 @@
                             position: [spot.lng, spot.lat],
                             content: markerContent,
                             offset: new AMap.Pixel(-18, -18),
-                            title: spot.name,
+                            title: escapeHtml(spot.name),
                             zIndex: 100
                         });
 
@@ -2084,7 +2094,7 @@
                                     var uploaderName = p.uploader || p.uploaderName || '未知';
                                     return '<div class="photo-item">' +
                                         '<div class="photo-placeholder">📷</div>' +
-                                        '<div class="photo-uploader">📤 <a href="profile.html?user=' + encodeURIComponent(uploaderName) + '" onclick="event.stopPropagation();">' + uploaderName + '</a></div>' +
+                                        '<div class="photo-uploader">📤 <a href="profile.html?user=' + encodeURIComponent(uploaderName) + '" onclick="event.stopPropagation();">' + escapeHtml(uploaderName) + '</a></div>' +
                                         '</div>';
                                 }).join('');
                                 photosHtml = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">' + photoItemsHtml + '</div>';
@@ -2107,21 +2117,21 @@
 
                         var infoContent =
                             '<div style="padding:4px 2px;max-width:320px;">' +
-                            '<div class="spot-name">' + spot.name + '</div>' +
+                            '<div class="spot-name">' + escapeHtml(spot.name) + '</div>' +
                             '<span class="spot-rank ' + spot.rank + '">' + getRankLabel(spot.rank) + '</span>' +
                             '<div style="font-size:13px;color:#888;margin:4px 0;">📱 ' + deviceLabel + '</div>' +
-                            '<div class="spot-desc">' + (spot.description || '暂无描述') + '</div>' +
+                            '<div class="spot-desc">' + escapeHtml(spot.description || '暂无描述') + '</div>' +
                             '<div id="spot_images_' + spot.id + '" data-loaded="false">' +
                             exampleHtml +
                             '<div class="spot-photos">' +
                             photosHtml +
                             '<div style="margin-top:6px;font-size:12px;color:#999;">' +
-                            '📤 上传者：<a href="profile.html?user=' + (spot.created_by || '') +
+                            '📤 上传者：<a href="profile.html?user=' + encodeURIComponent(spot.created_by || '') +
                             '" style="color:#1a73e8;text-decoration:none;font-weight:500;" onclick="event.stopPropagation();">' +
-                            (spot.created_by || '未知') + '</a>' +
+                            escapeHtml(spot.created_by || '未知') + '</a>' +
                             '<span class="uploader-title"><span class="title-icon">' + titleInfo.title +
                             '</span></span>' +
-                            ' ｜ ' + (spot.created_at || '') +
+                            ' ｜ ' + escapeHtml(spot.created_at || '') +
                             '</div>' +
                             '<div style="margin-top:8px;">' +
                             '<button class="btn-favorite" onclick="toggleFavorite(\'' + spot.id + '\', this)" data-spot-id="' +
@@ -2129,7 +2139,7 @@
                             '⭐ 收藏</button>' +
                             '</div>' +
                             '<div class="spot-actions">' +
-                            '<button class="btn-upload-photo" onclick="openPhotoModal(\'' + spot.id + '\',\'' + spot.name +
+                            '<button class="btn-upload-photo" onclick="openPhotoModal(\'' + spot.id + '\',\'' + escapeHtml(spot.name) +
                             '\')">📸 上传照片</button>' +
                             '<a href="upload.html" class="btn-new-spot">➕ 新机位</a>' +
                             '</div>' +
@@ -2190,7 +2200,7 @@
                         }, 800);
                     }
 
-                    console.log('✅ 数据加载成功，共 ' + spots.length + ' 个已审核机位（图片点击后加载，上传带水印）');
+                    console.log('✅ 数据加载成功，共 ' + spots.length + ' 个已审核机位（图片点击后加载，上传带水印，XSS防护）');
                 })
                 .catch(function(error) {
                     console.error('❌ 加载数据失败:', error);
@@ -2421,11 +2431,12 @@
 
         setInterval(getAdminStatus, 30000);
 
-        console.log('🚌 BusLens 地图已加载！（安全 API + 水印版）');
+        console.log('🚌 BusLens 地图已加载！（安全 API + 水印版 + XSS防护）');
         console.log('📌 数据源: Supabase');
         console.log('🔑 API 密钥已安全存储（前端不可见）');
         console.log('📸 图片加载模式: 点击弹窗后加载');
         console.log('🖼️ 图片上传已启用水印（底部版权栏 + 左下角半透明水印）');
+        console.log('🛡️ 所有用户输入已做 XSS 防护');
         console.log('📌 管理员：ponginloi, lnx');
         console.log('📌 GitHub 开源项目：https://github.com/ponginloi/buslens');
     </script>

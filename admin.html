@@ -9,11 +9,11 @@
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
         var SESSION_KEY = 'bus_user_session';
-        // ✅ 已移除硬编码的 API 密钥
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
+        /* ... 样式保持不变 ... */
         * {
             margin: 0;
             padding: 0;
@@ -807,6 +807,16 @@
 
     <script>
         // ============================================================
+        //  🛡️ 防止 XSS 攻击
+        // ============================================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
         //  API 工具（安全版）
         // ============================================================
         var apiSupabaseClient = null;
@@ -1014,7 +1024,7 @@
                     (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
                     (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
                     '<a href="upload.html">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>';
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>';
 
                 if (admin) {
                     html += '<button class="btn-toggle-status" id="statusToggleBtn" onclick="toggleOnlineStatus()">🟢 在线</button>';
@@ -1055,7 +1065,6 @@
                 el.classList.remove('active');
             });
             document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-            // 切换 Tab 后重新触发懒加载
             setTimeout(function() {
                 initLazyLoad();
             }, 300);
@@ -1095,7 +1104,7 @@
             var reason = reasonInput ? reasonInput.value.trim() || '审核通过' : '审核通过';
             var newDescription = descInput ? descInput.value.trim() : spot.description;
 
-            if (!confirm('确认通过「' + spot.name + '」？\n等级：' + getRankLabel(selectedRank) + '\n设备：' + getDeviceLabel(selectedDevice))) return;
+            if (!confirm('确认通过「' + escapeHtml(spot.name) + '」？\n等级：' + getRankLabel(selectedRank) + '\n设备：' + getDeviceLabel(selectedDevice))) return;
             handleSpotAction(spot, 'approved', selectedRank, selectedDevice, reason, newDescription);
         }
 
@@ -1103,14 +1112,14 @@
             var spot = findPendingSpot(index);
             if (!spot) { showToast('❌ 未找到目标', 'error'); return; }
             var reason = document.getElementById('spot_reason_' + index)?.value.trim() || '审核拒绝';
-            if (!confirm('确认拒绝「' + spot.name + '」？')) return;
+            if (!confirm('确认拒绝「' + escapeHtml(spot.name) + '」？')) return;
             handleSpotAction(spot, 'rejected', null, null, reason, null);
         }
 
         function deleteSpot(index) {
             var spot = findPendingSpot(index);
             if (!spot) { showToast('❌ 未找到目标', 'error'); return; }
-            if (!confirm('确认删除「' + spot.name + '」？此操作不可恢复！')) return;
+            if (!confirm('确认删除「' + escapeHtml(spot.name) + '」？此操作不可恢复！')) return;
             handleSpotAction(spot, 'deleted', null, null, null, null);
         }
 
@@ -1256,7 +1265,6 @@
         // ============================================================
         function initLazyLoad() {
             if (!('IntersectionObserver' in window)) {
-                // 降级方案：直接加载所有图片
                 document.querySelectorAll('.lazy-img[data-src]').forEach(function(img) {
                     img.src = img.dataset.src;
                     img.removeAttribute('data-src');
@@ -1273,7 +1281,6 @@
                             img.src = src;
                             img.removeAttribute('data-src');
                             observer.unobserve(img);
-                            // 加载完成后触发下一批
                             setTimeout(function() {
                                 initLazyLoad();
                             }, 50);
@@ -1296,7 +1303,7 @@
         }
 
         // ============================================================
-        //  📸 渲染机位列表
+        //  📸 渲染机位列表（已修复 XSS）
         // ============================================================
         function renderSpots() {
             var pending = allSpots.filter(function(s) { return s.status === 'pending'; });
@@ -1315,12 +1322,12 @@
 
                 var photosHtml = '';
                 if (spot.example_photo) {
-                    photosHtml += '<img class="lazy-img" data-src="' + spot.example_photo + '" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'90\'%3E%3Crect fill=\'%23f0f0f0\' width=\'120\' height=\'90\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23ccc\' font-size=\'12\' font-family=\'sans-serif\'%3E📷%3C/text%3E%3C/svg%3E" onclick="window.open(\'' + spot.example_photo + '\',\'_blank\')" title="例图" referrerpolicy="no-referrer" />';
+                    photosHtml += '<img class="lazy-img" data-src="' + escapeHtml(spot.example_photo) + '" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'90\'%3E%3Crect fill=\'%23f0f0f0\' width=\'120\' height=\'90\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23ccc\' font-size=\'12\' font-family=\'sans-serif\'%3E📷%3C/text%3E%3C/svg%3E" onclick="window.open(\'' + escapeHtml(spot.example_photo) + '\',\'_blank\')" title="例图" referrerpolicy="no-referrer" />';
                 }
                 if (spot.photos && spot.photos.length > 0) {
                     spot.photos.forEach(function(p) {
                         if (p.status !== 'rejected') {
-                            photosHtml += '<img class="lazy-img" data-src="' + p.url + '" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'90\'%3E%3Crect fill=\'%23f0f0f0\' width=\'120\' height=\'90\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23ccc\' font-size=\'12\' font-family=\'sans-serif\'%3E📷%3C/text%3E%3C/svg%3E" onclick="window.open(\'' + p.url + '\',\'_blank\')" title="' + (p.caption || '用户照片') + '" referrerpolicy="no-referrer" />';
+                            photosHtml += '<img class="lazy-img" data-src="' + escapeHtml(p.url) + '" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'90\'%3E%3Crect fill=\'%23f0f0f0\' width=\'120\' height=\'90\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23ccc\' font-size=\'12\' font-family=\'sans-serif\'%3E📷%3C/text%3E%3C/svg%3E" onclick="window.open(\'' + escapeHtml(p.url) + '\',\'_blank\')" title="' + escapeHtml(p.caption || '用户照片') + '" referrerpolicy="no-referrer" />';
                         }
                     });
                 }
@@ -1332,33 +1339,27 @@
                     '<div class="spot-card">' +
                     '<div class="top">' +
                     '<div>' +
-                    '<div class="name">' + spot.name + '</div>' +
+                    '<div class="name">' + escapeHtml(spot.name) + '</div>' +
                     '<div class="meta">' +
-                    '<span>👤 ' + (spot.created_by || '未知') + '</span>' +
-                    '<span>📅 ' + (spot.created_at || '未知') + '</span>' +
-                    '<span>📌 用户建议等级：<strong>' + userRank + '</strong></span>' +
-                    '<span>📱 用户设备：<strong>' + userDevice + '</strong></span>' +
+                    '<span>👤 ' + escapeHtml(spot.created_by || '未知') + '</span>' +
+                    '<span>📅 ' + escapeHtml(spot.created_at || '未知') + '</span>' +
+                    '<span>📌 用户建议等级：<strong>' + escapeHtml(userRank) + '</strong></span>' +
+                    '<span>📱 用户设备：<strong>' + escapeHtml(userDevice) + '</strong></span>' +
                     '<span class="status-badge pending">⏳ 待审核</span>' +
                     '</div>' +
                     '</div>' +
                     '</div>' +
-                    '<div class="desc">' + (spot.description || '暂无描述') + '</div>' +
+                    '<div class="desc">' + escapeHtml(spot.description || '暂无描述') + '</div>' +
                     '<div class="photo-grid">' + photosHtml + '</div>' +
                     '<button class="detail-toggle" onclick="toggleDetail(' + idx +
                     ')">📋 查看完整信息 ▼</button>' +
                     '<div class="detail-panel" id="detail_panel_' + idx + '">' +
-                    '<div class="row"><span class="label">📍 坐标</span><span class="value">' + spot.lng + ', ' + spot
-                    .lat + '</span></div>' +
-                    '<div class="row"><span class="label">📤 上传者</span><span class="value">' + (spot.created_by ||
-                        '未知') + '</span></div>' +
-                    '<div class="row"><span class="label">📅 创建时间</span><span class="value">' + (spot.created_at ||
-                        '未知') + '</span></div>' +
-                    '<div class="row"><span class="label">⭐ 用户建议等级</span><span class="value">' + userRank +
-                    '</span></div>' +
-                    '<div class="row"><span class="label">📱 用户设备</span><span class="value">' + userDevice +
-                    '</span></div>' +
-                    '<div class="row"><span class="label">📝 描述</span><span class="value">' + (spot.description ||
-                        '暂无描述') + '</span></div>' +
+                    '<div class="row"><span class="label">📍 坐标</span><span class="value">' + escapeHtml(spot.lng + ', ' + spot.lat) + '</span></div>' +
+                    '<div class="row"><span class="label">📤 上传者</span><span class="value">' + escapeHtml(spot.created_by || '未知') + '</span></div>' +
+                    '<div class="row"><span class="label">📅 创建时间</span><span class="value">' + escapeHtml(spot.created_at || '未知') + '</span></div>' +
+                    '<div class="row"><span class="label">⭐ 用户建议等级</span><span class="value">' + escapeHtml(userRank) + '</span></div>' +
+                    '<div class="row"><span class="label">📱 用户设备</span><span class="value">' + escapeHtml(userDevice) + '</span></div>' +
+                    '<div class="row"><span class="label">📝 描述</span><span class="value">' + escapeHtml(spot.description || '暂无描述') + '</span></div>' +
                     '</div>' +
 
                     '<div class="review-form">' +
@@ -1385,7 +1386,7 @@
                     '</div>' +
                     '<div class="form-row" style="flex-direction:column;align-items:stretch;">' +
                     '<label>📝 机位描述（可修改）</label>' +
-                    '<textarea id="spot_desc_' + idx + '" rows="2" placeholder="修改机位描述...">' + (spot
+                    '<textarea id="spot_desc_' + idx + '" rows="2" placeholder="修改机位描述...">' + escapeHtml(spot
                         .description || '') + '</textarea>' +
                     '</div>' +
                     '<div class="form-row">' +
@@ -1440,17 +1441,17 @@
                     '<div class="spot-card" style="border-left-color:#ff6b35;">' +
                     '<div class="top">' +
                     '<div>' +
-                    '<div class="name">📸 ' + item.spotName + '</div>' +
+                    '<div class="name">📸 ' + escapeHtml(item.spotName) + '</div>' +
                     '<div class="meta">' +
-                    '<span>👤 ' + (p.uploader || p.uploaderName || '未知') + '</span>' +
-                    '<span>📅 ' + (p.date || '未知') + '</span>' +
-                    (p.caption ? '<span>📝 ' + p.caption + '</span>' : '') +
+                    '<span>👤 ' + escapeHtml(p.uploader || p.uploaderName || '未知') + '</span>' +
+                    '<span>📅 ' + escapeHtml(p.date || '未知') + '</span>' +
+                    (p.caption ? '<span>📝 ' + escapeHtml(p.caption) + '</span>' : '') +
                     '<span class="status-badge pending">⏳ 待审核</span>' +
                     '</div>' +
                     '</div>' +
                     '</div>' +
                     '<div class="photo-grid">' +
-                    '<img class="lazy-img" data-src="' + p.url + '" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'150\'%3E%3Crect fill=\'%23f0f0f0\' width=\'200\' height=\'150\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23ccc\' font-size=\'14\' font-family=\'sans-serif\'%3E📷%3C/text%3E%3C/svg%3E" onclick="window.open(\'' + p.url + '\',\'_blank\')" style="width:200px;height:150px;object-fit:cover;border-radius:8px;border:1px solid #eee;cursor:pointer;background:#f0f0f0;" referrerpolicy="no-referrer" />' +
+                    '<img class="lazy-img" data-src="' + escapeHtml(p.url) + '" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'150\'%3E%3Crect fill=\'%23f0f0f0\' width=\'200\' height=\'150\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23ccc\' font-size=\'14\' font-family=\'sans-serif\'%3E📷%3C/text%3E%3C/svg%3E" onclick="window.open(\'' + escapeHtml(p.url) + '\',\'_blank\')" style="width:200px;height:150px;object-fit:cover;border-radius:8px;border:1px solid #eee;cursor:pointer;background:#f0f0f0;" referrerpolicy="no-referrer" />' +
                     '</div>' +
                     '<div class="review-form">' +
                     '<div class="form-row">' +
@@ -1483,7 +1484,7 @@
         }
 
         // ============================================================
-        //  更新日志功能
+        //  更新日志功能（保持不变）
         // ============================================================
         var currentEditId = null;
 

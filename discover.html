@@ -1,4 +1,4 @@
-、<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -9,17 +9,11 @@
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
         var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
-        // ✅ 已移除硬编码的 API 密钥
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <!-- API 工具（安全版） -->
     <script>
-        // ============================================================
-        //  api.js - BusLens API 调用工具（内联安全版）
-        //  所有第三方 API 密钥通过 Supabase 函数获取，前端不可见
-        // ============================================================
-
         var apiSupabaseClient = null;
 
         function initApiClient() {
@@ -53,6 +47,16 @@
                 console.error('❌ 获取 API 密钥异常:', e);
                 return null;
             }
+        }
+
+        // ============================================================
+        //  🛡️ 防止 XSS 攻击
+        // ============================================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
     </script>
     <style>
@@ -703,7 +707,7 @@
                     (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
                     (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
                     '<a href="upload.html">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>' +
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
 
                 if (admin) {
@@ -824,16 +828,16 @@
             var validPhotos = photos.filter(function(p) { return p.status !== 'rejected'; });
             var thumbHtml = '';
             if (validPhotos.length > 0) {
-                thumbHtml = '<img src="' + validPhotos[0].url + '" alt="' + randomSpot.name + '" class="spot-thumb" onclick="event.stopPropagation();window.open(\'' + validPhotos[0].url + '\',\'_blank\')" loading="lazy" />';
+                thumbHtml = '<img src="' + escapeHtml(validPhotos[0].url) + '" alt="' + escapeHtml(randomSpot.name) + '" class="spot-thumb" onclick="event.stopPropagation();window.open(\'' + escapeHtml(validPhotos[0].url) + '\',\'_blank\')" loading="lazy" />';
             } else if (randomSpot.example_photo) {
-                thumbHtml = '<img src="' + randomSpot.example_photo + '" alt="' + randomSpot.name + '" class="spot-thumb" onclick="event.stopPropagation();window.open(\'' + randomSpot.example_photo + '\',\'_blank\')" loading="lazy" />';
+                thumbHtml = '<img src="' + escapeHtml(randomSpot.example_photo) + '" alt="' + escapeHtml(randomSpot.name) + '" class="spot-thumb" onclick="event.stopPropagation();window.open(\'' + escapeHtml(randomSpot.example_photo) + '\',\'_blank\')" loading="lazy" />';
             }
 
             container.innerHTML =
                 '<div class="random-spot-card" onclick="goToRandomSpot()">' +
-                '<div class="spot-name">' + randomSpot.name + '</div>' +
+                '<div class="spot-name">' + escapeHtml(randomSpot.name) + '</div>' +
                 '<span class="spot-rank-display">上等 ⭐⭐⭐</span>' +
-                '<div class="spot-meta">📱 ' + getDeviceLabel(randomSpot.device_type) + ' ｜ 📤 ' + (randomSpot.created_by || '未知') + '</div>' +
+                '<div class="spot-meta">📱 ' + escapeHtml(getDeviceLabel(randomSpot.device_type)) + ' ｜ 📤 ' + escapeHtml(randomSpot.created_by || '未知') + '</div>' +
                 thumbHtml +
                 '</div>';
         }
@@ -899,8 +903,8 @@
                     '<a href="index.html?spot_id=' + s.id + '" class="hot-item">' +
                     '<span class="rank-num ' + rankClass + '">#' + rankNum + '</span>' +
                     '<div class="hot-info">' +
-                    '<div class="hot-name">' + s.name + '</div>' +
-                    '<div class="hot-meta">📤 ' + (s.created_by || '未知') + '</div>' +
+                    '<div class="hot-name">' + escapeHtml(s.name) + '</div>' +
+                    '<div class="hot-meta">📤 ' + escapeHtml(s.created_by || '未知') + '</div>' +
                     '</div>' +
                     '<span class="hot-photo-count">📸 ' + item.photoCount + ' 张</span>' +
                     '</a>';
@@ -942,12 +946,12 @@
                     photos.forEach(function(p) {
                         var reasonText = p.reason || '✨ 精选好图';
                         html +=
-                            '<div class="photo-item" onclick="openLightbox(\'' + p.photo_url + '\')">' +
-                            '<div class="lazy-placeholder" data-src="' + p.photo_url + '">📷</div>' +
-                            '<div class="photo-reason">' + reasonText + '</div>' +
+                            '<div class="photo-item" onclick="openLightbox(\'' + escapeHtml(p.photo_url) + '\')">' +
+                            '<div class="lazy-placeholder" data-src="' + escapeHtml(p.photo_url) + '">📷</div>' +
+                            '<div class="photo-reason">' + escapeHtml(reasonText) + '</div>' +
                             '<div class="photo-overlay">' +
-                            '<span>' + (p.caption || p.spot_name || '') + '</span>' +
-                            '<span>📤 <a href="profile.html?user=' + encodeURIComponent(p.uploader || '') + '" onclick="event.stopPropagation();">' + (p.uploader || '未知') + '</a></span>' +
+                            '<span>' + escapeHtml(p.caption || p.spot_name || '') + '</span>' +
+                            '<span>📤 <a href="profile.html?user=' + encodeURIComponent(p.uploader || '') + '" onclick="event.stopPropagation();">' + escapeHtml(p.uploader || '未知') + '</a></span>' +
                             '</div>' +
                             '</div>';
                     });
@@ -994,7 +998,7 @@
         renderNav();
         loadAllData();
 
-        console.log('🔍 发现页面已加载（上等机位 + 按照片数排序 + 今日精选 + 懒加载 + 安全 API）');
+        console.log('🔍 发现页面已加载（上等机位 + 按照片数排序 + 今日精选 + 懒加载 + 安全 API + XSS防护）');
         console.log('🔑 API 密钥已安全存储（前端不可见）');
     </script>
 </body>

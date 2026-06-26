@@ -9,7 +9,6 @@
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
         var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
-        // ✅ 已移除硬编码的 API 密钥
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
@@ -696,6 +695,16 @@
 
     <script>
         // ============================================================
+        //  🛡️ 防止 XSS 攻击
+        // ============================================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
         //  API 工具（安全版）
         // ============================================================
         var apiSupabaseClient = null;
@@ -831,7 +840,7 @@
                     (admin ? '<a href="admin_featured.html" class="active">📸 精选管理</a>' : '') +
                     (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
                     '<a href="upload.html">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + user.username + (admin ? ' 🔑' : '') + '</span>' +
+                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
             } else {
                 nav.innerHTML =
@@ -916,14 +925,14 @@
 
                         html +=
                             '<div class="photo-card" data-id="' + p.id + '">' +
-                            '<div class="photo-img lazy-placeholder" data-src="' + p.photo_url + '" onclick="openLightbox(\'' + p.photo_url + '\')">📷</div>' +
+                            '<div class="photo-img lazy-placeholder" data-src="' + escapeHtml(p.photo_url) + '" onclick="openLightbox(\'' + escapeHtml(p.photo_url) + '\')">📷</div>' +
                             '<div class="photo-body">' +
-                            '<div class="photo-spot">📍 ' + (p.spot_name || '未知机位') + '</div>' +
+                            '<div class="photo-spot">📍 ' + escapeHtml(p.spot_name || '未知机位') + '</div>' +
                             '<div class="photo-meta">' +
-                            '<span>📤 ' + (p.uploader || '未知') + '</span>' +
-                            '<span>📅 ' + dateStr + '</span>' +
+                            '<span>📤 ' + escapeHtml(p.uploader || '未知') + '</span>' +
+                            '<span>📅 ' + escapeHtml(dateStr) + '</span>' +
                             '</div>' +
-                            (p.reason ? '<div class="photo-reason-box"><span class="label">💡 入选理由：</span>' + p.reason + '</div>' : '') +
+                            (p.reason ? '<div class="photo-reason-box"><span class="label">💡 入选理由：</span>' + escapeHtml(p.reason) + '</div>' : '') +
                             '<div style="margin-top:4px;font-size:12px;color:#999;">🔢 顺序：' + (p.display_order || 0) + ' ｜ ' + statusText + '</div>' +
                             '</div>' +
                             '<div class="photo-actions">' +
@@ -1094,9 +1103,9 @@
                 var selectedClass = isSelected ? 'selected' : '';
                 html +=
                     '<div class="photo-select-item ' + selectedClass + '" onclick="togglePhotoSelect(' + index + ')">' +
-                    '<img src="' + p.url + '" alt="' + (p.caption || '') + '" loading="lazy" />' +
+                    '<img src="' + escapeHtml(p.url) + '" alt="' + escapeHtml(p.caption || '') + '" loading="lazy" />' +
                     '<div class="check-mark">✓</div>' +
-                    '<div class="photo-label">' + p.spotName + (p.caption ? ' - ' + p.caption : '') + '</div>' +
+                    '<div class="photo-label">' + escapeHtml(p.spotName + (p.caption ? ' - ' + p.caption : '')) + '</div>' +
                     '</div>';
             });
 
@@ -1253,7 +1262,7 @@
         // ============================================================
         function removePhoto(index) {
             var p = featuredPhotos[index];
-            if (!confirm('确认删除「' + (p.spot_name || '未命名') + '」的精选照片？')) return;
+            if (!confirm('确认删除「' + escapeHtml(p.spot_name || '未命名') + '」的精选照片？')) return;
 
             supabaseClient
                 .from('featured_photos')
@@ -1277,7 +1286,7 @@
         loadFeaturedPhotos();
         loadAllPhotosForSelect();
 
-        console.log('📸 精选照片管理已加载（懒加载 + 最新在前 + 安全 API）');
+        console.log('📸 精选照片管理已加载（懒加载 + 最新在前 + 安全 API + XSS防护）');
         console.log('👑 管理员：ponginloi, lnx');
         console.log('🔑 API 密钥已安全存储（前端不可见）');
     </script>
