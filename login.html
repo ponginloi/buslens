@@ -64,10 +64,6 @@
             line-height: 1.8;
             text-align: center;
         }
-        .welcome-box .highlight {
-            font-weight: 600;
-            color: #1a73e8;
-        }
 
         .form-group {
             margin-bottom: 18px;
@@ -172,14 +168,9 @@
             <p>登录后可以上传机位和照片</p>
         </div>
 
-        <!-- ===== 欢迎语 ===== -->
         <div class="welcome-box">
-            <p>📢Buslens公告📢</p>
-            <p>由于后台批量添加水印失误</p>
-            <p>导致6月24日及以前的图片出现不同程度的版权和图片问题</p>
-            <p>现增加删除图片功能，往后更新的图片不会受到版权归属的影响</p>
-            <p>问题图片将不会以错误版权归属在社交平台展出</p>
-            <p style="margin-top:6px;font-weight:600;color:#1a73e8;font-size:15px;">⭐我们对此深感抱歉，因此事给您带来了诸多不便，以后一定会先备份后更改，望谅解⭐</p>
+            <p>📢 BusLens 已升级安全系统 🔐</p>
+            <p>您的密码已加密存储，登录更安全！</p>
         </div>
 
         <div class="message" id="message"></div>
@@ -225,6 +216,9 @@
             el.style.display = 'block';
         }
 
+        // ============================================================
+        //  ✅ 登录逻辑 - 调用 Edge Function
+        // ============================================================
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -242,38 +236,30 @@
             showMessage('⏳ 验证中...', 'loading');
 
             try {
-                var result = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('username', username)
-                    .single();
+                // ✅ 调用 Edge Function 登录
+                const response = await fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + SUPABASE_KEY
+                    },
+                    body: JSON.stringify({ username, password })
+                });
 
-                if (result.error) {
-                    // 如果用户不存在，提供更友好的提示
-                    if (result.error.code === 'PGRST116') {
-                        showMessage('❌ 用户不存在，请先注册', 'error');
-                    } else {
-                        throw new Error(result.error.message);
-                    }
-                    btn.disabled = false;
-                    btn.textContent = '登 录';
-                    return;
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || '登录失败');
                 }
 
-                var user = result.data;
+                console.log('✅ 登录成功:', result.user);
 
-                if (user.password !== password) {
-                    showMessage('❌ 密码错误', 'error');
-                    btn.disabled = false;
-                    btn.textContent = '登 录';
-                    return;
-                }
-
+                // 保存 session
                 var session = {
-                    id: user.id,
-                    username: user.username,
-                    email: user.email,
-                    role: user.role,
+                    id: result.user.id,
+                    username: result.user.username,
+                    email: result.user.email,
+                    role: result.user.role,
                     loginTime: Date.now()
                 };
                 sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -285,7 +271,7 @@
 
             } catch (error) {
                 console.error('登录失败:', error);
-                showMessage('❌ 登录失败：' + error.message, 'error');
+                showMessage('❌ ' + error.message, 'error');
                 btn.disabled = false;
                 btn.textContent = '登 录';
             }
