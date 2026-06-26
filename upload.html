@@ -5,60 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📤 上传机位 - BusLens</title>
     <script>
-        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        // ✅ 从 Netlify 环境变量读取
+        var SUPABASE_URL = '{{ env.SUPABASE_URL }}';
+        var SUPABASE_KEY = '{{ env.SUPABASE_KEY }}';
         var SESSION_KEY = 'bus_user_session';
-        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
+
+
+        // ✅ 高德地图密钥也从环境变量读取
+        var AMAP_KEY = '{{ env.AMAP_KEY }}';
+        var AMAP_SECURITY = '{{ env.AMAP_SECURITY }}';
+        var IMGBB_KEY = '{{ env.IMGBB_KEY }}';
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <!-- API 工具（安全版） -->
     <script>
-        var apiSupabaseClient = null;
+    var apiSupabaseClient = null;
 
-        function initApiClient() {
-            if (typeof supabase === 'undefined') {
-                console.error('❌ Supabase SDK 未加载');
+    function initApiClient() {
+        if (typeof supabase === 'undefined') {
+            console.error('❌ Supabase SDK 未加载');
+            return false;
+        }
+        // ✅ 检查环境变量是否已注入
+        if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+            console.error('❌ SUPABASE_URL 或 SUPABASE_KEY 未设置');
+            return false;
+        }
+        if (!apiSupabaseClient) {
+            try {
+                apiSupabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+                console.log('✅ API 客户端初始化成功');
+            } catch (e) {
+                console.error('❌ API 客户端初始化失败:', e);
                 return false;
             }
-            if (!apiSupabaseClient) {
-                try {
-                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    console.log('✅ API 客户端初始化成功');
-                } catch (e) {
-                    console.error('❌ API 客户端初始化失败:', e);
-                    return false;
-                }
-            }
-            return true;
         }
+        return true;
+    }
 
-        async function getApiKey(keyName) {
-            if (!initApiClient()) return null;
-            try {
-                const { data, error } = await apiSupabaseClient
-                    .rpc('get_api_key', { key_name: keyName });
-                if (error) {
-                    console.error('❌ 获取 API 密钥失败:', error);
-                    return null;
-                }
-                return data;
-            } catch (e) {
-                console.error('❌ 获取 API 密钥异常:', e);
+    async function getApiKey(keyName) {
+        if (!initApiClient()) return null;
+        try {
+            const { data, error } = await apiSupabaseClient
+                .rpc('get_api_key', { key_name: keyName });
+            if (error) {
+                console.error('❌ 获取 API 密钥失败:', error);
                 return null;
             }
+            return data;
+        } catch (e) {
+            console.error('❌ 获取 API 密钥异常:', e);
+            return null;
         }
+    }
 
-        // ============================================================
-        //  🛡️ 防止 XSS 攻击
-        // ============================================================
-        function escapeHtml(text) {
-            if (!text) return '';
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-    </script>
+    // ============================================================
+    //  🛡️ 防止 XSS 攻击
+    // ============================================================
+    function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
     <style>
         * {
             margin: 0;
@@ -744,13 +755,7 @@
 
     <div class="status-msg" id="statusMsg"></div>
 
-    <script>
-        window._AMapSecurityConfig = {
-            securityJsCode: '32cb0dfc6330c69e2d13dd3164cea242'
-        };
-    </script>
-    <script src="https://webapi.amap.com/maps?v=2.0&key=404164dc78620cbc5d9440e9b2ed5e85">
-    </script>
+
 
     <script>
         // ============================================================

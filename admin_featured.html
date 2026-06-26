@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📸 精选照片管理 - BusLens</title>
     <script>
-        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var SUPABASE_URL = '{{ env.SUPABASE_URL }}';
+        var SUPABASE_KEY = '{{ env.SUPABASE_KEY }}';
         var SESSION_KEY = 'bus_user_session';
-        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
+        /* ... 样式保持不变 ... */
         * {
             margin: 0;
             padding: 0;
@@ -104,13 +104,8 @@
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.6;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
 
         .page-header {
@@ -400,7 +395,7 @@
             color: #1a73e8;
         }
 
-        /* ===== 精选照片列表（懒加载） ===== */
+        /* ===== 精选照片列表 ===== */
         .photo-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -585,43 +580,17 @@
         }
 
         @media (max-width: 600px) {
-            body {
-                padding: 12px;
-            }
-            .navbar {
-                padding: 10px 16px;
-            }
-            .navbar .brand {
-                font-size: 17px;
-            }
-            .navbar .nav-links a {
-                font-size: 12px;
-                padding: 4px 10px;
-            }
-            .page-header h1 {
-                font-size: 20px;
-            }
-            .page-header .header-actions button {
-                font-size: 12px;
-                padding: 6px 14px;
-            }
-            .photo-grid {
-                grid-template-columns: 1fr;
-            }
-            .modal {
-                padding: 20px;
-            }
-            .stats-bar .stat {
-                padding: 8px 12px;
-                min-width: 60px;
-            }
-            .stats-bar .stat .num {
-                font-size: 18px;
-            }
-            .photo-select-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                max-height: 250px;
-            }
+            body { padding: 12px; }
+            .navbar { padding: 10px 16px; }
+            .navbar .brand { font-size: 17px; }
+            .navbar .nav-links a { font-size: 12px; padding: 4px 10px; }
+            .page-header h1 { font-size: 20px; }
+            .page-header .header-actions button { font-size: 12px; padding: 6px 14px; }
+            .photo-grid { grid-template-columns: 1fr; }
+            .modal { padding: 20px; }
+            .stats-bar .stat { padding: 8px 12px; min-width: 60px; }
+            .stats-bar .stat .num { font-size: 18px; }
+            .photo-select-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); max-height: 250px; }
         }
     </style>
 </head>
@@ -743,7 +712,7 @@
         }
 
         // ============================================================
-        //  📤 安全上传到 ImgBB（使用安全密钥）
+        //  📤 安全上传到 ImgBB
         // ============================================================
         async function uploadToImgBB(file) {
             try {
@@ -801,7 +770,7 @@
 
         function logout() {
             var user = getCurrentUser();
-            if (user && ADMIN_USERNAMES.indexOf(user.username) !== -1) {
+            if (user && user.role === 'admin') {
                 supabaseClient
                     .from('users')
                     .update({ is_online: false })
@@ -822,7 +791,7 @@
 
         function isAdmin() {
             var user = getCurrentUser();
-            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
+            return user && user.role === 'admin';
         }
 
         function renderNav() {
@@ -878,7 +847,7 @@
         });
 
         // ============================================================
-        //  加载精选照片列表（最新在前 + 懒加载）
+        //  加载精选照片列表
         // ============================================================
         var featuredPhotos = [];
         var allSpots = [];
@@ -945,8 +914,6 @@
                     });
 
                     container.innerHTML = html;
-
-                    // ✅ 启动滚动懒加载
                     initLazyLoad();
                 })
                 .catch(function(error) {
@@ -1001,7 +968,7 @@
         }
 
         // ============================================================
-        //  加载所有机位和照片（用于选择）
+        //  加载所有机位和照片
         // ============================================================
         var allAvailablePhotos = [];
         var selectedPhotoUrls = [];
@@ -1282,13 +1249,28 @@
         // ============================================================
         //  启动
         // ============================================================
-        renderNav();
-        loadFeaturedPhotos();
-        loadAllPhotosForSelect();
+        (function init() {
+            var user = getCurrentUser();
 
-        console.log('📸 精选照片管理已加载（懒加载 + 最新在前 + 安全 API + XSS防护）');
-        console.log('👑 管理员：ponginloi, lnx');
-        console.log('🔑 API 密钥已安全存储（前端不可见）');
+            if (!user) {
+                document.getElementById('photoGrid').innerHTML =
+                    '<div class="empty-state"><span class="icon">🔒</span><p>请先登录</p></div>';
+                return;
+            }
+
+            if (!isAdmin()) {
+                document.getElementById('photoGrid').innerHTML =
+                    '<div class="empty-state"><span class="icon">🚫</span><p>只有管理员可以管理精选照片</p></div>';
+                return;
+            }
+
+            renderNav();
+            loadFeaturedPhotos();
+            loadAllPhotosForSelect();
+
+            console.log('📸 精选照片管理已加载');
+            console.log('👑 管理员已验证');
+        })();
     </script>
 </body>
 </html>
