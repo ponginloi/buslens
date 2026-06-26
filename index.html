@@ -54,9 +54,13 @@
                 console.error('❌ Supabase SDK 未加载');
                 return false;
             }
+            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+                console.error('❌ 配置未加载');
+                return false;
+            }
             if (!apiSupabaseClient) {
                 try {
-                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    apiSupabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
                     console.log('✅ API 客户端初始化成功');
                 } catch (e) {
                     console.error('❌ API 客户端初始化失败:', e);
@@ -1724,7 +1728,6 @@
             var uploadPromises = selectedPhotoFiles.map(async function(file) {
                 try {
                     if (file.size > 1024 * 1024) {
-                        // ✅ 使用带水印的处理函数
                         var processed = await processImageWithCanvas(file, {
                             maxWidth: 1920,
                             maxHeight: 1080,
@@ -1736,7 +1739,6 @@
                         }, user.username);
                         return await uploadToImgBB(processed);
                     } else {
-                        // 小图片也走水印处理（但压缩跳过）
                         var processed = await processImageWithCanvas(file, {
                             maxWidth: 1920,
                             maxHeight: 1080,
@@ -1946,7 +1948,6 @@
             var spot = allSpotsCache.find(function(s) { return s.id == spotId; });
             if (!spot) return;
 
-            // 例图
             var exampleContainer = container.querySelector('.example-container');
             if (exampleContainer && spot.example_photo) {
                 var placeholder = exampleContainer.querySelector('.loading-placeholder');
@@ -1955,7 +1956,6 @@
                 }
             }
 
-            // 用户照片
             var photoItems = container.querySelectorAll('.photo-item');
             if (photoItems.length > 0 && spot.photos) {
                 var validPhotos = spot.photos.filter(function(p) { return p.status !== 'rejected'; });
@@ -2097,7 +2097,6 @@
 
                         var deviceLabel = getDeviceLabel(spot.device_type);
 
-                        // 弹窗内容
                         var exampleHtml = '';
                         if (spot.example_photo) {
                             exampleHtml =
@@ -2190,7 +2189,6 @@
                         map.add(marker);
                     });
 
-                    // 加载收藏状态
                     var user = getCurrentUser();
                     if (user) {
                         supabaseClient
@@ -2438,8 +2436,12 @@
                 console.error('❌ Supabase SDK 未加载');
                 return false;
             }
+            if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
+                console.error('❌ 配置未加载，等待 configLoaded 事件...');
+                return false;
+            }
             try {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
                 console.log('✅ Supabase 主客户端初始化成功');
                 return true;
             } catch (e) {
@@ -2447,7 +2449,16 @@
                 return false;
             }
         }
-        initSupabaseMain();
+
+        // 等待配置加载完成后再初始化
+        document.addEventListener('configLoaded', function() {
+            initSupabaseMain();
+        });
+
+        // 如果配置已经加载，直接初始化
+        if (window.SUPABASE_URL) {
+            initSupabaseMain();
+        }
 
         renderNav();
         loadAmap();
