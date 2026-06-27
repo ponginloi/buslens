@@ -183,7 +183,7 @@
         </div>
 
         <div class="welcome-box">
-            <p>📢 登录系统已升级 🔐</p>
+            <p>📢 BusLens 已升级安全系统 🔐</p>
         </div>
 
         <div class="message" id="message"></div>
@@ -232,7 +232,7 @@
             showMessage('⏳ 验证中...', 'loading');
 
             try {
-                // ✅ 调用 Edge Function 验证
+                // ✅ 调用 Edge Function 验证（users 表 + bcrypt）
                 var response = await fetch(
                     'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/login',
                     {

@@ -8,59 +8,9 @@
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
-        var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
     </script>
     <script src="config.js"></script>
-    <!-- ✅ 引用 api.js -->
-    <script src="api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
-    <!-- API 工具（安全版） -->
-    <script>
-        var apiSupabaseClient = null;
-
-        function initApiClient() {
-            if (typeof supabase === 'undefined') {
-                console.error('❌ Supabase SDK 未加载');
-                return false;
-            }
-            if (!apiSupabaseClient) {
-                try {
-                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    console.log('✅ API 客户端初始化成功');
-                } catch (e) {
-                    console.error('❌ API 客户端初始化失败:', e);
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        async function getApiKey(keyName) {
-            if (!initApiClient()) return null;
-            try {
-                const { data, error } = await apiSupabaseClient
-                    .rpc('get_api_key', { key_name: keyName });
-                if (error) {
-                    console.error('❌ 获取 API 密钥失败:', error);
-                    return null;
-                }
-                return data;
-            } catch (e) {
-                console.error('❌ 获取 API 密钥异常:', e);
-                return null;
-            }
-        }
-
-        // ============================================================
-        //  🛡️ 防止 XSS 攻击
-        // ============================================================
-        function escapeHtml(text) {
-            if (!text) return '';
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -93,9 +43,6 @@
         .navbar .nav-links .user-name { color: rgba(255, 255, 255, 0.9); padding: 6px 12px; font-size: 14px; }
         .navbar .nav-links .btn-logout { background: rgba(255, 255, 255, 0.15); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         .navbar .nav-links .btn-logout:hover { background: rgba(255, 255, 255, 0.3); }
-        .navbar .nav-links .admin-badge { background: #ff6b35; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 4px; }
-        .navbar .nav-links .pending-badge { background: #ff9800; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 4px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
         .upload-card {
             background: white;
@@ -515,28 +462,18 @@
 
         function logout() {
             var user = getCurrentUser();
-            if (user && ADMIN_USERNAMES.indexOf(user.username) !== -1) {
-                supabaseClient
-                    .from('users')
-                    .update({ is_online: false })
-                    .eq('id', user.id)
-                    .then(function() {
-                        sessionStorage.removeItem(SESSION_KEY);
-                        window.location.href = 'index.html';
-                    })
-                    .catch(function() {
-                        sessionStorage.removeItem(SESSION_KEY);
-                        window.location.href = 'index.html';
-                    });
+            if (user) {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.href = 'index.html';
             } else {
                 sessionStorage.removeItem(SESSION_KEY);
                 window.location.href = 'index.html';
             }
         }
 
+        // ✅ 主站不再需要管理员判断
         function isAdmin() {
-            var user = getCurrentUser();
-            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
+            return false;
         }
 
         function renderNav() {
@@ -544,17 +481,13 @@
             var user = getCurrentUser();
 
             if (user) {
-                var admin = isAdmin();
-                var pendingCount = window._pendingCount || 0;
                 nav.innerHTML =
                     '<a href="index.html">🏠 地图</a>' +
                     '<a href="discover.html">🔍 发现</a>' +
                     '<a href="profile.html">👤 个人中心</a>' +
-                    (admin ? '<a href="admin.html">⚙️ 审核</a>' : '') +
-                    (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
-                    (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
+                    // ✅ 已移除审核入口
                     '<a href="upload.html" class="active">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>' +
+                    '<span class="user-name">👤 ' + escapeHtml(user.username) + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
             } else {
                 nav.innerHTML =
@@ -582,11 +515,48 @@
             }, 4000);
         }
 
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // ============================================================
-        //  📤 安全上传到 ImgBB（使用 Edge Function）
-        //  ✅ 函数定义在 api.js 中
+        //  📤 安全上传到 ImgBB（通过 Edge Function）
         // ============================================================
-        // uploadToImgBB 函数现在从 api.js 加载
+        async function uploadToImgBB(file) {
+            var user = getCurrentUser();
+            if (!user) {
+                throw new Error('请先登录再上传图片');
+            }
+
+            var formData = new FormData();
+            formData.append('image', file);
+
+            var response = await fetch(
+                'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/upload-image',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + (user.access_token || '')
+                    },
+                    body: formData
+                }
+            );
+
+            var result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || '上传失败');
+            }
+
+            if (!result.success) {
+                throw new Error(result.error || '上传失败');
+            }
+
+            return result.url;
+        }
 
         // ============================================================
         //  🖼️ Canvas 图片处理（压缩 + 黑色版权栏 + 左下角水印）
@@ -724,33 +694,36 @@
         }
 
         // ============================================================
-        //  🗺️ 动态加载高德地图（修复版）
+        //  🗺️ 加载高德地图（通过 Edge Function 获取密钥）
         // ============================================================
         function loadAmap() {
-            if (!window.AMAP_KEY || !window.AMAP_SECURITY) {
-                console.log('⏳ 等待高德地图配置...');
-                document.addEventListener('configLoaded', function() {
-                    loadAmap();
+            // 从 Edge Function 获取密钥
+            fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config')
+                .then(function(response) { return response.json(); })
+                .then(function(config) {
+                    if (!config.key) {
+                        console.error('❌ 无法获取高德地图密钥');
+                        return;
+                    }
+
+                    window._AMapSecurityConfig = {
+                        securityJsCode: config.security
+                    };
+
+                    var script = document.createElement('script');
+                    script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + config.key;
+                    script.onload = function() {
+                        console.log('✅ 高德地图加载成功');
+                        initPickerMap();
+                    };
+                    script.onerror = function() {
+                        console.error('❌ 高德地图加载失败');
+                    };
+                    document.head.appendChild(script);
+                })
+                .catch(function(error) {
+                    console.error('❌ 获取高德配置失败:', error);
                 });
-                return;
-            }
-
-            console.log('🗺️ 加载高德地图...');
-
-            window._AMapSecurityConfig = {
-                securityJsCode: window.AMAP_SECURITY
-            };
-
-            var script = document.createElement('script');
-            script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + window.AMAP_KEY;
-            script.onload = function() {
-                console.log('✅ 高德地图加载成功');
-                initPickerMap();
-            };
-            script.onerror = function() {
-                console.error('❌ 高德地图加载失败');
-            };
-            document.head.appendChild(script);
         }
 
         // ============================================================
@@ -884,7 +857,6 @@
                         }, user.username);
 
                         showStatus('📤 正在上传例图...', 'loading');
-                        // ✅ 使用 api.js 中的 uploadToImgBB
                         examplePhotoUrl = await uploadToImgBB(processedExample);
                         console.log('✅ 例图上传成功，URL:', examplePhotoUrl);
                     } catch (uploadErr) {
@@ -959,21 +931,12 @@
             }
 
             document.getElementById('locateBtn').addEventListener('click', locateMe);
-
-            if (window.AMAP_KEY && window.AMAP_SECURITY) {
-                loadAmap();
-            } else {
-                document.addEventListener('configLoaded', loadAmap);
-            }
+            loadAmap();
         }
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initApp);
         } else {
-            initApp();
-        }
-
-        if (window.AMAP_KEY && window.AMAP_SECURITY) {
             initApp();
         }
 

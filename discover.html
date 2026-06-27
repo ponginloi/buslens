@@ -8,28 +8,19 @@
     var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
     var SESSION_KEY = 'bus_user_session';
-    var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
     </script>
     <script src="config.js"></script>
-    <script src="api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: #f0f2f5;
             min-height: 100vh;
             padding: 20px;
         }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1100px; margin: 0 auto; }
 
         .navbar {
             background: linear-gradient(135deg, #1a73e8, #0d47a1);
@@ -53,9 +44,7 @@
             text-decoration: none;
             color: white;
         }
-        .navbar .brand span {
-            font-size: 26px;
-        }
+        .navbar .brand span { font-size: 26px; }
         .navbar .nav-links {
             display: flex;
             align-items: center;
@@ -70,14 +59,8 @@
             font-size: 14px;
             transition: all 0.2s;
         }
-        .navbar .nav-links a:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-        .navbar .nav-links a.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
+        .navbar .nav-links a:hover { background: rgba(255, 255, 255, 0.15); color: white; }
+        .navbar .nav-links a.active { background: rgba(255, 255, 255, 0.2); color: white; }
         .navbar .nav-links .user-name {
             color: rgba(255, 255, 255, 0.9);
             padding: 6px 12px;
@@ -93,26 +76,9 @@
             font-size: 14px;
             transition: background 0.2s;
         }
-        .navbar .nav-links .btn-logout:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        .navbar .nav-links .pending-badge {
-            background: #ff9800;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 4px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
+        .navbar .nav-links .btn-logout:hover { background: rgba(255, 255, 255, 0.3); }
 
-        .page-header {
-            margin-bottom: 24px;
-        }
+        .page-header { margin-bottom: 24px; }
         .page-header h1 {
             font-size: 28px;
             color: #1a73e8;
@@ -121,19 +87,7 @@
             gap: 10px;
             flex-wrap: wrap;
         }
-        .page-header p {
-            color: #888;
-            font-size: 15px;
-            margin-top: 4px;
-        }
-        .page-header .admin-hint {
-            font-size: 13px;
-            color: #ff9800;
-            background: #fff3e0;
-            padding: 4px 14px;
-            border-radius: 20px;
-            display: inline-block;
-        }
+        .page-header p { color: #888; font-size: 15px; margin-top: 4px; }
 
         .discover-grid {
             display: grid;
@@ -141,11 +95,7 @@
             gap: 20px;
             margin-bottom: 24px;
         }
-        @media (max-width: 768px) {
-            .discover-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        @media (max-width: 768px) { .discover-grid { grid-template-columns: 1fr; } }
 
         .discover-card {
             background: white;
@@ -154,9 +104,7 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             transition: box-shadow 0.2s;
         }
-        .discover-card:hover {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
+        .discover-card:hover { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); }
         .discover-card .card-header {
             display: flex;
             justify-content: space-between;
@@ -179,10 +127,7 @@
             transition: transform 0.3s;
             padding: 4px;
         }
-        .discover-card .card-header .refresh-btn:hover {
-            transform: rotate(180deg);
-            color: #1a73e8;
-        }
+        .discover-card .card-header .refresh-btn:hover { transform: rotate(180deg); color: #1a73e8; }
         .discover-card .card-header .badge-count {
             font-size: 12px;
             background: #e8f0fe;
@@ -208,19 +153,9 @@
             color: inherit;
             border: 2px solid #ff4444;
         }
-        .random-spot-card:hover {
-            transform: scale(1.02);
-        }
-        .random-spot-card .spot-name {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a73e8;
-        }
-        .random-spot-card .spot-meta {
-            font-size: 13px;
-            color: #888;
-            margin-top: 6px;
-        }
+        .random-spot-card:hover { transform: scale(1.02); }
+        .random-spot-card .spot-name { font-size: 20px; font-weight: 700; color: #1a73e8; }
+        .random-spot-card .spot-meta { font-size: 13px; color: #888; margin-top: 6px; }
         .random-spot-card .spot-rank-display {
             display: inline-block;
             padding: 2px 12px;
@@ -231,10 +166,7 @@
             margin-top: 6px;
             background: #ff4444;
         }
-        .random-spot-card .spot-empty {
-            color: #999;
-            font-size: 14px;
-        }
+        .random-spot-card .spot-empty { color: #999; font-size: 14px; }
         .random-spot-card .spot-thumb {
             width: 100%;
             max-height: 120px;
@@ -243,11 +175,7 @@
             margin-top: 8px;
         }
 
-        .hot-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .hot-list { display: flex; flex-direction: column; gap: 10px; }
         .hot-item {
             display: flex;
             align-items: center;
@@ -260,9 +188,7 @@
             text-decoration: none;
             color: inherit;
         }
-        .hot-item:hover {
-            background: #e8f0fe;
-        }
+        .hot-item:hover { background: #e8f0fe; }
         .hot-item .rank-num {
             font-size: 18px;
             font-weight: 700;
@@ -270,27 +196,12 @@
             min-width: 28px;
             text-align: center;
         }
-        .hot-item .rank-num.top1 {
-            color: #ffd700;
-        }
-        .hot-item .rank-num.top2 {
-            color: #c0c0c0;
-        }
-        .hot-item .rank-num.top3 {
-            color: #cd7f32;
-        }
-        .hot-item .hot-info {
-            flex: 1;
-        }
-        .hot-item .hot-info .hot-name {
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-        }
-        .hot-item .hot-info .hot-meta {
-            font-size: 12px;
-            color: #999;
-        }
+        .hot-item .rank-num.top1 { color: #ffd700; }
+        .hot-item .rank-num.top2 { color: #c0c0c0; }
+        .hot-item .rank-num.top3 { color: #cd7f32; }
+        .hot-item .hot-info { flex: 1; }
+        .hot-item .hot-info .hot-name { font-weight: 600; color: #333; font-size: 14px; }
+        .hot-item .hot-info .hot-meta { font-size: 12px; color: #999; }
         .hot-item .hot-photo-count {
             font-size: 12px;
             color: #1a73e8;
@@ -299,14 +210,8 @@
             border-radius: 10px;
             font-weight: 500;
         }
-        .hot-empty {
-            color: #999;
-            text-align: center;
-            padding: 30px 0;
-            font-size: 14px;
-        }
+        .hot-empty { color: #999; text-align: center; padding: 30px 0; font-size: 14px; }
 
-        /* ===== 今日精选（懒加载） ===== */
         .photo-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -321,9 +226,7 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .photo-grid .photo-item:hover {
-            transform: scale(1.03);
-        }
+        .photo-grid .photo-item:hover { transform: scale(1.03); }
         .photo-grid .photo-item .lazy-placeholder {
             width: 100%;
             height: 100%;
@@ -334,11 +237,7 @@
             color: #ccc;
             background: #f5f5f5;
         }
-        .photo-grid .photo-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .photo-grid .photo-item img { width: 100%; height: 100%; object-fit: cover; }
         .photo-grid .photo-item .photo-overlay {
             position: absolute;
             bottom: 0;
@@ -354,16 +253,9 @@
             opacity: 0;
             transition: opacity 0.2s;
         }
-        .photo-grid .photo-item:hover .photo-overlay {
-            opacity: 1;
-        }
-        .photo-grid .photo-item .photo-overlay a {
-            color: #64b5f6;
-            text-decoration: none;
-        }
-        .photo-grid .photo-item .photo-overlay a:hover {
-            text-decoration: underline;
-        }
+        .photo-grid .photo-item:hover .photo-overlay { opacity: 1; }
+        .photo-grid .photo-item .photo-overlay a { color: #64b5f6; text-decoration: none; }
+        .photo-grid .photo-item .photo-overlay a:hover { text-decoration: underline; }
         .photo-grid .photo-item .photo-reason {
             position: absolute;
             top: 6px;
@@ -376,26 +268,15 @@
             opacity: 0;
             transition: opacity 0.2s;
         }
-        .photo-grid .photo-item:hover .photo-reason {
-            opacity: 1;
-        }
-        .photo-empty {
-            color: #999;
-            text-align: center;
-            padding: 30px 0;
-            font-size: 14px;
-            grid-column: 1 / -1;
-        }
+        .photo-grid .photo-item:hover .photo-reason { opacity: 1; }
+        .photo-empty { color: #999; text-align: center; padding: 30px 0; font-size: 14px; grid-column: 1 / -1; }
 
         .loading-spinner {
             display: inline-block;
             animation: spin 1s linear infinite;
             font-size: 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .toast {
             position: fixed;
@@ -412,15 +293,9 @@
             transition: opacity 0.3s;
             pointer-events: none;
         }
-        .toast.show {
-            opacity: 1;
-        }
-        .toast.success {
-            background: #4caf50;
-        }
-        .toast.error {
-            background: #f44336;
-        }
+        .toast.show { opacity: 1; }
+        .toast.success { background: #4caf50; }
+        .toast.error { background: #f44336; }
 
         .lightbox {
             display: none;
@@ -435,15 +310,8 @@
             justify-content: center;
             cursor: pointer;
         }
-        .lightbox.active {
-            display: flex;
-        }
-        .lightbox img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            border-radius: 4px;
-        }
+        .lightbox.active { display: flex; }
+        .lightbox img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 4px; }
         .lightbox .close-lightbox {
             position: absolute;
             top: 20px;
@@ -453,39 +321,7 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .lightbox .close-lightbox:hover {
-            transform: scale(1.2);
-        }
-
-        .admin-tip {
-            background: #e8f5e9;
-            border-radius: 10px;
-            padding: 12px 16px;
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .admin-tip .tip-text {
-            font-size: 14px;
-            color: #2e7d32;
-        }
-        .admin-tip .btn-go-admin {
-            padding: 6px 18px;
-            background: #1a73e8;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        .admin-tip .btn-go-admin:hover {
-            background: #0d47a1;
-        }
+        .lightbox .close-lightbox:hover { transform: scale(1.2); }
 
         @media (max-width: 600px) {
             body { padding: 12px; }
@@ -496,7 +332,6 @@
             .discover-card { padding: 16px; }
             .photo-grid { grid-template-columns: 1fr 1fr; }
             .random-spot-card .spot-name { font-size: 17px; }
-            .admin-tip { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
@@ -509,10 +344,7 @@
         </nav>
 
         <div class="page-header">
-            <h1>
-                🔍 发现
-                <span class="admin-hint" id="adminHint" style="display:none;">👑 管理员</span>
-            </h1>
+            <h1>🔍 发现</h1>
             <p>探索上等机位、热门推荐和今日精选好图</p>
         </div>
 
@@ -549,11 +381,6 @@
                     <div class="photo-empty">加载中...</div>
                 </div>
             </div>
-        </div>
-
-        <div class="admin-tip" id="adminTip" style="display:none;">
-            <span class="tip-text">📌 在「精选照片管理」中添加照片，并设置为「展示中」，即可显示在今日精选</span>
-            <button class="btn-go-admin" onclick="window.location.href='admin_featured.html'">📸 管理精选照片</button>
         </div>
     </div>
 
@@ -594,28 +421,18 @@
 
         function logout() {
             var user = getCurrentUser();
-            if (user && ADMIN_USERNAMES.indexOf(user.username) !== -1) {
-                supabaseClient
-                    .from('users')
-                    .update({ is_online: false })
-                    .eq('id', user.id)
-                    .then(function() {
-                        sessionStorage.removeItem(SESSION_KEY);
-                        window.location.href = 'index.html';
-                    })
-                    .catch(function() {
-                        sessionStorage.removeItem(SESSION_KEY);
-                        window.location.href = 'index.html';
-                    });
+            if (user) {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.href = 'index.html';
             } else {
                 sessionStorage.removeItem(SESSION_KEY);
                 window.location.href = 'index.html';
             }
         }
 
+        // ✅ 主站不再需要管理员判断
         function isAdmin() {
-            var user = getCurrentUser();
-            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
+            return false;
         }
 
         function renderNav() {
@@ -623,31 +440,20 @@
             var user = getCurrentUser();
 
             if (user) {
-                var admin = isAdmin();
-                var pendingCount = window._pendingCount || 0;
                 nav.innerHTML =
                     '<a href="index.html">🏠 地图</a>' +
                     '<a href="discover.html" class="active">🔍 发现</a>' +
                     '<a href="profile.html">👤 个人中心</a>' +
-                    (admin ? '<a href="admin.html">⚙️ 审核</a>' : '') +
-                    (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
-                    (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
+                    // ✅ 已移除审核入口
                     '<a href="upload.html">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>' +
+                    '<span class="user-name">👤 ' + escapeHtml(user.username) + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
-
-                if (admin) {
-                    document.getElementById('adminHint').style.display = 'inline-block';
-                    document.getElementById('adminTip').style.display = 'flex';
-                }
             } else {
                 nav.innerHTML =
                     '<a href="index.html">🏠 地图</a>' +
                     '<a href="discover.html" class="active">🔍 发现</a>' +
                     '<a href="login.html">登录</a>' +
                     '<a href="register.html">注册</a>';
-                document.getElementById('adminHint').style.display = 'none';
-                document.getElementById('adminTip').style.display = 'none';
             }
         }
 
@@ -673,6 +479,13 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeLightbox();
         });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         function getRankLabel(rank) {
             var map = { high: '上等 ⭐⭐⭐', medium: '中等 ⭐⭐', low: '下等 ⭐' };
@@ -864,7 +677,7 @@
                     document.getElementById('photoCount').textContent = photos.length;
 
                     if (photos.length === 0) {
-                        container.innerHTML = '<div class="photo-empty">📸 暂无今日精选<br><span style="font-size:12px;color:#bbb;">管理员可在「精选照片管理」中添加</span></div>';
+                        container.innerHTML = '<div class="photo-empty">📸 暂无今日精选</div>';
                         return;
                     }
 
@@ -922,8 +735,7 @@
         renderNav();
         loadAllData();
 
-        console.log('🔍 发现页面已加载（上等机位 + 按照片数排序 + 今日精选 + 懒加载 + 安全 API + XSS防护）');
-        console.log('🔑 API 密钥已安全存储（前端不可见）');
+        console.log('🔍 发现页面已加载（已移除审核入口）');
     </script>
 </body>
 </html>

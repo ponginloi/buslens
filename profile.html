@@ -8,28 +8,19 @@
     var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
     var SESSION_KEY = 'bus_user_session';
-    var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
     </script>
     <script src="config.js"></script>
-    <script src="api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: #f0f2f5;
             min-height: 100vh;
             padding: 20px;
         }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1000px; margin: 0 auto; }
 
         .navbar {
             background: linear-gradient(135deg, #1a73e8, #0d47a1);
@@ -44,18 +35,8 @@
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
-        .navbar .brand {
-            font-size: 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: white;
-        }
-        .navbar .brand span {
-            font-size: 26px;
-        }
+        .navbar .brand { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; text-decoration: none; color: white; }
+        .navbar .brand span { font-size: 26px; }
         .navbar .nav-links {
             display: flex;
             align-items: center;
@@ -70,14 +51,8 @@
             font-size: 14px;
             transition: all 0.2s;
         }
-        .navbar .nav-links a:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-        .navbar .nav-links a.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
+        .navbar .nav-links a:hover { background: rgba(255, 255, 255, 0.15); color: white; }
+        .navbar .nav-links a.active { background: rgba(255, 255, 255, 0.2); color: white; }
         .navbar .nav-links .user-name {
             color: rgba(255, 255, 255, 0.9);
             padding: 6px 12px;
@@ -93,30 +68,7 @@
             font-size: 14px;
             transition: background 0.2s;
         }
-        .navbar .nav-links .btn-logout:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        .navbar .nav-links .admin-badge {
-            background: #ff6b35;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 4px;
-        }
-        .navbar .nav-links .pending-badge {
-            background: #ff9800;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 4px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
+        .navbar .nav-links .btn-logout:hover { background: rgba(255, 255, 255, 0.3); }
 
         .profile-card {
             background: white;
@@ -130,15 +82,8 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        .profile-card .info h2 {
-            font-size: 22px;
-            color: #1a73e8;
-        }
-        .profile-card .info .sub {
-            color: #888;
-            font-size: 14px;
-            margin-top: 2px;
-        }
+        .profile-card .info h2 { font-size: 22px; color: #1a73e8; }
+        .profile-card .info .sub { color: #888; font-size: 14px; margin-top: 2px; }
         .profile-card .info .bio {
             margin-top: 6px;
             padding: 8px 14px;
@@ -149,14 +94,8 @@
             max-width: 400px;
             line-height: 1.6;
         }
-        .profile-card .info .bio .empty-bio {
-            color: #bbb;
-            font-style: italic;
-        }
-        .profile-card .info .bio-edit {
-            display: none;
-            margin-top: 6px;
-        }
+        .profile-card .info .bio .empty-bio { color: #bbb; font-style: italic; }
+        .profile-card .info .bio-edit { display: none; margin-top: 6px; }
         .profile-card .info .bio-edit textarea {
             width: 100%;
             max-width: 400px;
@@ -169,14 +108,8 @@
             min-height: 60px;
             outline: none;
         }
-        .profile-card .info .bio-edit textarea:focus {
-            border-color: #1a73e8;
-        }
-        .profile-card .info .bio-edit .bio-actions {
-            margin-top: 6px;
-            display: flex;
-            gap: 8px;
-        }
+        .profile-card .info .bio-edit textarea:focus { border-color: #1a73e8; }
+        .profile-card .info .bio-edit .bio-actions { margin-top: 6px; display: flex; gap: 8px; }
         .profile-card .info .bio-edit .bio-actions button {
             padding: 4px 14px;
             border: none;
@@ -185,20 +118,10 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .profile-card .info .bio-edit .bio-actions .btn-save-bio {
-            background: #4caf50;
-            color: white;
-        }
-        .profile-card .info .bio-edit .bio-actions .btn-save-bio:hover {
-            background: #388e3c;
-        }
-        .profile-card .info .bio-edit .bio-actions .btn-cancel-bio {
-            background: #eee;
-            color: #666;
-        }
-        .profile-card .info .bio-edit .bio-actions .btn-cancel-bio:hover {
-            background: #ddd;
-        }
+        .profile-card .info .bio-edit .bio-actions .btn-save-bio { background: #4caf50; color: white; }
+        .profile-card .info .bio-edit .bio-actions .btn-save-bio:hover { background: #388e3c; }
+        .profile-card .info .bio-edit .bio-actions .btn-cancel-bio { background: #eee; color: #666; }
+        .profile-card .info .bio-edit .bio-actions .btn-cancel-bio:hover { background: #ddd; }
         .profile-card .info .btn-edit-bio {
             margin-top: 4px;
             background: none;
@@ -208,10 +131,7 @@
             cursor: pointer;
             padding: 2px 0;
         }
-        .profile-card .info .btn-edit-bio:hover {
-            text-decoration: underline;
-        }
-
+        .profile-card .info .btn-edit-bio:hover { text-decoration: underline; }
         .profile-card .info .title-badge {
             display: inline-block;
             padding: 4px 16px;
@@ -220,47 +140,17 @@
             font-weight: 700;
             margin-top: 6px;
         }
-        .profile-card .info .title-badge.beginner {
-            background: #e0e0e0;
-            color: #666;
-        }
-        .profile-card .info .title-badge.recorder {
-            background: #e3f2fd;
-            color: #0d47a1;
-        }
-        .profile-card .info .title-badge.explorer {
-            background: #b2dfdb;
-            color: #004d40;
-        }
-        .profile-card .info .title-badge.photographer {
-            background: #e8f5e9;
-            color: #1b5e20;
-        }
-        .profile-card .info .title-badge.master {
-            background: #fff3e0;
-            color: #bf360c;
-        }
-        .profile-card .info .title-badge.legend {
-            background: linear-gradient(135deg, #ffd700, #ff6f00);
-            color: #fff;
-        }
+        .profile-card .info .title-badge.beginner { background: #e0e0e0; color: #666; }
+        .profile-card .info .title-badge.recorder { background: #e3f2fd; color: #0d47a1; }
+        .profile-card .info .title-badge.explorer { background: #b2dfdb; color: #004d40; }
+        .profile-card .info .title-badge.photographer { background: #e8f5e9; color: #1b5e20; }
+        .profile-card .info .title-badge.master { background: #fff3e0; color: #bf360c; }
+        .profile-card .info .title-badge.legend { background: linear-gradient(135deg, #ffd700, #ff6f00); color: #fff; }
 
-        .profile-card .stats {
-            display: flex;
-            gap: 24px;
-        }
-        .profile-card .stats .stat {
-            text-align: center;
-        }
-        .profile-card .stats .stat .num {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a73e8;
-        }
-        .profile-card .stats .stat .label {
-            font-size: 12px;
-            color: #999;
-        }
+        .profile-card .stats { display: flex; gap: 24px; }
+        .profile-card .stats .stat { text-align: center; }
+        .profile-card .stats .stat .num { font-size: 28px; font-weight: 700; color: #1a73e8; }
+        .profile-card .stats .stat .label { font-size: 12px; color: #999; }
 
         .badges-section {
             background: white;
@@ -269,16 +159,8 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             margin-bottom: 20px;
         }
-        .badges-section h3 {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 12px;
-        }
-        .badges-section .badges-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+        .badges-section h3 { font-size: 16px; color: #333; margin-bottom: 12px; }
+        .badges-section .badges-grid { display: flex; flex-wrap: wrap; gap: 12px; }
         .badges-section .badge-item {
             display: flex;
             flex-direction: column;
@@ -289,27 +171,11 @@
             min-width: 80px;
             transition: all 0.2s;
         }
-        .badges-section .badge-item .badge-icon {
-            font-size: 28px;
-        }
-        .badges-section .badge-item .badge-name {
-            font-size: 11px;
-            color: #666;
-            margin-top: 4px;
-            text-align: center;
-            font-weight: 500;
-        }
-        .badges-section .badge-item.locked {
-            opacity: 0.35;
-            filter: grayscale(1);
-        }
-        .badges-section .badge-item.unlocked {
-            background: #e8f5e9;
-            border: 1px solid #a5d6a7;
-        }
-        .badges-section .badge-item.unlocked .badge-name {
-            color: #2e7d32;
-        }
+        .badges-section .badge-item .badge-icon { font-size: 28px; }
+        .badges-section .badge-item .badge-name { font-size: 11px; color: #666; margin-top: 4px; text-align: center; font-weight: 500; }
+        .badges-section .badge-item.locked { opacity: 0.35; filter: grayscale(1); }
+        .badges-section .badge-item.unlocked { background: #e8f5e9; border: 1px solid #a5d6a7; }
+        .badges-section .badge-item.unlocked .badge-name { color: #2e7d32; }
 
         .recent-section {
             background: white;
@@ -318,16 +184,8 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             margin-bottom: 20px;
         }
-        .recent-section h3 {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 12px;
-        }
-        .recent-section .recent-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+        .recent-section h3 { font-size: 16px; color: #333; margin-bottom: 12px; }
+        .recent-section .recent-list { display: flex; flex-direction: column; gap: 6px; }
         .recent-section .recent-item {
             display: flex;
             align-items: center;
@@ -338,21 +196,10 @@
             font-size: 14px;
             color: #555;
         }
-        .recent-section .recent-item .recent-icon {
-            font-size: 18px;
-        }
-        .recent-section .recent-item .recent-time {
-            margin-left: auto;
-            color: #999;
-            font-size: 12px;
-        }
-        .recent-section .recent-item a {
-            color: #1a73e8;
-            text-decoration: none;
-        }
-        .recent-section .recent-item a:hover {
-            text-decoration: underline;
-        }
+        .recent-section .recent-item .recent-icon { font-size: 18px; }
+        .recent-section .recent-item .recent-time { margin-left: auto; color: #999; font-size: 12px; }
+        .recent-section .recent-item a { color: #1a73e8; text-decoration: none; }
+        .recent-section .recent-item a:hover { text-decoration: underline; }
 
         .gallery-section {
             background: white;
@@ -361,11 +208,7 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             margin-bottom: 20px;
         }
-        .gallery-section h3 {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 12px;
-        }
+        .gallery-section h3 { font-size: 16px; color: #333; margin-bottom: 12px; }
         .gallery-section .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -380,9 +223,7 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .gallery-section .gallery-grid .gallery-item:hover {
-            transform: scale(1.02);
-        }
+        .gallery-section .gallery-grid .gallery-item:hover { transform: scale(1.02); }
         .gallery-section .gallery-grid .gallery-item .lazy-placeholder {
             width: 100%;
             height: 100%;
@@ -393,11 +234,7 @@
             color: #ccc;
             background: #f5f5f5;
         }
-        .gallery-section .gallery-grid .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .gallery-section .gallery-grid .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
         .gallery-section .gallery-grid .gallery-item .gallery-overlay {
             position: absolute;
             bottom: 0;
@@ -411,19 +248,9 @@
             opacity: 0;
             transition: opacity 0.2s;
         }
-        .gallery-section .gallery-grid .gallery-item:hover .gallery-overlay {
-            opacity: 1;
-        }
-        .gallery-section .gallery-empty {
-            text-align: center;
-            padding: 40px 0;
-            color: #999;
-        }
-        .gallery-section .gallery-empty .icon {
-            font-size: 48px;
-            display: block;
-            margin-bottom: 8px;
-        }
+        .gallery-section .gallery-grid .gallery-item:hover .gallery-overlay { opacity: 1; }
+        .gallery-section .gallery-empty { text-align: center; padding: 40px 0; color: #999; }
+        .gallery-section .gallery-empty .icon { font-size: 48px; display: block; margin-bottom: 8px; }
 
         .progress-section {
             background: white;
@@ -432,11 +259,7 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             margin-bottom: 20px;
         }
-        .progress-section h3 {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 12px;
-        }
+        .progress-section h3 { font-size: 16px; color: #333; margin-bottom: 12px; }
         .progress-bar-wrap {
             display: flex;
             gap: 0;
@@ -455,42 +278,15 @@
             color: white;
             transition: width 0.5s;
         }
-        .progress-bar-wrap .segment.pending {
-            background: #ff9800;
-        }
-        .progress-bar-wrap .segment.approved {
-            background: #4caf50;
-        }
-        .progress-bar-wrap .segment.rejected {
-            background: #f44336;
-        }
-        .progress-legend {
-            display: flex;
-            gap: 16px;
-            margin-top: 10px;
-            font-size: 13px;
-            color: #666;
-        }
-        .progress-legend span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .progress-legend .dot {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 4px;
-        }
-        .progress-legend .dot.pending {
-            background: #ff9800;
-        }
-        .progress-legend .dot.approved {
-            background: #4caf50;
-        }
-        .progress-legend .dot.rejected {
-            background: #f44336;
-        }
+        .progress-bar-wrap .segment.pending { background: #ff9800; }
+        .progress-bar-wrap .segment.approved { background: #4caf50; }
+        .progress-bar-wrap .segment.rejected { background: #f44336; }
+        .progress-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: #666; }
+        .progress-legend span { display: flex; align-items: center; gap: 4px; }
+        .progress-legend .dot { display: inline-block; width: 12px; height: 12px; border-radius: 4px; }
+        .progress-legend .dot.pending { background: #ff9800; }
+        .progress-legend .dot.approved { background: #4caf50; }
+        .progress-legend .dot.rejected { background: #f44336; }
 
         .tabs {
             display: flex;
@@ -514,13 +310,8 @@
             transition: all 0.2s;
             white-space: nowrap;
         }
-        .tabs .tab:hover {
-            background: #f0f2f5;
-        }
-        .tabs .tab.active {
-            background: #1a73e8;
-            color: white;
-        }
+        .tabs .tab:hover { background: #f0f2f5; }
+        .tabs .tab.active { background: #1a73e8; color: white; }
         .tabs .tab .badge {
             background: #ff9800;
             color: white;
@@ -529,16 +320,10 @@
             font-size: 11px;
             margin-left: 4px;
         }
-        .tabs .tab.active .badge {
-            background: rgba(255, 255, 255, 0.3);
-        }
+        .tabs .tab.active .badge { background: rgba(255, 255, 255, 0.3); }
 
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         .item-card {
             background: white;
@@ -553,115 +338,33 @@
             gap: 10px;
             transition: box-shadow 0.2s;
         }
-        .item-card:hover {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        }
-        .item-card .left .title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a73e8;
-        }
-        .item-card .left .meta {
-            font-size: 13px;
-            color: #888;
-            margin-top: 2px;
-        }
-        .item-card .left .meta span {
-            margin-right: 12px;
-        }
-        .item-card .right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        .item-card:hover { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); }
+        .item-card .left .title { font-size: 16px; font-weight: 600; color: #1a73e8; }
+        .item-card .left .meta { font-size: 13px; color: #888; margin-top: 2px; }
+        .item-card .left .meta span { margin-right: 12px; }
+        .item-card .right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-        .status-badge {
-            padding: 3px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .status-badge.pending {
-            background: #fff3e0;
-            color: #ff9800;
-        }
-        .status-badge.approved {
-            background: #e8f5e9;
-            color: #4caf50;
-        }
-        .status-badge.rejected {
-            background: #ffebee;
-            color: #f44336;
-        }
+        .status-badge { padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .status-badge.pending { background: #fff3e0; color: #ff9800; }
+        .status-badge.approved { background: #e8f5e9; color: #4caf50; }
+        .status-badge.rejected { background: #ffebee; color: #f44336; }
 
-        .rank-badge {
-            padding: 3px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-            color: white;
-        }
-        .rank-badge.high {
-            background: #ff4444;
-        }
-        .rank-badge.medium {
-            background: #ffbb33;
-            color: #333;
-        }
-        .rank-badge.low {
-            background: #00c851;
-        }
+        .rank-badge { padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; color: white; }
+        .rank-badge.high { background: #ff4444; }
+        .rank-badge.medium { background: #ffbb33; color: #333; }
+        .rank-badge.low { background: #00c851; }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-            background: white;
-            border-radius: 12px;
-        }
-        .empty-state .icon {
-            font-size: 48px;
-            display: block;
-            margin-bottom: 12px;
-        }
-        .empty-state a {
-            color: #1a73e8;
-        }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; background: white; border-radius: 12px; }
+        .empty-state .icon { font-size: 48px; display: block; margin-bottom: 12px; }
+        .empty-state a { color: #1a73e8; }
 
-        .photo-thumb {
-            width: 60px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            background: #f0f0f0;
-        }
-        .photo-thumb.lazy-placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #ccc;
-            background: #f5f5f5;
-        }
+        .photo-thumb { width: 60px; height: 45px; object-fit: cover; border-radius: 6px; cursor: pointer; transition: transform 0.2s; background: #f0f0f0; }
+        .photo-thumb.lazy-placeholder { display: flex; align-items: center; justify-content: center; font-size: 20px; color: #ccc; background: #f5f5f5; }
 
-        .view-link {
-            color: #1a73e8;
-            text-decoration: none;
-            font-size: 13px;
-        }
-        .view-link:hover {
-            text-decoration: underline;
-        }
+        .view-link { color: #1a73e8; text-decoration: none; font-size: 13px; }
+        .view-link:hover { text-decoration: underline; }
 
-        .title-hint {
-            font-size: 12px;
-            color: #999;
-            margin-top: 4px;
-            line-height: 1.6;
-        }
+        .title-hint { font-size: 12px; color: #999; margin-top: 4px; line-height: 1.6; }
 
         .lightbox {
             display: none;
@@ -676,15 +379,8 @@
             justify-content: center;
             cursor: pointer;
         }
-        .lightbox.active {
-            display: flex;
-        }
-        .lightbox img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            border-radius: 4px;
-        }
+        .lightbox.active { display: flex; }
+        .lightbox img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 4px; }
         .lightbox .close-lightbox {
             position: absolute;
             top: 20px;
@@ -694,9 +390,7 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .lightbox .close-lightbox:hover {
-            transform: scale(1.2);
-        }
+        .lightbox .close-lightbox:hover { transform: scale(1.2); }
 
         .btn-delete-spot {
             background: #ffebee;
@@ -709,10 +403,7 @@
             transition: all 0.2s;
             font-weight: 500;
         }
-        .btn-delete-spot:hover {
-            background: #ffcdd2;
-            transform: translateY(-1px);
-        }
+        .btn-delete-spot:hover { background: #ffcdd2; transform: translateY(-1px); }
 
         .btn-delete-photo {
             background: #ffebee;
@@ -725,60 +416,23 @@
             transition: all 0.2s;
             font-weight: 500;
         }
-        .btn-delete-photo:hover {
-            background: #ffcdd2;
-            transform: translateY(-1px);
-        }
+        .btn-delete-photo:hover { background: #ffcdd2; transform: translateY(-1px); }
 
         @media (max-width: 600px) {
-            .navbar {
-                padding: 10px 16px;
-            }
-            .navbar .brand {
-                font-size: 17px;
-            }
-            .navbar .nav-links a {
-                font-size: 12px;
-                padding: 4px 10px;
-            }
-            .profile-card {
-                flex-direction: column;
-                text-align: center;
-            }
-            .profile-card .stats {
-                justify-content: center;
-            }
-            .profile-card .info .bio {
-                max-width: 100%;
-            }
-            .profile-card .info .bio-edit textarea {
-                max-width: 100%;
-            }
-            .tabs .tab {
-                font-size: 12px;
-                padding: 8px 14px;
-            }
-            .item-card {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .item-card .right {
-                width: 100%;
-                justify-content: flex-start;
-            }
-            .badges-section .badges-grid {
-                gap: 8px;
-            }
-            .badges-section .badge-item {
-                padding: 6px 10px;
-                min-width: 60px;
-            }
-            .badges-section .badge-item .badge-icon {
-                font-size: 20px;
-            }
-            .gallery-section .gallery-grid {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            }
+            .navbar { padding: 10px 16px; }
+            .navbar .brand { font-size: 17px; }
+            .navbar .nav-links a { font-size: 12px; padding: 4px 10px; }
+            .profile-card { flex-direction: column; text-align: center; }
+            .profile-card .stats { justify-content: center; }
+            .profile-card .info .bio { max-width: 100%; }
+            .profile-card .info .bio-edit textarea { max-width: 100%; }
+            .tabs .tab { font-size: 12px; padding: 8px 14px; }
+            .item-card { flex-direction: column; align-items: flex-start; }
+            .item-card .right { width: 100%; justify-content: flex-start; }
+            .badges-section .badges-grid { gap: 8px; }
+            .badges-section .badge-item { padding: 6px 10px; min-width: 60px; }
+            .badges-section .badge-item .badge-icon { font-size: 20px; }
+            .gallery-section .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
         }
     </style>
 </head>
@@ -873,18 +527,10 @@
             </button>
         </div>
 
-        <div id="tabPending" class="tab-content active">
-            <div id="pendingList"></div>
-        </div>
-        <div id="tabSpots" class="tab-content">
-            <div id="spotsList"></div>
-        </div>
-        <div id="tabPhotos" class="tab-content">
-            <div id="photosList"></div>
-        </div>
-        <div id="tabFavorites" class="tab-content">
-            <div id="favoritesList"></div>
-        </div>
+        <div id="tabPending" class="tab-content active"><div id="pendingList"></div></div>
+        <div id="tabSpots" class="tab-content"><div id="spotsList"></div></div>
+        <div id="tabPhotos" class="tab-content"><div id="photosList"></div></div>
+        <div id="tabFavorites" class="tab-content"><div id="favoritesList"></div></div>
     </div>
 
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -918,60 +564,36 @@
         //  用户状态
         // ============================================================
         function getCurrentUser() {
-            try {
-                var raw = sessionStorage.getItem(SESSION_KEY);
-                return raw ? JSON.parse(raw) : null;
-            } catch (e) {
-                return null;
-            }
+            try { var raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
         }
 
         function logout() {
             var user = getCurrentUser();
             if (user) {
-                if (ADMIN_USERNAMES.indexOf(user.username) !== -1) {
-                    supabaseClient
-                        .from('users')
-                        .update({ is_online: false })
-                        .eq('id', user.id)
-                        .then(function() {
-                            sessionStorage.removeItem(SESSION_KEY);
-                            window.location.href = 'index.html';
-                        })
-                        .catch(function() {
-                            sessionStorage.removeItem(SESSION_KEY);
-                            window.location.href = 'index.html';
-                        });
-                } else {
-                    sessionStorage.removeItem(SESSION_KEY);
-                    window.location.href = 'index.html';
-                }
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.href = 'index.html';
             } else {
                 sessionStorage.removeItem(SESSION_KEY);
                 window.location.href = 'index.html';
             }
         }
 
+        // ✅ 主站不再需要管理员判断
         function isAdmin() {
-            var user = getCurrentUser();
-            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
+            return false;
         }
 
         function renderNav() {
             var nav = document.getElementById('navLinks');
             var user = getCurrentUser();
             if (user) {
-                var admin = isAdmin();
-                var pendingCount = window._pendingCount || 0;
                 nav.innerHTML =
                     '<a href="index.html">🏠 地图</a>' +
                     '<a href="discover.html">🔍 发现</a>' +
                     '<a href="profile.html" class="active">👤 个人中心</a>' +
-                    (admin ? '<a href="admin.html">⚙️ 审核</a>' : '') +
-                    (admin ? '<a href="admin_featured.html">📸 精选管理</a>' : '') +
-                    (admin && pendingCount > 0 ? '<span class="pending-badge">📋 待审核 ' + pendingCount + '</span>' : '') +
+                    // ✅ 已移除审核入口
                     '<a href="upload.html">📤 新机位</a>' +
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>' +
+                    '<span class="user-name">👤 ' + escapeHtml(user.username) + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
             } else {
                 nav.innerHTML =
@@ -1009,6 +631,13 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeLightbox();
         });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         // ============================================================
         //  🚀 滚动懒加载
@@ -1077,9 +706,7 @@
                 observer.observe(el);
             });
 
-            console.log('👤 个人中心懒加载已启动，共 ' +
-                document.querySelectorAll('.lazy-placeholder[data-src]').length + ' 张画廊图片 + ' +
-                document.querySelectorAll('.photo-thumb.lazy-placeholder[data-src]').length + ' 张缩略图待加载');
+            console.log('👤 个人中心懒加载已启动');
         }
 
         function getTitle(spotCount, approvedCount, highRankCount, photoCount) {
@@ -1088,26 +715,22 @@
             }
             if (spotCount >= 80 && approvedCount >= 80 && highRankCount >= 18 && photoCount >= 50) {
                 return { title: '👑 巴士传奇', class: 'master',
-                    next: '⚡ 还需 ' + (150 - spotCount) + ' 个机位、' + (35 - highRankCount) + ' 个上等、' + (100 - photoCount) +
-                        ' 张照片'
+                    next: '⚡ 还需 ' + (150 - spotCount) + ' 个机位、' + (35 - highRankCount) + ' 个上等、' + (100 - photoCount) + ' 张照片'
                 };
             }
             if (spotCount >= 40 && approvedCount >= 40 && highRankCount >= 8 && photoCount >= 25) {
                 return { title: '📷 巴士摄影大师', class: 'photographer',
-                    next: '👑 还需 ' + (80 - spotCount) + ' 个机位、' + (18 - highRankCount) + ' 个上等、' + (50 - photoCount) +
-                        ' 张照片'
+                    next: '👑 还需 ' + (80 - spotCount) + ' 个机位、' + (18 - highRankCount) + ' 个上等、' + (50 - photoCount) + ' 张照片'
                 };
             }
             if (spotCount >= 20 && approvedCount >= 20 && highRankCount >= 3 && photoCount >= 12) {
                 return { title: '🔍 巴士探索家', class: 'explorer',
-                    next: '📷 还需 ' + (40 - spotCount) + ' 个机位、' + (8 - highRankCount) + ' 个上等、' + (25 - photoCount) +
-                        ' 张照片'
+                    next: '📷 还需 ' + (40 - spotCount) + ' 个机位、' + (8 - highRankCount) + ' 个上等、' + (25 - photoCount) + ' 张照片'
                 };
             }
             if (spotCount >= 8 && approvedCount >= 8 && photoCount >= 5) {
                 return { title: '📝 巴士记录者', class: 'recorder',
-                    next: '🔍 还需 ' + (20 - spotCount) + ' 个机位、' + (3 - highRankCount) + ' 个上等、' + (12 - photoCount) +
-                        ' 张照片'
+                    next: '🔍 还需 ' + (20 - spotCount) + ' 个机位、' + (3 - highRankCount) + ' 个上等、' + (12 - photoCount) + ' 张照片'
                 };
             }
             return { title: '🌱 巴士萌新', class: 'beginner',
@@ -1269,8 +892,7 @@
                         if (p.date) {
                             recentItems.push({
                                 icon: '📸',
-                                text: '在 <a href="index.html?spot_id=' + s.id + '">' + escapeHtml(s.name) +
-                                '</a> 上传了照片',
+                                text: '在 <a href="index.html?spot_id=' + s.id + '">' + escapeHtml(s.name) + '</a> 上传了照片',
                                 time: p.date
                             });
                         }
@@ -1545,8 +1167,7 @@
                     '<div class="title">' + escapeHtml(s.name) + '</div>' +
                     '<div class="meta">' +
                     '<span>📅 ' + escapeHtml(s.created_at || '未知') + '</span>' +
-                    '<span class="rank-badge ' + s.rank + '">' + (s.rank === 'high' ? '上等' : s.rank === 'medium' ?
-                        '中等' : '下等') + '</span>' +
+                    '<span class="rank-badge ' + s.rank + '">' + (s.rank === 'high' ? '上等' : s.rank === 'medium' ? '中等' : '下等') + '</span>' +
                     '<span class="status-badge pending">⏳ 待审核</span>' +
                     '</div>' +
                     '</div>' +
@@ -1575,15 +1196,13 @@
 
             container.innerHTML = mySpots.map(function(s) {
                 var statusClass = s.status || 'pending';
-                var reasonHtml = s.review_reason ? '<div style="font-size:12px;color:#f44336;margin-top:2px;">📝 审核意见：' +
-                    escapeHtml(s.review_reason) + '</div>' : '';
+                var reasonHtml = s.review_reason ? '<div style="font-size:12px;color:#f44336;margin-top:2px;">📝 审核意见：' + escapeHtml(s.review_reason) + '</div>' : '';
                 return '<div class="item-card">' +
                     '<div class="left">' +
                     '<div class="title">' + escapeHtml(s.name) + '</div>' +
                     '<div class="meta">' +
                     '<span>📅 ' + escapeHtml(s.created_at || '未知') + '</span>' +
-                    '<span class="rank-badge ' + s.rank + '">' + (s.rank === 'high' ? '上等' : s.rank === 'medium' ?
-                        '中等' : '下等') + '</span>' +
+                    '<span class="rank-badge ' + s.rank + '">' + (s.rank === 'high' ? '上等' : s.rank === 'medium' ? '中等' : '下等') + '</span>' +
                     '<span class="status-badge ' + statusClass + '">' + (statusMap[statusClass] || '未知') + '</span>' +
                     (s.reviewed_by ? '<span style="font-size:12px;color:#999;">审核人：' + escapeHtml(s.reviewed_by) + '</span>' : '') +
                     '</div>' +
@@ -1635,14 +1254,11 @@
                     '<div class="title">' + escapeHtml(item.spotName) + '</div>' +
                     '<div class="meta">' +
                     '<span>📅 ' + escapeHtml(p.date || p.created_at || '未知') + '</span>' +
-                    '<span class="rank-badge ' + item.spotRank + '">' + (item.spotRank === 'high' ? '上等' : item
-                        .spotRank === 'medium' ? '中等' : '下等') + '</span>' +
-                    '<span class="status-badge ' + (item.spotStatus || 'pending') + '">' + (item.spotStatus ===
-                        'approved' ? '✅ 已通过' : item.spotStatus === 'pending' ? '⏳ 待审核' : '❌ 已拒绝') +
+                    '<span class="rank-badge ' + item.spotRank + '">' + (item.spotRank === 'high' ? '上等' : item.spotRank === 'medium' ? '中等' : '下等') + '</span>' +
+                    '<span class="status-badge ' + (item.spotStatus || 'pending') + '">' + (item.spotStatus === 'approved' ? '✅ 已通过' : item.spotStatus === 'pending' ? '⏳ 待审核' : '❌ 已拒绝') +
                     '</span>' +
                     '</div>' +
-                    (p.caption ? '<div style="font-size:13px;color:#666;margin-top:2px;">📝 ' + escapeHtml(p.caption) + '</div>' :
-                        '') +
+                    (p.caption ? '<div style="font-size:13px;color:#666;margin-top:2px;">📝 ' + escapeHtml(p.caption) + '</div>' : '') +
                     '</div>' +
                     '<div class="right">' +
                     '<div class="photo-thumb lazy-placeholder" data-src="' + escapeHtml(p.url) + '">📷</div>' +
@@ -1698,8 +1314,7 @@
                                     '<div class="left">' +
                                     '<div class="title">' + escapeHtml(spot.name) + '</div>' +
                                     '<div class="meta">' +
-                                    '<span class="rank-badge ' + spot.rank + '">' + (spot.rank === 'high' ?
-                                        '上等' : spot.rank === 'medium' ? '中等' : '下等') + '</span>' +
+                                    '<span class="rank-badge ' + spot.rank + '">' + (spot.rank === 'high' ? '上等' : spot.rank === 'medium' ? '中等' : '下等') + '</span>' +
                                     '<span>📍 ' + escapeHtml(spot.lng + ', ' + spot.lat) + '</span>' +
                                     '</div>' +
                                     '</div>' +
@@ -1744,7 +1359,7 @@
         renderNav();
         loadProfile();
 
-        console.log('👤 个人中心已加载（懒加载版 - 滚动到才加载图片 + 删除机位 + 删除照片 + XSS防护）');
+        console.log('👤 个人中心已加载（已移除审核入口）');
     </script>
 </body>
 </html>

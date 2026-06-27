@@ -8,10 +8,9 @@
     var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
     var SESSION_KEY = 'bus_user_session';
-    var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
+    // ✅ 主站不再需要 ADMIN_USERNAMES（审核功能已移除）
     </script>
     <script src="config.js"></script>
-    <script src="api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
@@ -122,27 +121,6 @@
             background: rgba(255, 255, 255, 0.15);
             color: white;
         }
-        .navbar .admin-badge {
-            background: #ff6b35;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 4px;
-        }
-        .navbar .pending-badge {
-            background: #ff9800;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 4px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
         .navbar .github-badge {
             background: rgba(255, 255, 255, 0.12);
             padding: 4px 12px;
@@ -212,25 +190,6 @@
         .admin-status .status-dot.offline {
             background: #f44336;
             box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
-        }
-
-        .btn-toggle-status {
-            padding: 4px 12px;
-            border: 2px solid #4caf50;
-            border-radius: 6px;
-            background: rgba(76, 175, 80, 0.2);
-            color: white;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        .btn-toggle-status:hover {
-            transform: scale(1.05);
-        }
-        .btn-toggle-status.offline {
-            border-color: #f44336;
-            background: rgba(244, 67, 54, 0.2);
         }
 
         .btn-favorite {
@@ -922,7 +881,6 @@
             .navbar .changelog-btn { font-size: 10px; padding: 3px 8px; }
             .admin-status { font-size: 10px; padding: 2px 8px; gap: 4px; }
             .admin-status .admin-item { font-size: 10px; }
-            .btn-toggle-status { font-size: 11px; padding: 3px 8px; }
             .navbar .left-section { gap: 8px; }
             .navbar .right-section { gap: 4px; }
             .legend { top: 66px; right: 8px; padding: 8px 12px; font-size: 11px; min-width: 90px; }
@@ -945,7 +903,6 @@
             <div class="nav-links" id="navLinks"></div>
         </div>
         <div class="right-section">
-            <div class="admin-status" id="adminStatus"></div>
             <a href="https://github.com/ponginloi/buslens" target="_blank" class="github-badge">
                 <span>⭐</span> GitHub 开源
                 <span class="heart">❤️</span>
@@ -1029,7 +986,7 @@
 
     <script>
         // ============================================================
-        //  高德地图动态加载（使用安全密钥）
+        //  🌐 高德地图动态加载（通过 Edge Function 安全获取密钥）
         // ============================================================
         var mapLoaded = false;
         var mapReadyCallbacks = [];
@@ -1044,16 +1001,19 @@
 
         async function loadAmap() {
             try {
-                const amapKey = window.AMAP_KEY;
-                const amapSecurity = window.AMAP_SECURITY;
+                // ✅ 从 Edge Function 获取高德地图密钥（密钥在 Vault 中，前端不可见）
+                const response = await fetch(
+                    'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config'
+                );
+                const config = await response.json();
 
-                if (!amapKey) {
+                if (!config.key) {
                     console.error('❌ 无法获取高德地图密钥');
                     return;
                 }
 
                 window._AMapSecurityConfig = {
-                    securityJsCode: amapSecurity
+                    securityJsCode: config.security
                 };
 
                 if (typeof AMap !== 'undefined') {
@@ -1064,7 +1024,7 @@
                 }
 
                 const script = document.createElement('script');
-                script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + amapKey;
+                script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + config.key;
                 script.onload = function() {
                     console.log('✅ 高德地图加载成功');
                     mapLoaded = true;
@@ -1081,7 +1041,7 @@
         }
 
         // ============================================================
-        //  用户状态
+        //  👤 用户状态
         // ============================================================
         function getCurrentUser() {
             try { var raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
@@ -1090,36 +1050,23 @@
         function logout() {
             var user = getCurrentUser();
             if (user) {
-                if (ADMIN_USERNAMES.indexOf(user.username) !== -1) {
-                    supabaseClient
-                        .from('users')
-                        .update({ is_online: false })
-                        .eq('id', user.id)
-                        .then(function() {
-                            sessionStorage.removeItem(SESSION_KEY);
-                            location.reload();
-                        })
-                        .catch(function() {
-                            sessionStorage.removeItem(SESSION_KEY);
-                            location.reload();
-                        });
-                } else {
-                    sessionStorage.removeItem(SESSION_KEY);
-                    location.reload();
-                }
+                // 普通用户直接登出，不调用数据库更新（保持简单）
+                sessionStorage.removeItem(SESSION_KEY);
+                location.reload();
             } else {
                 sessionStorage.removeItem(SESSION_KEY);
                 location.reload();
             }
         }
 
+        // ✅ 主站不再需要管理员判断，审核功能已完全移除
+        // 保留此函数仅为兼容性，但永远返回 false
         function isAdmin() {
-            var user = getCurrentUser();
-            return user && ADMIN_USERNAMES.indexOf(user.username) !== -1;
+            return false;
         }
 
         // ============================================================
-        //  导航栏
+        //  🧭 导航栏渲染（已移除审核入口）
         // ============================================================
         function renderNav() {
             var nav = document.getElementById('navLinks');
@@ -1127,13 +1074,12 @@
             var user = getCurrentUser();
 
             if (user) {
-                var admin = isAdmin();
-                var pendingCount = window._pendingCount || 0;
                 nav.innerHTML =
                     '<a href="index.html" class="active">🏠 地图</a>' +
                     '<a href="discover.html">🔍 发现</a>' +
                     '<a href="profile.html">👤 个人中心</a>' +
-
+                    // ✅ 已移除审核入口：<a href="admin.html">⚙️ 审核</a>
+                    // ✅ 已移除精选管理入口：<a href="admin_featured.html">📸 精选管理</a>
                     '<a href="upload.html">📤 新机位</a>';
             } else {
                 nav.innerHTML =
@@ -1142,16 +1088,9 @@
             }
 
             if (user) {
-                var admin = isAdmin();
                 userArea.innerHTML =
-                    '<span class="user-name">👤 ' + (admin ? '管理员 ' : '') + escapeHtml(user.username) + (admin ? ' 🔑' : '') + '</span>' +
-                    (admin ? '<button class="btn-toggle-status" id="statusToggleBtn" onclick="toggleOnlineStatus()">🟢 在线</button>' :
-                        '') +
+                    '<span class="user-name">👤 ' + escapeHtml(user.username) + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
-
-                if (admin) {
-                    updateStatusButton();
-                }
             } else {
                 userArea.innerHTML =
                     '<a href="login.html">登录</a>' +
@@ -1159,115 +1098,16 @@
             }
         }
 
-        function toggleOnlineStatus() {
-            var user = getCurrentUser();
-            if (!user || !isAdmin()) {
-                alert('只有管理员可以操作');
-                return;
-            }
-
-            supabaseClient
-                .from('users')
-                .select('is_online')
-                .eq('id', user.id)
-                .single()
-                .then(function(res) {
-                    if (res.error) throw new Error(res.error.message);
-                    var currentStatus = res.data?.is_online || false;
-                    var newStatus = !currentStatus;
-
-                    return supabaseClient
-                        .from('users')
-                        .update({ is_online: newStatus, last_active: new Date().toISOString() })
-                        .eq('id', user.id);
-                })
-                .then(function(res) {
-                    if (res.error) throw new Error(res.error.message);
-                    showStatus('✅ 状态已切换', 'success');
-                    updateStatusButton();
-                    if (typeof getAdminStatus === 'function') {
-                        getAdminStatus();
-                    }
-                })
-                .catch(function(error) {
-                    console.error('切换状态失败:', error);
-                    showStatus('❌ 切换失败：' + error.message, 'error');
-                });
-        }
-
-        function updateStatusButton() {
-            var user = getCurrentUser();
-            if (!user || !isAdmin()) return;
-
-            var btn = document.getElementById('statusToggleBtn');
-            if (!btn) return;
-
-            supabaseClient
-                .from('users')
-                .select('is_online')
-                .eq('id', user.id)
-                .single()
-                .then(function(res) {
-                    if (res.error) throw new Error(res.error.message);
-                    var isOnline = res.data?.is_online || false;
-                    btn.textContent = isOnline ? '🟢 在线' : '🔴 离线';
-                    btn.className = 'btn-toggle-status' + (isOnline ? '' : ' offline');
-                })
-                .catch(function(error) {
-                    console.error('获取状态失败:', error);
-                });
-        }
-
-        function getAdminStatus() {
-            var now = new Date();
-            var hour = now.getHours();
-
-            supabaseClient
-                .from('users')
-                .select('username, is_online, last_active')
-                .in('username', ['ponginloi', 'lnx'])
-                .then(function(res) {
-                    if (res.error) {
-                        console.error('获取管理员状态失败:', res.error);
-                        return;
-                    }
-                    var admins = res.data || [];
-                    if (admins.length === 0) {
-                        document.getElementById('adminStatus').innerHTML = '';
-                        return;
-                    }
-
-                    var statusHtml = '';
-                    admins.forEach(function(admin) {
-                        var isOnline = admin.is_online === true;
-                        var dotClass = isOnline ? 'online' : 'offline';
-                        var statusText = '';
-
-                        if (isOnline) {
-                            statusText = '在线';
-                        } else {
-                            if (hour >= 22 || hour < 7) {
-                                statusText = '补充睡眠中 😴';
-                            } else {
-                                statusText = '外出拍车中 📷';
-                            }
-                        }
-
-                        statusHtml +=
-                            '<span class="admin-item">' +
-                            admin.username +
-                            ' <span class="status-dot ' + dotClass + '"></span>' +
-                            ' ' + statusText +
-                            '</span>';
-                    });
-
-                    document.getElementById('adminStatus').innerHTML = statusHtml;
-                });
-        }
-
         // ============================================================
         //  工具函数
         // ============================================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function getRankLabel(rank) {
             var map = { high: '上等 ⭐⭐⭐', medium: '中等 ⭐⭐', low: '下等 ⭐' };
             return map[rank] || rank;
@@ -1320,7 +1160,7 @@
         }
 
         // ============================================================
-        //  📦 图片压缩 + 水印（与 upload.html 完全一致）
+        //  📦 图片压缩 + 水印
         // ============================================================
         function processImageWithCanvas(file, options, username) {
             var defaults = {
@@ -1422,7 +1262,44 @@
         }
 
         // ============================================================
-        //  上传照片弹窗
+        //  📤 上传图片到 ImgBB（通过 Edge Function 代理）
+        //  ✅ 前端不接触 ImgBB Key
+        // ============================================================
+        async function uploadToImgBB(file) {
+            var user = getCurrentUser();
+            if (!user) {
+                throw new Error('请先登录再上传图片');
+            }
+
+            var formData = new FormData();
+            formData.append('image', file);
+
+            var response = await fetch(
+                'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/upload-image',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + (user.access_token || '')
+                    },
+                    body: formData
+                }
+            );
+
+            var result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || '上传失败');
+            }
+
+            if (!result.success) {
+                throw new Error(result.error || '上传失败');
+            }
+
+            return result.url;
+        }
+
+        // ============================================================
+        //  📸 上传照片弹窗
         // ============================================================
         var currentSpotId = null;
         var currentSpotName = '';
@@ -1520,30 +1397,16 @@
 
             var uploadPromises = selectedPhotoFiles.map(async function(file) {
                 try {
-                    if (file.size > 1024 * 1024) {
-                        var processed = await processImageWithCanvas(file, {
-                            maxWidth: 1920,
-                            maxHeight: 1080,
-                            quality: 0.85,
-                            maxSizeMB: 4.5,
-                            barHeight: 50,
-                            watermarkText: 'BusLens',
-                            copyrightText: '© 2026 ' + user.username + ' 版权所有'
-                        }, user.username);
-                        // ✅ 使用 api.js 中的 uploadToImgBB
-                        return await uploadToImgBB(processed);
-                    } else {
-                        var processed = await processImageWithCanvas(file, {
-                            maxWidth: 1920,
-                            maxHeight: 1080,
-                            quality: 0.85,
-                            maxSizeMB: 4.5,
-                            barHeight: 50,
-                            watermarkText: 'BusLens',
-                            copyrightText: '© 2026 ' + user.username + ' 版权所有'
-                        }, user.username);
-                        return await uploadToImgBB(processed);
-                    }
+                    var processed = await processImageWithCanvas(file, {
+                        maxWidth: 1920,
+                        maxHeight: 1080,
+                        quality: 0.85,
+                        maxSizeMB: 4.5,
+                        barHeight: 50,
+                        watermarkText: 'BusLens',
+                        copyrightText: '© 2026 ' + user.username + ' 版权所有'
+                    }, user.username);
+                    return await uploadToImgBB(processed);
                 } catch (error) {
                     console.warn('⚠️ 处理失败，使用原图:', error);
                     return await uploadToImgBB(file);
@@ -1791,7 +1654,7 @@
         }
 
         // ============================================================
-        //  加载数据并添加标记
+        //  📊 加载数据并添加标记
         // ============================================================
         var map = null;
         var allSpotsCache = [];
@@ -1839,21 +1702,6 @@
                     var pending = allSpots.filter(function(s) { return s.status === 'pending'; });
                     window._pendingCount = pending.length;
                     renderNav();
-
-                    var totalSpotsEl = document.getElementById('totalSpots');
-                    if (totalSpotsEl) totalSpotsEl.textContent = spots.length;
-
-                    var photoCount = 0;
-                    spots.forEach(function(s) {
-                        if (s.photos) {
-                            var validPhotos = s.photos.filter(function(p) {
-                                return p.status !== 'rejected';
-                            });
-                            photoCount += validPhotos.length;
-                        }
-                    });
-                    var totalPhotosEl = document.getElementById('totalPhotos');
-                    if (totalPhotosEl) totalPhotosEl.textContent = photoCount;
 
                     var high = 0, medium = 0, low = 0;
                     spots.forEach(function(s) {
@@ -2033,7 +1881,7 @@
                         }, 800);
                     }
 
-                    console.log('✅ 数据加载成功，共 ' + spots.length + ' 个已审核机位（图片点击后加载，上传带水印，XSS防护）');
+                    console.log('✅ 数据加载成功，共 ' + spots.length + ' 个已审核机位');
                 })
                 .catch(function(error) {
                     console.error('❌ 加载数据失败:', error);
@@ -2096,16 +1944,11 @@
 
                     document.getElementById('editContent').value = update.content || '';
 
-                    var user = getCurrentUser();
+                    // ✅ 主站不再有管理员编辑功能（已移除审核）
                     var editBtn = document.getElementById('editBtn');
                     var editHint = document.getElementById('editHint');
-                    if (user && isAdmin()) {
-                        editBtn.classList.remove('hidden');
-                        editHint.textContent = '💡 支持 Markdown 语法（标题 #, ##, ### / 列表 - / 粗体 **）';
-                    } else {
-                        editBtn.classList.add('hidden');
-                        editHint.textContent = '💡 只有管理员可以编辑';
-                    }
+                    editBtn.classList.add('hidden');
+                    editHint.textContent = '💡 更新日志由管理员维护';
                 })
                 .catch(function(error) {
                     console.error('加载更新日志失败:', error);
@@ -2121,8 +1964,8 @@
         }
 
         function enableEdit() {
-            document.getElementById('editArea').classList.add('active');
-            document.getElementById('editBtn').style.display = 'none';
+            // 主站不再支持编辑
+            alert('此功能已移至审核端');
         }
 
         function cancelEdit() {
@@ -2131,57 +1974,7 @@
         }
 
         function saveChangelog() {
-            var content = document.getElementById('editContent').value.trim();
-            if (!content) {
-                alert('内容不能为空');
-                return;
-            }
-
-            var user = getCurrentUser();
-            if (!user) {
-                alert('请先登录');
-                return;
-            }
-            if (!isAdmin()) {
-                alert('只有管理员可以编辑');
-                return;
-            }
-
-            var btn = document.querySelector('.btn-save');
-            btn.disabled = true;
-            btn.textContent = '⏳ 保存中...';
-
-            var data = {
-                content: content,
-                updated_by: user.username,
-                updated_at: new Date().toISOString()
-            };
-
-            var promise;
-            if (currentEditId) {
-                promise = supabaseClient
-                    .from('updates')
-                    .update(data)
-                    .eq('id', currentEditId);
-            } else {
-                promise = supabaseClient
-                    .from('updates')
-                    .insert([data]);
-            }
-
-            promise.then(function(res) {
-                if (res.error) throw new Error(res.error.message);
-                showStatus('✅ 更新日志已保存！', 'success');
-                cancelEdit();
-                loadChangelog();
-                btn.disabled = false;
-                btn.textContent = '💾 保存';
-            }).catch(function(error) {
-                console.error('保存失败:', error);
-                alert('保存失败：' + error.message);
-                btn.disabled = false;
-                btn.textContent = '💾 保存';
-            });
+            alert('此功能已移至审核端');
         }
 
         document.getElementById('changelogModal').addEventListener('click', function(e) {
@@ -2196,7 +1989,7 @@
         });
 
         // ============================================================
-        //  初始化地图
+        //  🗺️ 初始化地图
         // ============================================================
         function initMap() {
             console.log('🚀 开始初始化地图...');
@@ -2222,9 +2015,6 @@
                 console.log('✅ 地图加载完成！');
                 hideLoadingTip();
                 loadMapData();
-                setTimeout(function() {
-                    getAdminStatus();
-                }, 1000);
             });
 
             map.on('error', function() {
@@ -2235,7 +2025,7 @@
         }
 
         // ============================================================
-        //  启动
+        //  🚀 启动
         // ============================================================
         initSupabaseMain();
         renderNav();
@@ -2245,16 +2035,10 @@
             initMap();
         });
 
-        setInterval(getAdminStatus, 30000);
-
-        console.log('🚌 BusLens 地图已加载！（安全 API + 水印版 + XSS防护）');
-        console.log('📌 数据源: Supabase');
+        console.log('🚌 BusLens 地图已加载！（安全模式）');
+        console.log('📌 主站已移除审核功能，审核请访问独立站点');
         console.log('🔑 API 密钥已安全存储（前端不可见）');
-        console.log('📸 图片加载模式: 点击弹窗后加载');
-        console.log('🖼️ 图片上传已启用水印（底部版权栏 + 左下角半透明水印）');
         console.log('🛡️ 所有用户输入已做 XSS 防护');
-        console.log('📌 管理员：ponginloi, lnx');
-        console.log('📌 GitHub 开源项目：https://github.com/ponginloi/buslens');
     </script>
 </body>
 </html>
