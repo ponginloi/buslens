@@ -9,56 +9,10 @@
     var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
     var SESSION_KEY = 'bus_user_session';
     var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
-</script>
-<script src="config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
-    <!-- API 工具（安全版） -->
-    <script>
-        var apiSupabaseClient = null;
-
-        function initApiClient() {
-            if (typeof supabase === 'undefined') {
-                console.error('❌ Supabase SDK 未加载');
-                return false;
-            }
-            if (!apiSupabaseClient) {
-                try {
-                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    console.log('✅ API 客户端初始化成功');
-                } catch (e) {
-                    console.error('❌ API 客户端初始化失败:', e);
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        async function getApiKey(keyName) {
-            if (!initApiClient()) return null;
-            try {
-                const { data, error } = await apiSupabaseClient
-                    .rpc('get_api_key', { key_name: keyName });
-                if (error) {
-                    console.error('❌ 获取 API 密钥失败:', error);
-                    return null;
-                }
-                return data;
-            } catch (e) {
-                console.error('❌ 获取 API 密钥异常:', e);
-                return null;
-            }
-        }
-
-        // ============================================================
-        //  🛡️ 防止 XSS 攻击
-        // ============================================================
-        function escapeHtml(text) {
-            if (!text) return '';
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
         * {
@@ -160,13 +114,8 @@
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.6;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
 
         .profile-card {

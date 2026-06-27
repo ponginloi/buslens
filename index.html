@@ -5,106 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚌 BusLens - 巴士机位地图</title>
     <script>
-    // ✅ 只写 SUPABASE_URL 和 SUPABASE_KEY（公开的，RLS保护）
     var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
     var SESSION_KEY = 'bus_user_session';
     var ADMIN_USERNAMES = ['ponginloi', 'lnx'];
-</script>
-<script src="config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
-    <!-- API 工具（安全版） -->
-    <script>
-        // ============================================================
-        //  api.js - BusLens API 调用工具（内联安全版）
-        //  所有第三方 API 密钥通过 Supabase 函数获取，前端不可见
-        // ============================================================
-
-        var apiSupabaseClient = null;
-
-        function initApiClient() {
-            if (typeof supabase === 'undefined') {
-                console.error('❌ Supabase SDK 未加载');
-                return false;
-            }
-            if (!apiSupabaseClient) {
-                try {
-                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    console.log('✅ API 客户端初始化成功');
-                } catch (e) {
-                    console.error('❌ API 客户端初始化失败:', e);
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        async function getApiKey(keyName) {
-            if (!initApiClient()) return null;
-            try {
-                const { data, error } = await apiSupabaseClient
-                    .rpc('get_api_key', { key_name: keyName });
-                if (error) {
-                    console.error('❌ 获取 API 密钥失败:', error);
-                    return null;
-                }
-                return data;
-            } catch (e) {
-                console.error('❌ 获取 API 密钥异常:', e);
-                return null;
-            }
-        }
-
-        // ============================================================
-        //  📤 安全上传到 ImgBB（使用安全密钥）
-        // ============================================================
-        async function uploadToImgBB(file) {
-            try {
-                const apiKey = await getApiKey('imgbb_key');
-                if (!apiKey) {
-                    throw new Error('无法获取 ImgBB API 密钥');
-                }
-                const formData = new FormData();
-                formData.append('image', file);
-                const response = await fetch('https://api.imgbb.com/1/upload?key=' + apiKey, {
-                    method: 'POST',
-                    body: formData
-                });
-                if (!response.ok) {
-                    throw new Error('图片上传失败 (HTTP ' + response.status + ')');
-                }
-                const result = await response.json();
-                if (!result.success) {
-                    throw new Error(result.error?.message || '图片上传失败');
-                }
-                return result.data.url;
-            } catch (error) {
-                console.error('❌ 上传失败:', error);
-                throw error;
-            }
-        }
-
-        // ============================================================
-        //  🗺️ 获取高德地图密钥
-        // ============================================================
-        async function getAmapKey() {
-            return await getApiKey('amap_key');
-        }
-
-        async function getAmapSecurity() {
-            return await getApiKey('amap_security');
-        }
-
-        // ============================================================
-        //  🛡️ 防止 XSS 攻击
-        // ============================================================
-        function escapeHtml(text) {
-            if (!text) return '';
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
         /* ===== 原有样式（保持不变） ===== */
@@ -232,13 +140,8 @@
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.6;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
         .navbar .github-badge {
             background: rgba(255, 255, 255, 0.12);
@@ -587,14 +490,8 @@
             display: flex;
         }
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
         .changelog-modal .modal-content {
             background: white;
@@ -981,12 +878,8 @@
             margin-right: 10px;
         }
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .status-msg {
@@ -1019,89 +912,28 @@
         }
 
         @media (max-width: 640px) {
-            .navbar {
-                padding: 8px 12px;
-            }
-            .navbar .brand {
-                font-size: 17px;
-            }
-            .navbar .brand span {
-                font-size: 22px;
-            }
-            .navbar .nav-links a {
-                font-size: 12px;
-                padding: 4px 8px;
-            }
-            .navbar .user-area .user-name {
-                font-size: 12px;
-                padding: 3px 6px;
-            }
-            .navbar .user-area a {
-                font-size: 12px;
-                padding: 4px 8px;
-            }
-            .navbar .github-badge {
-                font-size: 10px;
-                padding: 3px 8px;
-            }
-            .navbar .changelog-btn {
-                font-size: 10px;
-                padding: 3px 8px;
-            }
-            .admin-status {
-                font-size: 10px;
-                padding: 2px 8px;
-                gap: 4px;
-            }
-            .admin-status .admin-item {
-                font-size: 10px;
-            }
-            .btn-toggle-status {
-                font-size: 11px;
-                padding: 3px 8px;
-            }
-            .navbar .left-section {
-                gap: 8px;
-            }
-            .navbar .right-section {
-                gap: 4px;
-            }
-            .legend {
-                top: 66px;
-                right: 8px;
-                padding: 8px 12px;
-                font-size: 11px;
-                min-width: 90px;
-            }
-            .legend-dot {
-                width: 12px;
-                height: 12px;
-            }
-            .spot-example-photo img {
-                max-height: 100px;
-            }
-            .modal {
-                padding: 18px;
-            }
-            .modal .photo-list .photo-item {
-                width: 56px;
-                height: 56px;
-            }
-            .status-msg {
-                font-size: 12px;
-                padding: 8px 14px;
-                bottom: 12px;
-                max-width: 92%;
-            }
-            .changelog-modal .modal-content {
-                padding: 16px 18px;
-            }
-            .changelog-modal .modal-header h2 {
-                font-size: 17px;
-            }
-            .changelog-modal .modal-body .update-content {
-                font-size: 13px;
-            }
+            .navbar { padding: 8px 12px; }
+            .navbar .brand { font-size: 17px; }
+            .navbar .brand span { font-size: 22px; }
+            .navbar .nav-links a { font-size: 12px; padding: 4px 8px; }
+            .navbar .user-area .user-name { font-size: 12px; padding: 3px 6px; }
+            .navbar .user-area a { font-size: 12px; padding: 4px 8px; }
+            .navbar .github-badge { font-size: 10px; padding: 3px 8px; }
+            .navbar .changelog-btn { font-size: 10px; padding: 3px 8px; }
+            .admin-status { font-size: 10px; padding: 2px 8px; gap: 4px; }
+            .admin-status .admin-item { font-size: 10px; }
+            .btn-toggle-status { font-size: 11px; padding: 3px 8px; }
+            .navbar .left-section { gap: 8px; }
+            .navbar .right-section { gap: 4px; }
+            .legend { top: 66px; right: 8px; padding: 8px 12px; font-size: 11px; min-width: 90px; }
+            .legend-dot { width: 12px; height: 12px; }
+            .spot-example-photo img { max-height: 100px; }
+            .modal { padding: 18px; }
+            .modal .photo-list .photo-item { width: 56px; height: 56px; }
+            .status-msg { font-size: 12px; padding: 8px 14px; bottom: 12px; max-width: 92%; }
+            .changelog-modal .modal-content { padding: 16px 18px; }
+            .changelog-modal .modal-header h2 { font-size: 17px; }
+            .changelog-modal .modal-body .update-content { font-size: 13px; }
         }
     </style>
 </head>
@@ -1212,8 +1044,8 @@
 
         async function loadAmap() {
             try {
-                const amapKey = await getAmapKey();
-                const amapSecurity = await getAmapSecurity();
+                const amapKey = window.AMAP_KEY;
+                const amapSecurity = window.AMAP_SECURITY;
 
                 if (!amapKey) {
                     console.error('❌ 无法获取高德地图密钥');
@@ -1509,7 +1341,6 @@
                 reader.onload = function(e) {
                     var img = new Image();
                     img.onload = function() {
-                        // 第 1 步：压缩图片
                         var width = img.width;
                         var height = img.height;
 
@@ -1532,14 +1363,11 @@
                         canvas.height = totalHeight;
                         var ctx = canvas.getContext('2d');
 
-                        // 第 2 步：绘制压缩后的图片
                         ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
 
-                        // 第 3 步：底部黑色版权栏
                         ctx.fillStyle = '#000000';
                         ctx.fillRect(0, finalHeight, finalWidth, barHeight);
 
-                        // 左下角：BusLens
                         var fontSize = Math.max(11, Math.min(16, Math.round(finalWidth * 0.012)));
                         ctx.textBaseline = 'middle';
                         ctx.textAlign = 'left';
@@ -1547,13 +1375,11 @@
                         ctx.fillStyle = '#FFFFFF';
                         ctx.fillText(opt.watermarkText, 14, finalHeight + barHeight / 2 + 1);
 
-                        // 右下角：版权信息
                         ctx.textAlign = 'right';
                         ctx.font = fontSize + 'px Arial, sans-serif';
                         ctx.fillStyle = '#FFFFFF';
                         ctx.fillText(opt.copyrightText, finalWidth - 14, finalHeight + barHeight / 2 + 1);
 
-                        // 第 4 步：图片左下角半透明水印（4倍大，75%透明度）
                         var watermarkFontSize = Math.max(40, Math.min(90, Math.round(finalWidth * 0.048)));
                         ctx.save();
                         ctx.globalAlpha = 0.75;
@@ -1565,7 +1391,6 @@
                         ctx.fillText(opt.watermarkText, padding, finalHeight - padding);
                         ctx.restore();
 
-                        // 第 5 步：导出
                         var quality = opt.quality;
                         var needCompress = file.size > opt.maxSizeMB * 1024 * 1024;
 
@@ -1698,7 +1523,6 @@
             var uploadPromises = selectedPhotoFiles.map(async function(file) {
                 try {
                     if (file.size > 1024 * 1024) {
-                        // ✅ 使用带水印的处理函数
                         var processed = await processImageWithCanvas(file, {
                             maxWidth: 1920,
                             maxHeight: 1080,
@@ -1708,9 +1532,9 @@
                             watermarkText: 'BusLens',
                             copyrightText: '© 2026 ' + user.username + ' 版权所有'
                         }, user.username);
+                        // ✅ 使用 api.js 中的 uploadToImgBB
                         return await uploadToImgBB(processed);
                     } else {
-                        // 小图片也走水印处理（但压缩跳过）
                         var processed = await processImageWithCanvas(file, {
                             maxWidth: 1920,
                             maxHeight: 1080,
@@ -1920,7 +1744,6 @@
             var spot = allSpotsCache.find(function(s) { return s.id == spotId; });
             if (!spot) return;
 
-            // 例图
             var exampleContainer = container.querySelector('.example-container');
             if (exampleContainer && spot.example_photo) {
                 var placeholder = exampleContainer.querySelector('.loading-placeholder');
@@ -1929,7 +1752,6 @@
                 }
             }
 
-            // 用户照片
             var photoItems = container.querySelectorAll('.photo-item');
             if (photoItems.length > 0 && spot.photos) {
                 var validPhotos = spot.photos.filter(function(p) { return p.status !== 'rejected'; });
@@ -1975,6 +1797,22 @@
         // ============================================================
         var map = null;
         var allSpotsCache = [];
+        var supabaseClient = null;
+
+        function initSupabaseMain() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 主客户端初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 主客户端初始化失败:', e);
+                return false;
+            }
+        }
 
         function loadMapData() {
             console.log('🔄 开始加载机位数据...');
@@ -2019,9 +1857,7 @@
                     var totalPhotosEl = document.getElementById('totalPhotos');
                     if (totalPhotosEl) totalPhotosEl.textContent = photoCount;
 
-                    var high = 0,
-                        medium = 0,
-                        low = 0;
+                    var high = 0, medium = 0, low = 0;
                     spots.forEach(function(s) {
                         if (s.rank === 'high') high++;
                         else if (s.rank === 'medium') medium++;
@@ -2071,7 +1907,6 @@
 
                         var deviceLabel = getDeviceLabel(spot.device_type);
 
-                        // 弹窗内容
                         var exampleHtml = '';
                         if (spot.example_photo) {
                             exampleHtml =
@@ -2164,7 +1999,6 @@
                         map.add(marker);
                     });
 
-                    // 加载收藏状态
                     var user = getCurrentUser();
                     if (user) {
                         supabaseClient
@@ -2405,24 +2239,7 @@
         // ============================================================
         //  启动
         // ============================================================
-        var supabaseClient = null;
-
-        function initSupabaseMain() {
-            if (typeof supabase === 'undefined') {
-                console.error('❌ Supabase SDK 未加载');
-                return false;
-            }
-            try {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log('✅ Supabase 主客户端初始化成功');
-                return true;
-            } catch (e) {
-                console.error('❌ Supabase 主客户端初始化失败:', e);
-                return false;
-            }
-        }
         initSupabaseMain();
-
         renderNav();
         loadAmap();
 

@@ -8,9 +8,9 @@
     var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
     var SESSION_KEY = 'bus_user_session';
-
-</script>
-<script src="config.js"></script>
+    </script>
+    <script src="config.js"></script>
+    <script src="api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
@@ -828,50 +828,10 @@
             return true;
         }
 
-        async function getApiKey(keyName) {
-            if (!initApiClient()) return null;
-            try {
-                const { data, error } = await apiSupabaseClient
-                    .rpc('get_api_key', { key_name: keyName });
-                if (error) {
-                    console.error('❌ 获取 API 密钥失败:', error);
-                    return null;
-                }
-                return data;
-            } catch (e) {
-                console.error('❌ 获取 API 密钥异常:', e);
-                return null;
-            }
-        }
-
         // ============================================================
-        //  📤 安全上传到 ImgBB（使用安全密钥）
+        //  📤 上传到 ImgBB 通过 api.js
         // ============================================================
-        async function uploadToImgBB(file) {
-            try {
-                const apiKey = await getApiKey('imgbb_key');
-                if (!apiKey) {
-                    throw new Error('无法获取 ImgBB API 密钥');
-                }
-                const formData = new FormData();
-                formData.append('image', file);
-                const response = await fetch('https://api.imgbb.com/1/upload?key=' + apiKey, {
-                    method: 'POST',
-                    body: formData
-                });
-                if (!response.ok) {
-                    throw new Error('图片上传失败 (HTTP ' + response.status + ')');
-                }
-                const result = await response.json();
-                if (!result.success) {
-                    throw new Error(result.error?.message || '图片上传失败');
-                }
-                return result.data.url;
-            } catch (error) {
-                console.error('❌ 上传失败:', error);
-                throw error;
-            }
-        }
+        // uploadToImgBB 函数现在从 api.js 加载
 
         // ============================================================
         //  初始化 Supabase
@@ -904,7 +864,6 @@
         function logout() {
             var user = getCurrentUser();
             if (user) {
-                // ✅ 使用后端返回的 role 判断
                 if (user.role === 'admin') {
                     supabaseClient
                         .from('users')
@@ -928,7 +887,6 @@
             }
         }
 
-        // ✅ 直接从 session 读取角色（后端返回的，安全）
         function isAdmin() {
             var user = getCurrentUser();
             return user && user.role === 'admin';
@@ -1677,7 +1635,6 @@
                 return;
             }
 
-            // ✅ 使用后端返回的 role 判断
             if (!isAdmin()) {
                 document.getElementById('spotList').innerHTML =
                     '<div class="access-denied"><span class="icon">🚫</span><h2>权限不足</h2><p>只有管理员可以审核</p><p><a href="index.html">返回地图 →</a></p></div>';
