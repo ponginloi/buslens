@@ -1,18 +1,25 @@
 // ============================================================
-//  config.js - 开源版本（所有密钥可见，RLS 保护）
+//  config.js - BusLens 配置文件
 // ============================================================
 
-// ✅ 直接设置所有密钥（开源，RLS 保护）
 window.SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
 window.SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
-window.AMAP_KEY = '404164dc78620cbc5d9440e9b2ed5e85';
-window.AMAP_SECURITY = '32cb0dfc6330c69e2d13dd3164cea242';
-window.IMGBB_KEY = '8e3090df223d722b14abf8aaed4ed7e4';
 
-console.log('✅ 配置加载完成（开源模式）');
-console.log('🗺️ AMAP_KEY:', window.AMAP_KEY ? '已加载 ✅' : '加载失败 ❌');
-console.log('🔐 AMAP_SECURITY:', window.AMAP_SECURITY ? '已加载 ✅' : '加载失败 ❌');
-console.log('🖼️ IMGBB_KEY:', window.IMGBB_KEY ? '已加载 ✅' : '加载失败 ❌');
+// 🛡️ 防 F12 / 防右键 / 防 DevTools
+(function() {
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12' || 
+            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
+            (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) ||
+            (e.ctrlKey && (e.key === 'U' || e.key === 'u')) ||
+            (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c'))) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    console.log('🛡️ 安全防护已启用');
+})();
 
-// ✅ 触发事件，通知页面配置已加载
 document.dispatchEvent(new Event('configLoaded'));
+console.log('✅ config.js 加载完成');
