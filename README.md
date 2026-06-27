@@ -2,19 +2,38 @@
 
 BusLens 是一个巴士摄影机位分享平台，巴士迷可以在这里分享和发现巴士拍摄位置。
 
+🔗 **网站地址**：[https://buslens.netlify.app](https://buslens.netlify.app)
 
+📦 **GitHub 仓库**：[https://github.com/ponginloi/buslens](https://github.com/ponginloi/buslens)
+
+---
+
+## 📸 项目截图
+
+<!-- 可以添加截图 -->
 
 ---
 
 ## ✨ 功能特性
 
+### 核心功能
 - 🗺️ **地图展示** - 高德地图显示已审核通过的机位，不同颜色代表不同等级
 - 📤 **上传机位** - 用户可上传新机位，提交后进入审核队列
 - 📸 **多图上传** - 每个机位可上传多张照片（ImgBB 图床存储）
 - ⚙️ **审核管理** - 管理员可审核机位，修改等级，填写审核理由
 - 👤 **个人中心** - 查看审核进度、个人贡献统计
 - 🎖️ **头衔系统** - 6 级高难度头衔，激励用户持续贡献
-- 🏷️ **管理员标记** - 管理员在导航栏有专属标识
+- 📋 **更新日志** - 管理员可在网站内直接编辑更新日志
+- 🔍 **发现页面** - 随机上等机位、热门推荐、今日精选好图
+- ⭐ **收藏功能** - 用户可以收藏喜欢的机位
+
+### 安全特性
+- 🔐 **密码加密** - 使用 bcrypt 哈希加密存储，密码无法被破解
+- 🛡️ **RLS 行级安全策略** - 数据受 Supabase RLS 保护
+- 🚫 **XSS 防护** - 所有用户输入使用 escapeHtml 过滤
+- 🔑 **API 密钥管理** - 敏感密钥通过 Supabase RPC 安全获取
+- 👑 **管理员验证** - 管理员权限通过后端 Edge Function 验证
+- 📊 **登录日志** - 记录所有登录尝试
 
 ---
 
@@ -22,11 +41,13 @@ BusLens 是一个巴士摄影机位分享平台，巴士迷可以在这里分享
 
 | 技术 | 用途 |
 |------|------|
-| 原生 HTML + CSS + JavaScript | 前端开发 |
+| HTML + CSS + JavaScript | 前端开发 |
 | 高德地图 JavaScript API | 地图展示 |
-| Supabase (PostgreSQL) | 数据库 |
+| Supabase (PostgreSQL) | 数据库 + 认证 |
+| Supabase Edge Functions | 后端 API |
 | ImgBB | 图床（图片存储） |
-| Netlify | 网站部署 |
+| Netlify | 网站托管 |
+| bcrypt | 密码加密 |
 
 ---
 
@@ -56,6 +77,7 @@ BusLens 是一个巴士摄影机位分享平台，巴士迷可以在这里分享
 | lng | DECIMAL(10,6) | 经度 |
 | lat | DECIMAL(10,6) | 纬度 |
 | rank | TEXT | 等级 (high/medium/low) |
+| device_type | TEXT | 设备类型 (phone/camera/both) |
 | description | TEXT | 描述 |
 | example_photo | TEXT | 例图链接 |
 | photos | JSONB | 用户照片数组 |
@@ -72,22 +94,24 @@ BusLens 是一个巴士摄影机位分享平台，巴士迷可以在这里分享
 |------|------|------|
 | id | BIGSERIAL | 主键 |
 | username | TEXT | 用户名（唯一） |
-| password | TEXT | 密码 |
+| password_hash | TEXT | bcrypt 加密密码 |
 | email | TEXT | 邮箱 |
 | role | TEXT | 角色 (user/admin) |
+| bio | TEXT | 个人简介 |
+| is_online | BOOLEAN | 在线状态 |
+| last_active | TIMESTAMP | 最后活跃时间 |
 | created_at | DATE | 注册日期 |
 
 ---
 
 ## 🚀 快速开始
 
-### 1. 部署到 Netlify
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/你的用户名/buslens)
-
-或手动部署：
+### 1. 本地运行
 
 ```bash
-git clone https://github.com/你的用户名/buslens.git
+# 克隆仓库
+git clone https://github.com/ponginloi/buslens.git
 cd buslens
-# 将所有 HTML 文件上传到 Netlify
+
+# 直接打开 index.html 或在本地服务器运行
+# 推荐使用 VS Code Live Server 或 Python http.server
