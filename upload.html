@@ -13,14 +13,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: linear-gradient(135deg, #e8f0fe 0%, #f0f2f5 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 680px; margin: 0 auto; }
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+        }
         .navbar {
             background: linear-gradient(135deg, #1a73e8, #0d47a1);
             color: white;
@@ -34,15 +41,58 @@
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
-        .navbar .brand { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; text-decoration: none; color: white; }
-        .navbar .brand span { font-size: 26px; }
-        .navbar .nav-links { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .navbar .nav-links a { color: rgba(255, 255, 255, 0.85); text-decoration: none; padding: 6px 14px; border-radius: 8px; font-size: 14px; transition: all 0.2s; }
-        .navbar .nav-links a:hover { background: rgba(255, 255, 255, 0.15); color: white; }
-        .navbar .nav-links a.active { background: rgba(255, 255, 255, 0.2); color: white; }
-        .navbar .nav-links .user-name { color: rgba(255, 255, 255, 0.9); padding: 6px 12px; font-size: 14px; }
-        .navbar .nav-links .btn-logout { background: rgba(255, 255, 255, 0.15); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
-        .navbar .nav-links .btn-logout:hover { background: rgba(255, 255, 255, 0.3); }
+        .navbar .brand {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+        .navbar .brand span {
+            font-size: 26px;
+        }
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .navbar .nav-links a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .navbar .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        .navbar .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .navbar .nav-links .user-name {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        .navbar .nav-links .btn-logout {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .navbar .nav-links .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
 
         .upload-card {
             background: white;
@@ -50,15 +100,40 @@
             padding: 32px 36px;
             box-shadow: 0 20px 60px rgba(26, 115, 232, 0.15);
         }
-        .upload-header { text-align: center; margin-bottom: 24px; }
-        .upload-header .logo { font-size: 48px; display: block; }
-        .upload-header h1 { font-size: 24px; color: #1a73e8; margin-top: 4px; }
-        .upload-header p { color: #888; font-size: 14px; }
+        .upload-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .upload-header .logo {
+            font-size: 48px;
+            display: block;
+        }
+        .upload-header h1 {
+            font-size: 24px;
+            color: #1a73e8;
+            margin-top: 4px;
+        }
+        .upload-header p {
+            color: #888;
+            font-size: 14px;
+        }
 
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 6px; }
-        .form-group label .required { color: #ff4444; }
-        .form-group input, .form-group select, .form-group textarea {
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .form-group label .required {
+            color: #ff4444;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #e0e0e0;
@@ -68,9 +143,20 @@
             outline: none;
             font-family: inherit;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #1a73e8; }
-        .form-group textarea { resize: vertical; min-height: 80px; }
-        .form-group .hint { font-size: 12px; color: #999; margin-top: 4px; }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #1a73e8;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-group .hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
 
         .map-picker {
             border-radius: 12px;
@@ -80,8 +166,13 @@
             height: 280px;
             transition: border-color 0.3s;
         }
-        .map-picker:focus-within { border-color: #1a73e8; }
-        .map-picker #pickerMap { width: 100%; height: 100%; }
+        .map-picker:focus-within {
+            border-color: #1a73e8;
+        }
+        .map-picker #pickerMap {
+            width: 100%;
+            height: 100%;
+        }
         .map-picker .center-crosshair {
             position: absolute;
             top: 50%;
@@ -137,7 +228,10 @@
             pointer-events: none;
             letter-spacing: 0.5px;
         }
-        .map-picker .coords-display .lbl { color: #aaa; font-size: 11px; }
+        .map-picker .coords-display .lbl {
+            color: #aaa;
+            font-size: 11px;
+        }
         .map-picker .btn-locate {
             position: absolute;
             bottom: 56px;
@@ -156,9 +250,15 @@
             align-items: center;
             justify-content: center;
         }
-        .map-picker .btn-locate:hover { transform: scale(1.1); }
+        .map-picker .btn-locate:hover {
+            transform: scale(1.1);
+        }
 
-        .coord-inputs { display: flex; gap: 12px; margin-top: 8px; }
+        .coord-inputs {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
         .coord-inputs input {
             flex: 1;
             padding: 8px 12px;
@@ -170,9 +270,15 @@
             transition: border-color 0.3s;
             background: #f8f9fa;
         }
-        .coord-inputs input:focus { border-color: #1a73e8; background: white; }
+        .coord-inputs input:focus {
+            border-color: #1a73e8;
+            background: white;
+        }
 
-        .rank-options { display: flex; gap: 12px; }
+        .rank-options {
+            display: flex;
+            gap: 12px;
+        }
         .rank-options label {
             flex: 1;
             text-align: center;
@@ -183,14 +289,31 @@
             transition: all 0.3s;
             font-weight: 500;
         }
-        .rank-options input[type="radio"] { display: none; }
-        .rank-options label:hover { border-color: #1a73e8; }
-        .rank-options input[type="radio"]:checked+label { border-color: #1a73e8; background: #e8f0fe; }
-        .rank-options .high { color: #ff4444; }
-        .rank-options .medium { color: #ffbb33; }
-        .rank-options .low { color: #00c851; }
+        .rank-options input[type="radio"] {
+            display: none;
+        }
+        .rank-options label:hover {
+            border-color: #1a73e8;
+        }
+        .rank-options input[type="radio"]:checked+label {
+            border-color: #1a73e8;
+            background: #e8f0fe;
+        }
+        .rank-options .high {
+            color: #ff4444;
+        }
+        .rank-options .medium {
+            color: #ffbb33;
+        }
+        .rank-options .low {
+            color: #00c851;
+        }
 
-        .device-options { display: flex; gap: 12px; flex-wrap: wrap; }
+        .device-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
         .device-options label {
             display: flex;
             align-items: center;
@@ -204,12 +327,33 @@
             font-size: 14px;
             color: #555;
         }
-        .device-options label:hover { border-color: #1a73e8; }
-        .device-options input[type="radio"] { accent-color: #1a73e8; width: 16px; height: 16px; cursor: pointer; }
-        .device-options input[type="radio"]:checked+span { font-weight: 500; }
+        .device-options label:hover {
+            border-color: #1a73e8;
+        }
+        .device-options input[type="radio"] {
+            accent-color: #1a73e8;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .device-options input[type="radio"]:checked+span {
+            font-weight: 500;
+        }
 
-        .example-preview { margin-top: 8px; display: none; position: relative; border-radius: 10px; overflow: hidden; border: 1px solid #e0e0e0; }
-        .example-preview img { width: 100%; max-height: 200px; object-fit: cover; display: block; }
+        .example-preview {
+            margin-top: 8px;
+            display: none;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        .example-preview img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            display: block;
+        }
         .example-preview .remove-btn {
             position: absolute;
             top: 6px;
@@ -227,7 +371,9 @@
             justify-content: center;
             transition: background 0.2s;
         }
-        .example-preview .remove-btn:hover { background: rgba(200, 0, 0, 0.8); }
+        .example-preview .remove-btn:hover {
+            background: rgba(200, 0, 0, 0.8);
+        }
 
         .btn-primary {
             width: 100%;
@@ -241,17 +387,54 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3); }
-        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
-        .btn-secondary { display: block; text-align: center; margin-top: 16px; color: #999; font-size: 14px; text-decoration: none; }
-        .btn-secondary:hover { color: #1a73e8; }
+        .btn-secondary {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: #999;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .btn-secondary:hover {
+            color: #1a73e8;
+        }
 
-        .message { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; display: none; }
-        .message.error { display: block; background: #fee8e8; color: #d32f2f; }
-        .message.success { display: block; background: #e8f5e9; color: #2e7d32; }
-        .message.loading { display: block; background: #e8f0fe; color: #1a73e8; }
-        .message.warning { display: block; background: #fff3e0; color: #e65100; }
+        .message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .message.error {
+            display: block;
+            background: #fee8e8;
+            color: #d32f2f;
+        }
+        .message.success {
+            display: block;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .message.loading {
+            display: block;
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+        .message.warning {
+            display: block;
+            background: #fff3e0;
+            color: #e65100;
+        }
 
         .notice {
             background: #fff3e0;
@@ -275,10 +458,21 @@
             display: none;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
-        .status-msg.show { display: block; }
-        .status-msg.success { background: #28a745; color: white; }
-        .status-msg.error { background: #dc3545; color: white; }
-        .status-msg.loading { background: #1a73e8; color: white; }
+        .status-msg.show {
+            display: block;
+        }
+        .status-msg.success {
+            background: #28a745;
+            color: white;
+        }
+        .status-msg.error {
+            background: #dc3545;
+            color: white;
+        }
+        .status-msg.loading {
+            background: #1a73e8;
+            color: white;
+        }
 
         .watermark-preview {
             margin-top: 6px;
@@ -290,8 +484,16 @@
             display: none;
             border-left: 3px solid #1a73e8;
         }
-        .watermark-preview .label { font-weight: 600; color: #333; }
-        .watermark-preview .preview-text { font-family: monospace; font-size: 11px; color: #888; margin-top: 4px; }
+        .watermark-preview .label {
+            font-weight: 600;
+            color: #333;
+        }
+        .watermark-preview .preview-text {
+            font-family: monospace;
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
 
         .compress-info {
             background: #e8f0fe;
@@ -302,20 +504,54 @@
             margin-top: 6px;
             display: none;
         }
-        .compress-info .saved { color: #4caf50; font-weight: 600; }
+        .compress-info .saved {
+            color: #4caf50;
+            font-weight: 600;
+        }
 
         @media (max-width: 600px) {
-            .navbar { padding: 10px 16px; }
-            .navbar .brand { font-size: 17px; }
-            .navbar .nav-links a { font-size: 12px; padding: 4px 10px; }
-            .upload-card { padding: 20px; }
-            .map-picker { height: 220px; }
-            .coord-inputs { flex-direction: column; }
-            .map-picker .coords-display { font-size: 11px; padding: 3px 12px; }
-            .map-picker .pick-hint { font-size: 10px; padding: 3px 12px; bottom: 8px; }
-            .status-msg { font-size: 12px; padding: 10px 16px; bottom: 16px; max-width: 90%; }
-            .device-options label { padding: 6px 12px; font-size: 13px; }
-            .rank-options label { font-size: 13px; padding: 8px; }
+            .navbar {
+                padding: 10px 16px;
+            }
+            .navbar .brand {
+                font-size: 17px;
+            }
+            .navbar .nav-links a {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .upload-card {
+                padding: 20px;
+            }
+            .map-picker {
+                height: 220px;
+            }
+            .coord-inputs {
+                flex-direction: column;
+            }
+            .map-picker .coords-display {
+                font-size: 11px;
+                padding: 3px 12px;
+            }
+            .map-picker .pick-hint {
+                font-size: 10px;
+                padding: 3px 12px;
+                bottom: 8px;
+            }
+            .status-msg {
+                font-size: 12px;
+                padding: 10px 16px;
+                bottom: 16px;
+                max-width: 90%;
+            }
+            .device-options label {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+            .rank-options label {
+                font-size: 13px;
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -436,7 +672,7 @@
 
     <script>
         // ============================================================
-        //  用户状态
+        //  Supabase 客户端
         // ============================================================
         var supabaseClient = null;
 
@@ -456,19 +692,19 @@
         }
         initSupabase();
 
+        // ============================================================
+        //  用户状态
+        // ============================================================
         function getCurrentUser() {
-            try { var raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+            try {
+                var raw = sessionStorage.getItem(SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) { return null; }
         }
 
         function logout() {
-            var user = getCurrentUser();
-            if (user) {
-                sessionStorage.removeItem(SESSION_KEY);
-                window.location.href = 'index.html';
-            } else {
-                sessionStorage.removeItem(SESSION_KEY);
-                window.location.href = 'index.html';
-            }
+            sessionStorage.removeItem(SESSION_KEY);
+            window.location.href = 'index.html';
         }
 
         function renderNav() {
@@ -529,8 +765,7 @@
             formData.append('image', file);
 
             var response = await fetch(
-                'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/upload-image',
-                {
+                'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/upload-image', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + (user.access_token || '')
@@ -627,7 +862,8 @@
 
                         function tryExport() {
                             canvas.toBlob(function(blob) {
-                                if (needCompress && blob.size > opt.maxSizeMB * 1024 * 1024 && quality > 0.1) {
+                                if (needCompress && blob.size > opt.maxSizeMB * 1024 * 1024 && quality >
+                                    0.1) {
                                     quality -= 0.05;
                                     tryExport();
                                     return;
@@ -803,7 +1039,7 @@
         }
 
         // ============================================================
-        //  提交表单（调用 RPC 函数 upload_spot，含例图）
+        //  提交表单（调用 RPC 函数 upload_spot）
         // ============================================================
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -833,7 +1069,9 @@
             var examplePhotoUrl = null;
 
             try {
-                // 处理例图
+                // ============================================================
+                // 1. 处理例图（压缩 + 水印 + 上传 ImgBB）
+                // ============================================================
                 var exampleFileInput = document.getElementById('examplePhoto');
                 if (exampleFileInput && exampleFileInput.files && exampleFileInput.files.length > 0) {
                     try {
@@ -850,19 +1088,24 @@
                             copyrightText: '© 2026 ' + user.username + ' 版权所有'
                         }, user.username);
 
-                        showStatus('📤 正在上传例图...', 'loading');
+                        showStatus('📤 正在上传例图到 ImgBB...', 'loading');
                         examplePhotoUrl = await uploadToImgBB(processedExample);
                         console.log('✅ 例图上传成功，URL:', examplePhotoUrl);
                     } catch (uploadErr) {
                         console.warn('⚠️ 例图处理失败:', uploadErr);
                         showMessage('⚠️ 例图上传失败：' + uploadErr.message, 'warning');
+                        // 继续提交，只是没有例图
                     }
                 } else {
                     console.log('ℹ️ 用户未选择例图');
                 }
 
-                // ✅ 调用 RPC 函数 upload_spot（含例图）
-                var result = await supabaseClient
+                // ============================================================
+                // 2. 调用 RPC 函数 upload_spot（8个参数）
+                // ============================================================
+                showStatus('📝 正在保存到数据库...', 'loading');
+
+                const result = await supabaseClient
                     .rpc('upload_spot', {
                         p_name: name,
                         p_lng: lng,
@@ -875,7 +1118,7 @@
                     });
 
                 if (result.error) {
-                    console.error('❌ 上传失败:', result.error);
+                    console.error('❌ RPC 调用失败:', result.error);
                     throw new Error(result.error.message);
                 }
 
@@ -884,6 +1127,9 @@
                 showMessage('✅ 提交成功！等待管理员审核', 'success');
                 showStatus('✅ 机位提交成功！', 'success');
 
+                // ============================================================
+                // 3. 清空表单
+                // ============================================================
                 document.getElementById('uploadForm').reset();
                 removeExamplePhoto();
                 currentLng = 114.169;
@@ -925,7 +1171,7 @@
         }
 
         console.log('📤 上传页面已加载（RPC 安全版 + 例图支持）');
-        console.log('🛡️ 使用 upload_spot RPC 函数');
+        console.log('🛡️ 使用 upload_spot RPC 函数（8个参数）');
     </script>
 </body>
 </html>
