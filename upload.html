@@ -803,7 +803,7 @@
         }
 
         // ============================================================
-        //  提交表单（调用 RPC 函数 upload_spot）
+        //  提交表单（调用 RPC 函数 upload_spot，含例图）
         // ============================================================
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -833,6 +833,7 @@
             var examplePhotoUrl = null;
 
             try {
+                // 处理例图
                 var exampleFileInput = document.getElementById('examplePhoto');
                 if (exampleFileInput && exampleFileInput.files && exampleFileInput.files.length > 0) {
                     try {
@@ -860,7 +861,7 @@
                     console.log('ℹ️ 用户未选择例图');
                 }
 
-                // ✅ 调用 RPC 函数 upload_spot
+                // ✅ 调用 RPC 函数 upload_spot（含例图）
                 var result = await supabaseClient
                     .rpc('upload_spot', {
                         p_name: name,
@@ -869,6 +870,7 @@
                         p_rank: rank,
                         p_device_type: deviceType,
                         p_description: description || '暂无描述',
+                        p_example_photo: examplePhotoUrl || null,
                         p_username: user.username
                     });
 
@@ -922,7 +924,7 @@
             initApp();
         }
 
-        console.log('📤 上传页面已加载（RPC 安全版）');
+        console.log('📤 上传页面已加载（RPC 安全版 + 例图支持）');
         console.log('🛡️ 使用 upload_spot RPC 函数');
     </script>
 </body>
