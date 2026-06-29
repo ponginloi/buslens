@@ -13,6 +13,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
+        /* ============================================================
+           样式保持不变（和原来一样）
+           ============================================================ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -517,39 +520,32 @@
         }
 
         // ============================================================
-        //  📤 安全上传到 ImgBB（通过 Edge Function）
+        //  📤 安全上传到 ImgBB
         // ============================================================
         async function uploadToImgBB(file) {
-            var user = getCurrentUser();
-            if (!user) {
-                throw new Error('请先登录再上传图片');
-            }
-
-            var formData = new FormData();
-            formData.append('image', file);
-
-            var response = await fetch(
-                'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/upload-image',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + (user.access_token || '')
-                    },
-                    body: formData
+            try {
+                const apiKey = await getApiKey('imgbb_key');
+                if (!apiKey) {
+                    throw new Error('无法获取 ImgBB API 密钥');
                 }
-            );
-
-            var result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || '上传失败');
+                const formData = new FormData();
+                formData.append('image', file);
+                const response = await fetch('https://api.imgbb.com/1/upload?key=' + apiKey, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    throw new Error('图片上传失败 (HTTP ' + response.status + ')');
+                }
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error?.message || '图片上传失败');
+                }
+                return result.data.url;
+            } catch (error) {
+                console.error('❌ 上传失败:', error);
+                throw error;
             }
-
-            if (!result.success) {
-                throw new Error(result.error || '上传失败');
-            }
-
-            return result.url;
         }
 
         // ============================================================
@@ -656,6 +652,44 @@
         }
 
         // ============================================================
+        //  API 工具（安全版）
+        // ============================================================
+        var apiSupabaseClient = null;
+
+        function initApiClient() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            if (!apiSupabaseClient) {
+                try {
+                    apiSupabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ API 客户端初始化成功');
+                } catch (e) {
+                    console.error('❌ API 客户端初始化失败:', e);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        async function getApiKey(keyName) {
+            if (!initApiClient()) return null;
+            try {
+                const { data, error } = await apiSupabaseClient
+                    .rpc('get_api_key', { key_name: keyName });
+                if (error) {
+                    console.error('❌ 获取 API 密钥失败:', error);
+                    return null;
+                }
+                return data;
+            } catch (e) {
+                console.error('❌ 获取 API 密钥异常:', e);
+                return null;
+            }
+        }
+
+        // ============================================================
         //  例图预览
         // ============================================================
         var examplePhotoFile = null;
@@ -688,7 +722,7 @@
         }
 
         // ============================================================
-        //  🗺️ 加载高德地图（通过 Edge Function 获取密钥）
+        //  🗺️ 加载高德地图
         // ============================================================
         function loadAmap() {
             fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config')
@@ -803,7 +837,7 @@
         }
 
         // ============================================================
-        //  提交表单（调用 RPC 函数 upload_spot）
+        //  提交表单（恢复直接插入）
         // ============================================================
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -833,7 +867,6 @@
             var examplePhotoUrl = null;
 
             try {
-                // 处理例图
                 var exampleFileInput = document.getElementById('examplePhoto');
                 if (exampleFileInput && exampleFileInput.files && exampleFileInput.files.length > 0) {
                     try {
@@ -861,22 +894,32 @@
                     console.log('ℹ️ 用户未选择例图');
                 }
 
-                // ============================================================
-                //  ✅ 调用 RPC 函数 upload_spot 上传机位（绕过 RLS）
-                // ============================================================
+                // ✅ 恢复直接插入（RLS 已取消）
+                var newSpot = {
+                    name: name,
+                    lng: lng,
+                    lat: lat,
+                    rank: rank,
+                    device_type: deviceType,
+                    description: description || '暂无描述',
+                    example_photo: examplePhotoUrl,
+                    photos: [],
+                    created_by: user.username,
+                    created_at: new Date().toISOString().slice(0, 10),
+                    status: 'pending',
+                    reviewed_by: null,
+                    reviewed_at: null,
+                    review_reason: null
+                };
+
+                console.log('📤 提交数据:', newSpot);
+
                 var result = await supabaseClient
-                    .rpc('upload_spot', {
-                        p_name: name,
-                        p_lng: lng,
-                        p_lat: lat,
-                        p_rank: rank,
-                        p_device_type: deviceType,
-                        p_description: description || '暂无描述',
-                        p_username: user.username
-                    });
+                    .from('spots')
+                    .insert([newSpot]);
 
                 if (result.error) {
-                    console.error('❌ 上传失败:', result.error);
+                    console.error('❌ 插入失败:', result.error);
                     throw new Error(result.error.message);
                 }
 
@@ -925,8 +968,8 @@
             initApp();
         }
 
-        console.log('📤 上传页面已加载（RPC 安全版）');
-        console.log('🛡️ 使用 upload_spot RPC 函数绕过 RLS');
+        console.log('📤 上传页面已加载（恢复直接插入）');
+        console.log('🛡️ RLS 已取消，所有用户可操作');
     </script>
 </body>
 </html>
