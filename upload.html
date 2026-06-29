@@ -471,11 +471,6 @@
             }
         }
 
-        // ✅ 主站不再需要管理员判断
-        function isAdmin() {
-            return false;
-        }
-
         function renderNav() {
             var nav = document.getElementById('navLinks');
             var user = getCurrentUser();
@@ -485,7 +480,6 @@
                     '<a href="index.html">🏠 地图</a>' +
                     '<a href="discover.html">🔍 发现</a>' +
                     '<a href="profile.html">👤 个人中心</a>' +
-                    // ✅ 已移除审核入口
                     '<a href="upload.html" class="active">📤 新机位</a>' +
                     '<span class="user-name">👤 ' + escapeHtml(user.username) + '</span>' +
                     '<button class="btn-logout" onclick="logout()">退出</button>';
@@ -697,7 +691,6 @@
         //  🗺️ 加载高德地图（通过 Edge Function 获取密钥）
         // ============================================================
         function loadAmap() {
-            // 从 Edge Function 获取密钥
             fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config')
                 .then(function(response) { return response.json(); })
                 .then(function(config) {
@@ -810,7 +803,7 @@
         }
 
         // ============================================================
-        //  提交表单
+        //  提交表单（调用 RPC 函数 upload_spot）
         // ============================================================
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -840,6 +833,7 @@
             var examplePhotoUrl = null;
 
             try {
+                // 处理例图
                 var exampleFileInput = document.getElementById('examplePhoto');
                 if (exampleFileInput && exampleFileInput.files && exampleFileInput.files.length > 0) {
                     try {
@@ -867,31 +861,22 @@
                     console.log('ℹ️ 用户未选择例图');
                 }
 
-                var newSpot = {
-                    name: name,
-                    lng: lng,
-                    lat: lat,
-                    rank: rank,
-                    device_type: deviceType,
-                    description: description || '暂无描述',
-                    example_photo: examplePhotoUrl,
-                    photos: [],
-                    created_by: user.username,
-                    created_at: new Date().toISOString().slice(0, 10),
-                    status: 'pending',
-                    reviewed_by: null,
-                    reviewed_at: null,
-                    review_reason: null
-                };
-
-                console.log('📤 提交数据:', newSpot);
-
+                // ============================================================
+                //  ✅ 调用 RPC 函数 upload_spot 上传机位（绕过 RLS）
+                // ============================================================
                 var result = await supabaseClient
-                    .from('spots')
-                    .insert([newSpot]);
+                    .rpc('upload_spot', {
+                        p_name: name,
+                        p_lng: lng,
+                        p_lat: lat,
+                        p_rank: rank,
+                        p_device_type: deviceType,
+                        p_description: description || '暂无描述',
+                        p_username: user.username
+                    });
 
                 if (result.error) {
-                    console.error('❌ 插入失败:', result.error);
+                    console.error('❌ 上传失败:', result.error);
                     throw new Error(result.error.message);
                 }
 
@@ -940,8 +925,8 @@
             initApp();
         }
 
-        console.log('📤 上传页面已加载（安全版）');
-        console.log('🛡️ XSS 防护已启用');
+        console.log('📤 上传页面已加载（RPC 安全版）');
+        console.log('🛡️ 使用 upload_spot RPC 函数绕过 RLS');
     </script>
 </body>
 </html>
