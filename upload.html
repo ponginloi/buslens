@@ -1089,15 +1089,47 @@
         //  正光时间计算
         // ============================================================
         var directionMap = {
-            '正北': { angle: 0, summer: '日出后 1-2 小时', winter: '全天（南半球优势）' },
-            '东北': { angle: 45, summer: '清晨 6:00-8:00', winter: '上午 8:00-10:00' },
-            '正东': { angle: 90, summer: '上午 7:00-9:00', winter: '上午 9:00-11:00' },
-            '东南': { angle: 135, summer: '上午 8:00-10:00', winter: '中午前后' },
-            '正南': { angle: 180, summer: '中午 11:00-13:00', winter: '中午 11:00-13:00' },
-            '西南': { angle: 225, summer: '下午 14:00-16:00', winter: '下午 13:00-15:00' },
-            '正西': { angle: 270, summer: '日落前 1-2 小时', winter: '日落前 1-2 小时' },
-            '西北': { angle: 315, summer: '日落前 2-3 小时', winter: '下午 14:00-16:00' }
-        };
+        '正西': {
+            angle: 270,
+            summer: '上午 7:00-9:00',
+            winter: '上午 8:00-10:00'
+        },
+        '正东': {
+            angle: 90,
+            summer: '下午 16:00-18:00',
+            winter: '下午 15:00-17:00'
+        },
+        '正南': {
+            angle: 180,
+            summer: '中午 11:00-13:00',
+            winter: '中午 11:00-13:00'
+        },
+        '正北': {
+            angle: 0,
+            summer: '全天（日出日落尤佳）',
+            winter: '全天'
+        },
+        '西北': {
+            angle: 315,
+            summer: '上午 8:00-10:00',
+            winter: '上午 9:00-11:00'
+        },
+        '东北': {
+            angle: 45,
+            summer: '下午 15:00-17:00',
+            winter: '下午 14:00-16:00'
+        },
+        '西南': {
+            angle: 225,
+            summer: '清晨 6:00-8:00',
+            winter: '上午 7:00-9:00'
+        },
+        '东南': {
+            angle: 135,
+            summer: '下午 14:00-16:00',
+            winter: '下午 13:00-15:00'
+        }
+};
 
         function updateLightTime() {
             var selected = document.querySelector('input[name="direction"]:checked');
