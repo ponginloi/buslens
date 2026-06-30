@@ -163,7 +163,6 @@
             margin-top: 4px;
         }
 
-        /* 路线输入 */
         .route-input-group {
             display: flex;
             gap: 10px;
@@ -431,6 +430,38 @@
             margin-bottom: 2px;
         }
 
+        .angle-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .angle-options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 400;
+            font-size: 14px;
+            color: #555;
+        }
+        .angle-options label:hover {
+            border-color: #1a73e8;
+        }
+        .angle-options input[type="radio"] {
+            accent-color: #1a73e8;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .angle-options input[type="radio"]:checked+span {
+            font-weight: 500;
+            color: #1a73e8;
+        }
+
         .light-time-display {
             background: #f5f7fa;
             border-radius: 10px;
@@ -519,7 +550,6 @@
             background: rgba(200, 0, 0, 0.8);
         }
 
-        /* 描述预览 */
         .description-preview {
             background: #f8f9fa;
             border-radius: 12px;
@@ -527,6 +557,8 @@
             margin-top: 8px;
             border-left: 4px solid #1a73e8;
             display: none;
+            max-height: 300px;
+            overflow-y: auto;
         }
         .description-preview .preview-label {
             font-size: 12px;
@@ -744,6 +776,10 @@
                 padding: 6px 12px;
                 font-size: 13px;
             }
+            .angle-options label {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -769,7 +805,7 @@
             </div>
 
             <form id="uploadForm">
-                <!-- ========== 基本信息 ========== -->
+                <!-- ========== 机位名称 ========== -->
                 <div class="form-group">
                     <label>📍 机位名称 <span class="required">*</span></label>
                     <input type="text" id="spotName" placeholder="例如：尖沙咀码头·维港日落" required>
@@ -856,6 +892,26 @@
                             <span class="value" id="winterLightTime">--</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- ========== 司位/门位 ========== -->
+                <div class="form-group">
+                    <label>🚌 拍摄角度 <span class="required">*</span></label>
+                    <div class="angle-options">
+                        <label>
+                            <input type="radio" name="shooting_angle" value="司位" checked>
+                            <span>🧑‍✈️ 司位</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="shooting_angle" value="门位">
+                            <span>🚪 门位</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="shooting_angle" value="两者皆可">
+                            <span>🔄 两者皆可</span>
+                        </label>
+                    </div>
+                    <div class="hint">💡 司位 = 司机一侧，门位 = 车门一侧（右舵巴士：司位在右，门位在左）</div>
                 </div>
 
                 <!-- ========== 季节 ========== -->
@@ -1086,50 +1142,59 @@
         }
 
         // ============================================================
-        //  正光时间计算
+        //  正光时间计算（修正版：相机朝向 ≠ 太阳方向）
+        //  顺光 = 太阳在相机背后
         // ============================================================
         var directionMap = {
-        '正西': {
-            angle: 270,
-            summer: '上午 7:00-9:00',
-            winter: '上午 8:00-10:00'
-        },
-        '正东': {
-            angle: 90,
-            summer: '下午 16:00-18:00',
-            winter: '下午 15:00-17:00'
-        },
-        '正南': {
-            angle: 180,
-            summer: '中午 11:00-13:00',
-            winter: '中午 11:00-13:00'
-        },
-        '正北': {
-            angle: 0,
-            summer: '全天（日出日落尤佳）',
-            winter: '全天'
-        },
-        '西北': {
-            angle: 315,
-            summer: '上午 8:00-10:00',
-            winter: '上午 9:00-11:00'
-        },
-        '东北': {
-            angle: 45,
-            summer: '下午 15:00-17:00',
-            winter: '下午 14:00-16:00'
-        },
-        '西南': {
-            angle: 225,
-            summer: '清晨 6:00-8:00',
-            winter: '上午 7:00-9:00'
-        },
-        '东南': {
-            angle: 135,
-            summer: '下午 14:00-16:00',
-            winter: '下午 13:00-15:00'
-        }
-};
+            // 相机朝西 → 太阳在東边 → 上午顺光
+            '正西': {
+                angle: 270,
+                summer: '上午 7:00-9:00（太阳在東，顺光）',
+                winter: '上午 8:00-10:00（太阳在東，顺光）'
+            },
+            // 相机朝東 → 太阳在西边 → 下午顺光
+            '正东': {
+                angle: 90,
+                summer: '下午 16:00-18:00（太阳在西，顺光，适合日落）',
+                winter: '下午 15:00-17:00（太阳在西，顺光）'
+            },
+            // 相机朝南 → 太阳在北边 → 中午顺光（北半球）
+            '正南': {
+                angle: 180,
+                summer: '中午 11:00-13:00（太阳在北，顺光）',
+                winter: '中午 11:00-13:00（太阳在北，顺光）'
+            },
+            // 相机朝北 → 太阳在南边 → 全天顺光（北半球）
+            '正北': {
+                angle: 0,
+                summer: '全天（太阳在南，顺光，尤其日出日落）',
+                winter: '全天（太阳在南，顺光）'
+            },
+            // 相机朝西北 → 太阳在东南 → 上午顺光
+            '西北': {
+                angle: 315,
+                summer: '上午 8:00-10:00（太阳在东南，顺光）',
+                winter: '上午 9:00-11:00（太阳在东南，顺光）'
+            },
+            // 相机朝东北 → 太阳在西南 → 下午顺光
+            '东北': {
+                angle: 45,
+                summer: '下午 15:00-17:00（太阳在西南，顺光）',
+                winter: '下午 14:00-16:00（太阳在西南，顺光）'
+            },
+            // 相机朝西南 → 太阳在东北 → 清晨顺光
+            '西南': {
+                angle: 225,
+                summer: '清晨 6:00-8:00（太阳在东北，顺光）',
+                winter: '上午 7:00-9:00（太阳在东北，顺光）'
+            },
+            // 相机朝东南 → 太阳在西北 → 下午顺光
+            '东南': {
+                angle: 135,
+                summer: '下午 14:00-16:00（太阳在西北，顺光）',
+                winter: '下午 13:00-15:00（太阳在西北，顺光）'
+            }
+        };
 
         function updateLightTime() {
             var selected = document.querySelector('input[name="direction"]:checked');
@@ -1145,11 +1210,10 @@
                 return;
             }
 
-            // 根据经纬度微调（简单估算）
+            // 根据经纬度微调
             var lng = parseFloat(document.getElementById('lng').value) || 114.169;
             var lat = parseFloat(document.getElementById('lat').value) || 22.300;
 
-            // 纬度影响：北半球夏季太阳偏北，冬季偏南
             var latAdjust = '';
             if (lat > 23.5) {
                 latAdjust = '（偏北地区，夏季正光稍早）';
@@ -1161,7 +1225,7 @@
             var winterTime = info.winter;
 
             // 经度影响时区微调（以北京时间120°E为基准）
-            var lngOffset = (lng - 120) * 4; // 每度4分钟
+            var lngOffset = (lng - 120) * 4;
             if (Math.abs(lngOffset) > 1) {
                 var sign = lngOffset > 0 ? '偏晚' : '偏早';
                 summerTime += '（经度偏' + sign + '约' + Math.round(Math.abs(lngOffset)) + '分钟）';
@@ -1184,20 +1248,24 @@
             var direction = document.querySelector('input[name="direction"]:checked');
             var season = document.querySelector('input[name="season"]:checked');
             var device = document.querySelector('input[name="device_type"]:checked');
+            var shootingAngle = document.querySelector('input[name="shooting_angle"]:checked');
             var opinion = document.getElementById('authorOpinion').value.trim();
 
             var rankLabel = rank ? (rank.value === 'high' ? '上等' : rank.value === 'medium' ? '中等' : '下等') : '[等级]';
             var rankEmoji = rank ? (rank.value === 'high' ? '🔴' : rank.value === 'medium' ? '🟡' : '🟢') : '⭐';
             var directionLabel = direction ? direction.value : '[未选择]';
             var seasonLabel = season ? season.value : '[未选择]';
-            var deviceLabel = device ? (device.value === 'phone' ? '📱 手机' : device.value === 'camera' ? '📷 相机' : '📱📷 两者皆可') :
+            var deviceLabel = device ? (device.value === 'phone' ? '📱 手机' : device.value === 'camera' ? '📷 相机' :
+                '📱📷 两者皆可') :
                 '[未选择]';
+            var shootingAngleLabel = shootingAngle ? shootingAngle.value : '[未选择]';
 
-            // 获取正光时间
             var summerLight = document.getElementById('summerLightTime').textContent || '--';
             var winterLight = document.getElementById('winterLightTime').textContent || '--';
 
-            // 构建描述
+            var angleIcon = shootingAngle ? (shootingAngle.value === '司位' ? '🧑‍✈️' : shootingAngle.value === '门位' ? '🚪' :
+                '🔄') : '';
+
             var lines = [];
             lines.push('📍 机位：' + name);
             lines.push('');
@@ -1205,6 +1273,7 @@
             lines.push('• 位置：经度 ' + lng + '，纬度 ' + lat);
             lines.push('• 等级：' + rankEmoji + ' ' + rankLabel);
             lines.push('• 朝向：' + directionLabel);
+            lines.push('• 拍摄角度：' + angleIcon + ' ' + shootingAngleLabel);
             lines.push('• 推荐设备：' + deviceLabel);
 
             if (routes.length > 0) {
@@ -1223,18 +1292,15 @@
                 lines.push(opinion);
             }
 
-            // 添加版权信息
             var user = getCurrentUser();
             lines.push('');
             lines.push('📝 以上信息由 ' + (user ? user.username : '用户') + ' 分享，仅供参考');
 
             var fullDescription = lines.join('\n');
 
-            // 更新预览
             var preview = document.getElementById('descriptionPreview');
             var content = document.getElementById('descriptionContent');
 
-            // 高亮关键信息
             var htmlContent = fullDescription
                 .replace(/\n/g, '<br>')
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -1261,7 +1327,6 @@
                 }
             });
 
-            // 监听等级变化
             document.querySelectorAll('input[name="rank"]').forEach(function(el) {
                 el.addEventListener('change', function() {
                     if (document.querySelector('input[name="direction"]:checked')) {
@@ -1270,7 +1335,6 @@
                 });
             });
 
-            // 监听朝向变化
             document.querySelectorAll('input[name="direction"]').forEach(function(el) {
                 el.addEventListener('change', function() {
                     updateLightTime();
@@ -1280,7 +1344,6 @@
                 });
             });
 
-            // 监听季节变化
             document.querySelectorAll('input[name="season"]').forEach(function(el) {
                 el.addEventListener('change', function() {
                     if (document.querySelector('input[name="direction"]:checked')) {
@@ -1289,7 +1352,6 @@
                 });
             });
 
-            // 监听设备变化
             document.querySelectorAll('input[name="device_type"]').forEach(function(el) {
                 el.addEventListener('change', function() {
                     if (document.querySelector('input[name="direction"]:checked')) {
@@ -1298,7 +1360,14 @@
                 });
             });
 
-            // 监听坐标变化（手动输入）
+            document.querySelectorAll('input[name="shooting_angle"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                    if (document.querySelector('input[name="direction"]:checked')) {
+                        updateDescription();
+                    }
+                });
+            });
+
             document.getElementById('lng').addEventListener('change', function() {
                 if (document.querySelector('input[name="direction"]:checked')) {
                     updateLightTime();
@@ -1314,7 +1383,7 @@
         }
 
         // ============================================================
-        //  📤 安全上传到 ImgBB（通过 Edge Function）
+        //  📤 安全上传到 ImgBB
         // ============================================================
         async function uploadToImgBB(file) {
             var user = getCurrentUser();
@@ -1622,6 +1691,7 @@
             var direction = document.querySelector('input[name="direction"]:checked');
             var season = document.querySelector('input[name="season"]:checked');
             var deviceType = document.querySelector('input[name="device_type"]:checked');
+            var shootingAngle = document.querySelector('input[name="shooting_angle"]:checked');
 
             if (!name) { showMessage('❌ 请填写机位名称', 'error'); return; }
             if (isNaN(lng) || isNaN(lat)) { showMessage('❌ 请选择或填写正确的经纬度', 'error'); return; }
@@ -1629,8 +1699,8 @@
             if (!direction) { showMessage('❌ 请选择机位朝向', 'error'); return; }
             if (!season) { showMessage('❌ 请选择拍摄季节', 'error'); return; }
             if (!deviceType) { showMessage('❌ 请选择设备类型', 'error'); return; }
+            if (!shootingAngle) { showMessage('❌ 请选择拍摄角度（司位/门位）', 'error'); return; }
 
-            // 获取生成的描述
             var description = document.getElementById('descriptionContent').textContent.trim();
             if (!description) {
                 showMessage('❌ 请完善信息以生成描述', 'error');
@@ -1646,9 +1716,6 @@
             var examplePhotoUrl = null;
 
             try {
-                // ============================================================
-                // 1. 处理例图
-                // ============================================================
                 var exampleFileInput = document.getElementById('examplePhoto');
                 if (exampleFileInput && exampleFileInput.files && exampleFileInput.files.length > 0) {
                     try {
@@ -1674,9 +1741,6 @@
                     }
                 }
 
-                // ============================================================
-                // 2. 调用 RPC 函数 upload_spot
-                // ============================================================
                 showStatus('📝 正在保存到数据库...', 'loading');
 
                 const result = await supabaseClient
@@ -1686,7 +1750,7 @@
                         p_lat: lat,
                         p_rank: rank.value,
                         p_device_type: deviceType.value,
-                        p_description: description, // 使用生成的完整描述
+                        p_description: description,
                         p_example_photo: examplePhotoUrl || null,
                         p_username: user.username
                     });
@@ -1701,9 +1765,6 @@
                 showMessage('✅ 提交成功！等待管理员审核', 'success');
                 showStatus('✅ 机位提交成功！', 'success');
 
-                // ============================================================
-                // 3. 清空表单
-                // ============================================================
                 document.getElementById('uploadForm').reset();
                 removeExamplePhoto();
                 routes = [];
@@ -1746,13 +1807,12 @@
                 }
             });
 
-            // 默认选中"全年"
             document.querySelector('input[name="season"][value="全年"]').checked = true;
+            document.querySelector('input[name="shooting_angle"][value="司位"]').checked = true;
 
             bindDescriptionUpdate();
             loadAmap();
 
-            // 初始生成描述
             setTimeout(function() {
                 if (document.querySelector('input[name="direction"]:checked')) {
                     updateLightTime();
@@ -1767,7 +1827,7 @@
             initApp();
         }
 
-        console.log('📤 上传页面已加载（智能描述生成版）');
+        console.log('📤 上传页面已加载（智能描述生成版 + 司位/门位）');
         console.log('🛡️ 使用 upload_spot RPC 函数（8个参数）');
     </script>
 </body>
