@@ -25,7 +25,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 680px;
+            max-width: 720px;
             margin: 0 auto;
         }
         .navbar {
@@ -131,6 +131,11 @@
         .form-group label .required {
             color: #ff4444;
         }
+        .form-group label .hint-text {
+            font-weight: 400;
+            font-size: 12px;
+            color: #999;
+        }
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -156,6 +161,59 @@
             font-size: 12px;
             color: #999;
             margin-top: 4px;
+        }
+
+        /* 路线输入 */
+        .route-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .route-input-group input {
+            flex: 1;
+        }
+        .route-input-group button {
+            padding: 12px 20px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .route-input-group button:hover {
+            background: #0d47a1;
+        }
+        .route-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .route-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e8f0fe;
+            color: #1a73e8;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .route-tag .remove-tag {
+            cursor: pointer;
+            font-size: 16px;
+            color: #999;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            line-height: 1;
+        }
+        .route-tag .remove-tag:hover {
+            color: #ff4444;
         }
 
         .map-picker {
@@ -340,6 +398,92 @@
             font-weight: 500;
         }
 
+        .direction-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .direction-grid label {
+            text-align: center;
+            padding: 10px 6px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+        }
+        .direction-grid label:hover {
+            border-color: #1a73e8;
+        }
+        .direction-grid input[type="radio"] {
+            display: none;
+        }
+        .direction-grid input[type="radio"]:checked+label {
+            border-color: #1a73e8;
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+        .direction-grid label .dir-icon {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .light-time-display {
+            background: #f5f7fa;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-top: 8px;
+            display: none;
+        }
+        .light-time-display .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .light-time-display .row .label {
+            color: #999;
+        }
+        .light-time-display .row .value {
+            font-weight: 600;
+            color: #1a73e8;
+        }
+
+        .season-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .season-options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            color: #555;
+        }
+        .season-options label:hover {
+            border-color: #1a73e8;
+        }
+        .season-options input[type="radio"] {
+            accent-color: #1a73e8;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .season-options input[type="radio"]:checked+span {
+            font-weight: 500;
+            color: #1a73e8;
+        }
+
         .example-preview {
             margin-top: 8px;
             display: none;
@@ -373,6 +517,33 @@
         }
         .example-preview .remove-btn:hover {
             background: rgba(200, 0, 0, 0.8);
+        }
+
+        /* 描述预览 */
+        .description-preview {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 8px;
+            border-left: 4px solid #1a73e8;
+            display: none;
+        }
+        .description-preview .preview-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .description-preview .preview-content {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .description-preview .preview-content .highlight {
+            color: #1a73e8;
+            font-weight: 500;
         }
 
         .btn-primary {
@@ -552,6 +723,27 @@
                 font-size: 13px;
                 padding: 8px;
             }
+            .direction-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+            .direction-grid label {
+                font-size: 12px;
+                padding: 8px 4px;
+            }
+            .direction-grid label .dir-icon {
+                font-size: 16px;
+            }
+            .route-input-group {
+                flex-direction: column;
+            }
+            .route-input-group button {
+                padding: 10px;
+            }
+            .season-options label {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -567,7 +759,7 @@
             <div class="upload-header">
                 <span class="logo">📤</span>
                 <h1>上传新机位</h1>
-                <p>拖动地图选择位置，支持上传例图</p>
+                <p>填写机位信息，系统将自动生成完整描述</p>
             </div>
 
             <div class="message" id="message"></div>
@@ -577,11 +769,13 @@
             </div>
 
             <form id="uploadForm">
+                <!-- ========== 基本信息 ========== -->
                 <div class="form-group">
                     <label>📍 机位名称 <span class="required">*</span></label>
                     <input type="text" id="spotName" placeholder="例如：尖沙咀码头·维港日落" required>
                 </div>
 
+                <!-- ========== 地图选点 ========== -->
                 <div class="form-group">
                     <label>🗺️ 拖动地图选择位置 <span class="required">*</span></label>
                     <div class="map-picker" id="mapPickerContainer">
@@ -604,6 +798,7 @@
                     <div class="hint">💡 拖动地图移动十字标记，或直接输入坐标</div>
                 </div>
 
+                <!-- ========== 等级 ========== -->
                 <div class="form-group">
                     <label>⭐ 机位等级 <span class="required">*</span></label>
                     <div class="rank-options">
@@ -616,13 +811,96 @@
                     </div>
                 </div>
 
+                <!-- ========== 路线 ========== -->
                 <div class="form-group">
-                    <label>📸 机位例图 <span style="font-size:12px;color:#999;font-weight:400;">（选填，建议上传）</span></label>
+                    <label>🚌 途经路线 <span class="hint-text">（输入路线名称，按回车键添加）</span></label>
+                    <div class="route-input-group">
+                        <input type="text" id="routeInput" placeholder="例如：1路、B2、港铁东铁线..." onkeydown="addRouteOnEnter(event)">
+                        <button type="button" onclick="addRoute()">➕ 添加</button>
+                    </div>
+                    <div class="route-tags" id="routeTags"></div>
+                    <div class="hint">💡 输入路线后按回车键或点击"添加"按钮</div>
+                </div>
+
+                <!-- ========== 朝向 ========== -->
+                <div class="form-group">
+                    <label>🧭 机位朝向 <span class="required">*</span></label>
+                    <div class="direction-grid" id="directionGrid">
+                        <input type="radio" name="direction" id="dir_n" value="正北">
+                        <label for="dir_n"><span class="dir-icon">⬆️</span>正北</label>
+                        <input type="radio" name="direction" id="dir_ne" value="东北">
+                        <label for="dir_ne"><span class="dir-icon">↗️</span>东北</label>
+                        <input type="radio" name="direction" id="dir_e" value="正东">
+                        <label for="dir_e"><span class="dir-icon">➡️</span>正东</label>
+                        <input type="radio" name="direction" id="dir_se" value="东南">
+                        <label for="dir_se"><span class="dir-icon">↘️</span>东南</label>
+                        <input type="radio" name="direction" id="dir_s" value="正南">
+                        <label for="dir_s"><span class="dir-icon">⬇️</span>正南</label>
+                        <input type="radio" name="direction" id="dir_sw" value="西南">
+                        <label for="dir_sw"><span class="dir-icon">↙️</span>西南</label>
+                        <input type="radio" name="direction" id="dir_w" value="正西">
+                        <label for="dir_w"><span class="dir-icon">⬅️</span>正西</label>
+                        <input type="radio" name="direction" id="dir_nw" value="西北">
+                        <label for="dir_nw"><span class="dir-icon">↖️</span>西北</label>
+                    </div>
+                    <div class="hint">💡 选择镜头朝向的方位</div>
+
+                    <!-- 正光时间显示 -->
+                    <div class="light-time-display" id="lightTimeDisplay">
+                        <div class="row">
+                            <span class="label">☀️ 夏季正光时间</span>
+                            <span class="value" id="summerLightTime">--</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">❄️ 冬季正光时间</span>
+                            <span class="value" id="winterLightTime">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 季节 ========== -->
+                <div class="form-group">
+                    <label>📅 拍摄季节建议 <span class="required">*</span></label>
+                    <div class="season-options">
+                        <label>
+                            <input type="radio" name="season" value="春季">
+                            <span>🌸 春季</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="season" value="夏季">
+                            <span>☀️ 夏季</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="season" value="秋季">
+                            <span>🍂 秋季</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="season" value="冬季">
+                            <span>❄️ 冬季</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="season" value="全年" checked>
+                            <span>📅 全年</span>
+                        </label>
+                    </div>
+                    <div class="hint">💡 选择拍摄效果最好的季节</div>
+                </div>
+
+                <!-- ========== 作者意见 ========== -->
+                <div class="form-group">
+                    <label>✍️ 作者个人意见 <span class="hint-text">（选填）</span></label>
+                    <textarea id="authorOpinion" placeholder="分享你的拍摄心得、注意事项、最佳角度等..."></textarea>
+                    <div class="hint">💡 你的个人经验会帮助其他摄影爱好者</div>
+                </div>
+
+                <!-- ========== 例图 ========== -->
+                <div class="form-group">
+                    <label>📸 机位例图 <span class="hint-text">（选填，建议上传）</span></label>
                     <input type="file" id="examplePhoto" accept="image/*">
                     <div class="hint">上传一张示例照片，帮助审核员和用户了解这个机位</div>
                     <div class="watermark-preview" id="watermarkPreview">
                         <span class="label">🖼️ 水印说明</span>
-                        <div class="preview-text" id="watermarkText">
+                        <div class="preview-text">
                             • 图片左下角将叠加半透明 "<strong>BusLens</strong>" 水印<br>
                             • 底部黑色区域显示 "<strong>BusLens</strong>" 和版权信息
                         </div>
@@ -633,6 +911,7 @@
                     </div>
                 </div>
 
+                <!-- ========== 设备类型 ========== -->
                 <div class="form-group">
                     <label>📱 设备类型 <span class="required">*</span></label>
                     <div class="device-options">
@@ -652,9 +931,14 @@
                     <div class="hint">💡 选择你推荐使用的拍摄设备</div>
                 </div>
 
+                <!-- ========== 描述预览 ========== -->
                 <div class="form-group">
-                    <label>📝 拍摄建议</label>
-                    <textarea id="description" placeholder="描述这个机位的拍摄角度、最佳时间、注意事项等..."></textarea>
+                    <label>📝 机位描述预览 <span class="hint-text">（系统自动生成）</span></label>
+                    <div class="description-preview" id="descriptionPreview">
+                        <div class="preview-label">📋 以下内容将作为机位描述提交：</div>
+                        <div class="preview-content" id="descriptionContent"></div>
+                    </div>
+                    <div class="hint">💡 系统将根据以上信息自动生成完整的机位描述</div>
                 </div>
 
                 <div class="compress-info" id="compressInfo">
@@ -753,6 +1037,251 @@
         }
 
         // ============================================================
+        //  路线管理
+        // ============================================================
+        var routes = [];
+
+        function addRouteOnEnter(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addRoute();
+            }
+        }
+
+        function addRoute() {
+            var input = document.getElementById('routeInput');
+            var text = input.value.trim();
+            if (!text) return;
+            if (routes.includes(text)) {
+                showMessage('⚠️ 路线 "' + text + '" 已添加', 'warning');
+                setTimeout(function() {
+                    var msg = document.getElementById('message');
+                    msg.className = 'message';
+                    msg.style.display = 'none';
+                }, 2000);
+                return;
+            }
+            routes.push(text);
+            input.value = '';
+            renderRoutes();
+            updateDescription();
+        }
+
+        function removeRoute(index) {
+            routes.splice(index, 1);
+            renderRoutes();
+            updateDescription();
+        }
+
+        function renderRoutes() {
+            var container = document.getElementById('routeTags');
+            if (routes.length === 0) {
+                container.innerHTML = '<span style="color:#bbb;font-size:13px;">还没有添加路线</span>';
+                return;
+            }
+            container.innerHTML = routes.map(function(r, i) {
+                return '<span class="route-tag">🚌 ' + escapeHtml(r) +
+                    ' <button class="remove-tag" onclick="removeRoute(' + i + ')">×</button></span>';
+            }).join('');
+        }
+
+        // ============================================================
+        //  正光时间计算
+        // ============================================================
+        var directionMap = {
+            '正北': { angle: 0, summer: '日出后 1-2 小时', winter: '全天（南半球优势）' },
+            '东北': { angle: 45, summer: '清晨 6:00-8:00', winter: '上午 8:00-10:00' },
+            '正东': { angle: 90, summer: '上午 7:00-9:00', winter: '上午 9:00-11:00' },
+            '东南': { angle: 135, summer: '上午 8:00-10:00', winter: '中午前后' },
+            '正南': { angle: 180, summer: '中午 11:00-13:00', winter: '中午 11:00-13:00' },
+            '西南': { angle: 225, summer: '下午 14:00-16:00', winter: '下午 13:00-15:00' },
+            '正西': { angle: 270, summer: '日落前 1-2 小时', winter: '日落前 1-2 小时' },
+            '西北': { angle: 315, summer: '日落前 2-3 小时', winter: '下午 14:00-16:00' }
+        };
+
+        function updateLightTime() {
+            var selected = document.querySelector('input[name="direction"]:checked');
+            if (!selected) {
+                document.getElementById('lightTimeDisplay').style.display = 'none';
+                return;
+            }
+
+            var direction = selected.value;
+            var info = directionMap[direction];
+            if (!info) {
+                document.getElementById('lightTimeDisplay').style.display = 'none';
+                return;
+            }
+
+            // 根据经纬度微调（简单估算）
+            var lng = parseFloat(document.getElementById('lng').value) || 114.169;
+            var lat = parseFloat(document.getElementById('lat').value) || 22.300;
+
+            // 纬度影响：北半球夏季太阳偏北，冬季偏南
+            var latAdjust = '';
+            if (lat > 23.5) {
+                latAdjust = '（偏北地区，夏季正光稍早）';
+            } else if (lat < 10) {
+                latAdjust = '（赤道附近，正光时间较稳定）';
+            }
+
+            var summerTime = info.summer + (latAdjust ? ' ' + latAdjust : '');
+            var winterTime = info.winter;
+
+            // 经度影响时区微调（以北京时间120°E为基准）
+            var lngOffset = (lng - 120) * 4; // 每度4分钟
+            if (Math.abs(lngOffset) > 1) {
+                var sign = lngOffset > 0 ? '偏晚' : '偏早';
+                summerTime += '（经度偏' + sign + '约' + Math.round(Math.abs(lngOffset)) + '分钟）';
+                winterTime += '（经度偏' + sign + '约' + Math.round(Math.abs(lngOffset)) + '分钟）';
+            }
+
+            document.getElementById('summerLightTime').textContent = summerTime;
+            document.getElementById('winterLightTime').textContent = winterTime;
+            document.getElementById('lightTimeDisplay').style.display = 'block';
+        }
+
+        // ============================================================
+        //  生成完整描述
+        // ============================================================
+        function updateDescription() {
+            var name = document.getElementById('spotName').value.trim() || '[机位名称]';
+            var lng = parseFloat(document.getElementById('lng').value) || 114.169;
+            var lat = parseFloat(document.getElementById('lat').value) || 22.300;
+            var rank = document.querySelector('input[name="rank"]:checked');
+            var direction = document.querySelector('input[name="direction"]:checked');
+            var season = document.querySelector('input[name="season"]:checked');
+            var device = document.querySelector('input[name="device_type"]:checked');
+            var opinion = document.getElementById('authorOpinion').value.trim();
+
+            var rankLabel = rank ? (rank.value === 'high' ? '上等' : rank.value === 'medium' ? '中等' : '下等') : '[等级]';
+            var rankEmoji = rank ? (rank.value === 'high' ? '🔴' : rank.value === 'medium' ? '🟡' : '🟢') : '⭐';
+            var directionLabel = direction ? direction.value : '[未选择]';
+            var seasonLabel = season ? season.value : '[未选择]';
+            var deviceLabel = device ? (device.value === 'phone' ? '📱 手机' : device.value === 'camera' ? '📷 相机' : '📱📷 两者皆可') :
+                '[未选择]';
+
+            // 获取正光时间
+            var summerLight = document.getElementById('summerLightTime').textContent || '--';
+            var winterLight = document.getElementById('winterLightTime').textContent || '--';
+
+            // 构建描述
+            var lines = [];
+            lines.push('📍 机位：' + name);
+            lines.push('');
+            lines.push('📌 基本信息');
+            lines.push('• 位置：经度 ' + lng + '，纬度 ' + lat);
+            lines.push('• 等级：' + rankEmoji + ' ' + rankLabel);
+            lines.push('• 朝向：' + directionLabel);
+            lines.push('• 推荐设备：' + deviceLabel);
+
+            if (routes.length > 0) {
+                lines.push('• 途经路线：' + routes.join('、'));
+            }
+
+            lines.push('');
+            lines.push('☀️ 正光时间');
+            lines.push('• 夏季：' + summerLight);
+            lines.push('• 冬季：' + winterLight);
+            lines.push('• 推荐季节：' + seasonLabel);
+
+            if (opinion) {
+                lines.push('');
+                lines.push('💬 作者心得');
+                lines.push(opinion);
+            }
+
+            // 添加版权信息
+            var user = getCurrentUser();
+            lines.push('');
+            lines.push('📝 以上信息由 ' + (user ? user.username : '用户') + ' 分享，仅供参考');
+
+            var fullDescription = lines.join('\n');
+
+            // 更新预览
+            var preview = document.getElementById('descriptionPreview');
+            var content = document.getElementById('descriptionContent');
+
+            // 高亮关键信息
+            var htmlContent = fullDescription
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            content.innerHTML = htmlContent;
+            preview.style.display = 'block';
+        }
+
+        // ============================================================
+        //  监听所有输入变化，更新描述
+        // ============================================================
+        function bindDescriptionUpdate() {
+            var fields = [
+                'spotName', 'lng', 'lat', 'authorOpinion'
+            ];
+            fields.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', function() {
+                        if (document.querySelector('input[name="direction"]:checked')) {
+                            updateDescription();
+                        }
+                    });
+                }
+            });
+
+            // 监听等级变化
+            document.querySelectorAll('input[name="rank"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                    if (document.querySelector('input[name="direction"]:checked')) {
+                        updateDescription();
+                    }
+                });
+            });
+
+            // 监听朝向变化
+            document.querySelectorAll('input[name="direction"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                    updateLightTime();
+                    if (document.getElementById('lng').value && document.getElementById('lat').value) {
+                        updateDescription();
+                    }
+                });
+            });
+
+            // 监听季节变化
+            document.querySelectorAll('input[name="season"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                    if (document.querySelector('input[name="direction"]:checked')) {
+                        updateDescription();
+                    }
+                });
+            });
+
+            // 监听设备变化
+            document.querySelectorAll('input[name="device_type"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                    if (document.querySelector('input[name="direction"]:checked')) {
+                        updateDescription();
+                    }
+                });
+            });
+
+            // 监听坐标变化（手动输入）
+            document.getElementById('lng').addEventListener('change', function() {
+                if (document.querySelector('input[name="direction"]:checked')) {
+                    updateLightTime();
+                    updateDescription();
+                }
+            });
+            document.getElementById('lat').addEventListener('change', function() {
+                if (document.querySelector('input[name="direction"]:checked')) {
+                    updateLightTime();
+                    updateDescription();
+                }
+            });
+        }
+
+        // ============================================================
         //  📤 安全上传到 ImgBB（通过 Edge Function）
         // ============================================================
         async function uploadToImgBB(file) {
@@ -788,7 +1317,7 @@
         }
 
         // ============================================================
-        //  🖼️ Canvas 图片处理（压缩 + 黑色版权栏 + 左下角水印）
+        //  🖼️ Canvas 图片处理
         // ============================================================
         function processImageWithCanvas(file, options, username) {
             var defaults = {
@@ -924,7 +1453,7 @@
         }
 
         // ============================================================
-        //  🗺️ 加载高德地图（通过 Edge Function 获取密钥）
+        //  🗺️ 加载高德地图
         // ============================================================
         function loadAmap() {
             fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config')
@@ -983,6 +1512,10 @@
                 currentLng = Math.round(center.getLng() * 1000000) / 1000000;
                 currentLat = Math.round(center.getLat() * 1000000) / 1000000;
                 updateCoords();
+                if (document.querySelector('input[name="direction"]:checked')) {
+                    updateLightTime();
+                    updateDescription();
+                }
             });
 
             pickerMap.on('zoomend', function() {
@@ -1039,7 +1572,7 @@
         }
 
         // ============================================================
-        //  提交表单（调用 RPC 函数 upload_spot）
+        //  提交表单
         // ============================================================
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1053,12 +1586,24 @@
             var name = document.getElementById('spotName').value.trim();
             var lng = parseFloat(document.getElementById('lng').value);
             var lat = parseFloat(document.getElementById('lat').value);
-            var rank = document.querySelector('input[name="rank"]:checked').value;
-            var deviceType = document.querySelector('input[name="device_type"]:checked').value;
-            var description = document.getElementById('description').value.trim();
+            var rank = document.querySelector('input[name="rank"]:checked');
+            var direction = document.querySelector('input[name="direction"]:checked');
+            var season = document.querySelector('input[name="season"]:checked');
+            var deviceType = document.querySelector('input[name="device_type"]:checked');
 
             if (!name) { showMessage('❌ 请填写机位名称', 'error'); return; }
             if (isNaN(lng) || isNaN(lat)) { showMessage('❌ 请选择或填写正确的经纬度', 'error'); return; }
+            if (!rank) { showMessage('❌ 请选择机位等级', 'error'); return; }
+            if (!direction) { showMessage('❌ 请选择机位朝向', 'error'); return; }
+            if (!season) { showMessage('❌ 请选择拍摄季节', 'error'); return; }
+            if (!deviceType) { showMessage('❌ 请选择设备类型', 'error'); return; }
+
+            // 获取生成的描述
+            var description = document.getElementById('descriptionContent').textContent.trim();
+            if (!description) {
+                showMessage('❌ 请完善信息以生成描述', 'error');
+                return;
+            }
 
             var btn = document.getElementById('submitBtn');
             btn.disabled = true;
@@ -1070,7 +1615,7 @@
 
             try {
                 // ============================================================
-                // 1. 处理例图（压缩 + 水印 + 上传 ImgBB）
+                // 1. 处理例图
                 // ============================================================
                 var exampleFileInput = document.getElementById('examplePhoto');
                 if (exampleFileInput && exampleFileInput.files && exampleFileInput.files.length > 0) {
@@ -1094,14 +1639,11 @@
                     } catch (uploadErr) {
                         console.warn('⚠️ 例图处理失败:', uploadErr);
                         showMessage('⚠️ 例图上传失败：' + uploadErr.message, 'warning');
-                        // 继续提交，只是没有例图
                     }
-                } else {
-                    console.log('ℹ️ 用户未选择例图');
                 }
 
                 // ============================================================
-                // 2. 调用 RPC 函数 upload_spot（8个参数）
+                // 2. 调用 RPC 函数 upload_spot
                 // ============================================================
                 showStatus('📝 正在保存到数据库...', 'loading');
 
@@ -1110,9 +1652,9 @@
                         p_name: name,
                         p_lng: lng,
                         p_lat: lat,
-                        p_rank: rank,
-                        p_device_type: deviceType,
-                        p_description: description || '暂无描述',
+                        p_rank: rank.value,
+                        p_device_type: deviceType.value,
+                        p_description: description, // 使用生成的完整描述
                         p_example_photo: examplePhotoUrl || null,
                         p_username: user.username
                     });
@@ -1132,12 +1674,16 @@
                 // ============================================================
                 document.getElementById('uploadForm').reset();
                 removeExamplePhoto();
+                routes = [];
+                renderRoutes();
                 currentLng = 114.169;
                 currentLat = 22.300;
                 if (pickerMap) {
                     pickerMap.setCenter([currentLng, currentLat]);
                 }
                 updateCoords();
+                document.getElementById('lightTimeDisplay').style.display = 'none';
+                document.getElementById('descriptionPreview').style.display = 'none';
 
             } catch (error) {
                 console.error('❌ 提交失败:', error);
@@ -1161,7 +1707,26 @@
             }
 
             document.getElementById('locateBtn').addEventListener('click', locateMe);
+            document.getElementById('routeInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addRoute();
+                }
+            });
+
+            // 默认选中"全年"
+            document.querySelector('input[name="season"][value="全年"]').checked = true;
+
+            bindDescriptionUpdate();
             loadAmap();
+
+            // 初始生成描述
+            setTimeout(function() {
+                if (document.querySelector('input[name="direction"]:checked')) {
+                    updateLightTime();
+                    updateDescription();
+                }
+            }, 1000);
         }
 
         if (document.readyState === 'loading') {
@@ -1170,7 +1735,7 @@
             initApp();
         }
 
-        console.log('📤 上传页面已加载（RPC 安全版 + 例图支持）');
+        console.log('📤 上传页面已加载（智能描述生成版）');
         console.log('🛡️ 使用 upload_spot RPC 函数（8个参数）');
     </script>
 </body>
