@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🚌 BusLens - 巴士机位地图</title>
     <script>
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
+        /* ===== 全局 ===== */
         * {
             margin: 0;
             padding: 0;
@@ -127,7 +128,7 @@
             position: relative;
         }
 
-        /* ===== 左侧档案列表 ===== */
+        /* ===== 左侧档案列表（桌面端） ===== */
         .archive-panel {
             width: 380px;
             min-width: 320px;
@@ -158,7 +159,6 @@
             display: none;
         }
 
-        /* ===== 收起按钮 - 放在面板最上面 ===== */
         .panel-toggle-area {
             display: flex;
             justify-content: flex-end;
@@ -185,13 +185,11 @@
         }
         .toggle-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 4px 20px rgba(233, 69, 96, 0.5);
         }
         .toggle-btn:active {
             transform: scale(0.92);
         }
 
-        /* 浮动展开按钮 - 面板折叠时显示在地图左上角 */
         .float-toggle-btn {
             position: fixed;
             top: 76px;
@@ -214,7 +212,6 @@
         }
         .float-toggle-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 28px rgba(26, 115, 232, 0.55);
         }
         .float-toggle-btn:active {
             transform: scale(0.92);
@@ -567,51 +564,54 @@
             color: white;
         }
 
-        /* ===== 高德地图 InfoWindow ===== */
+        /* ============================================================
+           InfoWindow 样式 - 全新布局
+           ============================================================ */
         .amap-info-content {
             padding: 0 !important;
-            max-width: 400px !important;
-            min-width: 240px !important;
-            max-height: 520px !important;
+            max-width: 420px !important;
+            min-width: 260px !important;
+            max-height: 580px !important;
             overflow-y: auto !important;
-            border-radius: 14px !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18) !important;
         }
         .amap-info-content::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
         }
         .amap-info-content::-webkit-scrollbar-thumb {
             background: #ccc;
-            border-radius: 6px;
+            border-radius: 5px;
         }
         .amap-info-content::-webkit-scrollbar-track {
             background: transparent;
         }
 
         .amap-info-content .spot-detail-wrap {
-            padding: 16px 20px;
+            padding: 16px 20px 18px;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            max-height: 500px;
+            max-height: 560px;
             overflow-y: auto;
         }
         .amap-info-content .spot-detail-wrap::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
         }
         .amap-info-content .spot-detail-wrap::-webkit-scrollbar-thumb {
             background: #ccc;
-            border-radius: 6px;
+            border-radius: 5px;
         }
         .amap-info-content .spot-detail-wrap::-webkit-scrollbar-track {
             background: transparent;
         }
 
         .amap-info-content .spot-detail-name {
-            font-size: 19px;
+            font-size: 20px;
             font-weight: 700;
             color: #1a73e8;
             margin-bottom: 2px;
             word-break: break-word;
         }
+
         .amap-info-content .spot-detail-rank {
             display: inline-block;
             padding: 2px 14px;
@@ -619,62 +619,112 @@
             font-size: 12px;
             font-weight: 600;
             color: white;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
+
         .amap-info-content .spot-detail-meta {
             font-size: 13px;
             color: #555;
-            line-height: 2;
+            line-height: 2.2;
+            margin-bottom: 8px;
         }
         .amap-info-content .spot-detail-meta .label {
             color: #999;
             font-weight: 500;
+            display: inline-block;
+            width: 60px;
         }
+        .amap-info-content .spot-detail-meta .meta-row {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        /* 描述区域 - 可滑动框 */
         .amap-info-content .spot-detail-desc {
             font-size: 13px;
             color: #444;
             background: #f5f7fa;
             padding: 10px 14px;
-            border-radius: 8px;
-            margin: 8px 0;
-            max-height: 160px;
+            border-radius: 10px;
+            margin: 6px 0 10px 0;
+            max-height: 120px;
             overflow-y: auto;
             line-height: 1.8;
             word-break: break-word;
             white-space: pre-wrap;
-            border-left: 3px solid #1a73e8;
+            border: 1px solid #e8ecf0;
         }
         .amap-info-content .spot-detail-desc::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
         }
         .amap-info-content .spot-detail-desc::-webkit-scrollbar-thumb {
             background: #ccc;
-            border-radius: 5px;
+            border-radius: 4px;
         }
         .amap-info-content .spot-detail-desc::-webkit-scrollbar-track {
             background: transparent;
         }
-        .amap-info-content .spot-detail-photo {
-            margin: 8px 0;
-            border-radius: 10px;
+
+        /* 图片区域 - 2列大图 */
+        .amap-info-content .spot-detail-photos {
+            margin: 6px 0 8px 0;
+        }
+        .amap-info-content .spot-detail-photos .photos-label {
+            font-size: 12px;
+            color: #999;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .amap-info-content .spot-detail-photos .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+        .amap-info-content .spot-detail-photos .photos-grid .photo-thumb {
+            border-radius: 8px;
             overflow: hidden;
-            border: 1px solid #eee;
+            aspect-ratio: 16/10;
+            background: #f0f0f0;
             cursor: pointer;
             transition: transform 0.2s;
+            border: 1px solid #eee;
+            position: relative;
         }
-        .amap-info-content .spot-detail-photo:hover {
-            transform: scale(1.01);
+        .amap-info-content .spot-detail-photos .photos-grid .photo-thumb:hover {
+            transform: scale(1.03);
         }
-        .amap-info-content .spot-detail-photo img {
+        .amap-info-content .spot-detail-photos .photos-grid .photo-thumb img {
             width: 100%;
-            max-height: 130px;
+            height: 100%;
             object-fit: cover;
             display: block;
         }
+        .amap-info-content .spot-detail-photos .photos-grid .photo-thumb .photo-tag {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            background: rgba(0, 0, 0, 0.65);
+            color: white;
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .amap-info-content .spot-detail-photos .photos-grid .photo-thumb .photo-tag.example {
+            background: #e94560;
+        }
+        .amap-info-content .spot-detail-photos .no-photos {
+            font-size: 12px;
+            color: #bbb;
+            padding: 4px 0;
+        }
+
         .amap-info-content .spot-detail-links {
             margin-top: 10px;
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
             padding-top: 8px;
             border-top: 1px solid #f0f0f0;
@@ -694,19 +744,158 @@
             color: #ddd;
         }
 
-        /* ===== 响应式 ===== */
+        /* ============================================================
+           手机端底部侧栏
+           ============================================================ */
+        .mobile-bottom-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 9998;
+            background: #ffffff;
+            border-top: 2px solid #e94560;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 55vh;
+            flex-direction: column;
+            border-radius: 16px 16px 0 0;
+        }
+        .mobile-bottom-bar.collapsed {
+            transform: translateY(calc(100% - 56px));
+        }
+
+        .mobile-bottom-bar .bottom-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            flex-shrink: 0;
+            border-bottom: 1px solid #f0f0f0;
+            min-height: 56px;
+            background: #ffffff;
+            border-radius: 16px 16px 0 0;
+            cursor: pointer;
+            user-select: none;
+        }
+        .mobile-bottom-bar .bottom-header .title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .mobile-bottom-bar .bottom-header .title .count {
+            font-size: 12px;
+            font-weight: 400;
+            color: #999;
+            background: #f5f5f5;
+            padding: 1px 10px;
+            border-radius: 12px;
+        }
+        .mobile-bottom-bar .bottom-toggle-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #e94560;
+            color: white;
+            border: 3px solid white;
+            box-shadow: 0 2px 16px rgba(233, 69, 96, 0.4);
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            user-select: none;
+            position: relative;
+            z-index: 2;
+        }
+        .mobile-bottom-bar .bottom-toggle-btn:hover {
+            transform: scale(1.08);
+        }
+        .mobile-bottom-bar .bottom-toggle-btn:active {
+            transform: scale(0.92);
+        }
+
+        .mobile-bottom-bar .bottom-body {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            border-radius: 0 0 16px 16px;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-filter {
+            padding: 6px 16px 4px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-filter .filter-btn {
+            font-size: 11px;
+            padding: 3px 10px;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-search {
+            padding: 6px 16px 8px;
+            flex-shrink: 0;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-search input {
+            width: 100%;
+            padding: 6px 12px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            background: #fafafa;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-search input:focus {
+            border-color: #1a73e8;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 12px 12px;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-list .spot-card {
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-list .spot-card .card-name {
+            font-size: 14px;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-list .spot-card .card-meta {
+            font-size: 11px;
+            gap: 10px;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-list .spot-card .card-rank {
+            font-size: 10px;
+            padding: 1px 8px;
+        }
+        .mobile-bottom-bar .bottom-body .bottom-list .spot-card .card-empty {
+            padding: 20px 0;
+            font-size: 12px;
+        }
+
+        /* ===== 响应式 - 桌面端 ===== */
         @media (max-width: 820px) {
             .archive-panel {
                 width: 280px;
                 min-width: 240px;
             }
             .amap-info-content {
-                max-width: 320px !important;
-                max-height: 420px !important;
+                max-width: 340px !important;
+                max-height: 480px !important;
             }
             .amap-info-content .spot-detail-wrap {
                 padding: 14px 16px;
-                max-height: 400px;
+                max-height: 460px;
             }
             .float-toggle-btn {
                 top: 72px;
@@ -715,127 +904,148 @@
                 height: 40px;
                 font-size: 16px;
             }
+            .amap-info-content .spot-detail-photos .photos-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+            }
         }
+
+        /* ===== 响应式 - 手机端 ===== */
         @media (max-width: 640px) {
             body {
-                overflow: auto;
-                height: auto;
+                overflow: hidden;
+                height: 100vh;
             }
             .main-layout {
-                flex-direction: column-reverse;
-                height: auto;
+                flex-direction: column;
+                height: 100%;
+            }
+            .map-panel {
+                flex: 1;
+                height: 100%;
+                min-height: 0;
             }
             .archive-panel {
-                width: 100%;
-                min-width: 0;
-                max-height: 50vh;
-                border-right: none;
-                border-top: 1px solid #e8e8e8;
-                transform: none !important;
-                transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            .archive-panel.collapsed {
-                transform: none !important;
-                width: 100% !important;
-                min-width: 0 !important;
-                max-height: 0 !important;
-                overflow: hidden;
-                border-top: none;
-            }
-            .archive-panel.collapsed .archive-header,
-            .archive-panel.collapsed .filter-bar,
-            .archive-panel.collapsed .search-bar,
-            .archive-panel.collapsed .spot-list,
-            .archive-panel.collapsed .panel-toggle-area {
-                display: none;
+                display: none !important;
             }
             .float-toggle-btn {
                 display: none !important;
             }
-            .panel-toggle-area .toggle-btn {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
+            .mobile-bottom-bar {
+                display: flex !important;
             }
-            .map-panel {
-                height: 50vh;
-                min-height: 300px;
-            }
+
             .navbar {
-                padding: 8px 14px;
+                padding: 6px 14px;
+                flex-shrink: 0;
             }
             .navbar .brand {
-                font-size: 17px;
-            }
-            .navbar .nav-links a {
-                font-size: 12px;
-                padding: 4px 10px;
-            }
-            .archive-header .title {
                 font-size: 16px;
             }
-            .spot-card {
-                padding: 10px 14px;
+            .navbar .brand .tagline {
+                display: none;
             }
-            .spot-card .card-name {
-                font-size: 14px;
-            }
-            .filter-btn {
-                font-size: 12px;
-                padding: 4px 12px;
-            }
-            .legend {
-                bottom: 12px;
-                right: 12px;
-                padding: 8px 12px;
+            .navbar .nav-links a {
                 font-size: 11px;
-                min-width: 80px;
+                padding: 4px 8px;
             }
+            .navbar .user-area .user-name {
+                font-size: 11px;
+                padding: 3px 6px;
+            }
+            .navbar .user-area a {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .legend {
+                bottom: 70px;
+                right: 10px;
+                padding: 6px 10px;
+                font-size: 10px;
+                min-width: 70px;
+            }
+            .legend .title {
+                font-size: 11px;
+            }
+            .legend-dot {
+                width: 10px;
+                height: 10px;
+            }
+
             .amap-info-content {
-                max-width: 280px !important;
-                max-height: 360px !important;
+                max-width: 290px !important;
+                max-height: 420px !important;
             }
             .amap-info-content .spot-detail-wrap {
                 padding: 12px 14px;
-                max-height: 340px;
+                max-height: 400px;
             }
             .amap-info-content .spot-detail-name {
                 font-size: 17px;
             }
             .amap-info-content .spot-detail-meta {
                 font-size: 12px;
-                line-height: 1.8;
+                line-height: 2;
+            }
+            .amap-info-content .spot-detail-desc {
+                font-size: 12px;
+                max-height: 100px;
+            }
+            .amap-info-content .spot-detail-photos .photos-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 3px;
+            }
+
+            .status-msg {
+                bottom: 70px;
+                font-size: 12px;
+                padding: 8px 16px;
+                max-width: 90%;
+            }
+            .loading-tip {
+                font-size: 12px;
+                padding: 12px 20px;
             }
         }
+
         @media (max-width: 400px) {
-            .filter-bar {
-                padding: 6px 12px;
-                gap: 4px;
+            .mobile-bottom-bar .bottom-header .title {
+                font-size: 14px;
             }
-            .filter-btn {
-                font-size: 11px;
-                padding: 3px 10px;
+            .mobile-bottom-bar .bottom-toggle-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 16px;
             }
-            .search-bar {
-                padding: 6px 12px 10px;
+            .mobile-bottom-bar .bottom-body .bottom-filter .filter-btn {
+                font-size: 10px;
+                padding: 2px 8px;
             }
-            .archive-panel {
-                max-height: 40vh;
+            .mobile-bottom-bar .bottom-body .bottom-search input {
+                font-size: 12px;
+                padding: 5px 10px;
             }
-            .map-panel {
-                height: 40vh;
-                min-height: 200px;
+            .mobile-bottom-bar .bottom-body .bottom-list .spot-card {
+                padding: 6px 10px;
+            }
+            .mobile-bottom-bar .bottom-body .bottom-list .spot-card .card-name {
+                font-size: 13px;
             }
             .amap-info-content {
-                max-width: 240px !important;
-                max-height: 320px !important;
+                max-width: 250px !important;
+                max-height: 380px !important;
             }
             .amap-info-content .spot-detail-wrap {
                 padding: 10px 12px;
-                max-height: 300px;
+                max-height: 360px;
             }
             .amap-info-content .spot-detail-name {
                 font-size: 15px;
+            }
+            .amap-info-content .spot-detail-photos .photos-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 3px;
             }
         }
     </style>
@@ -855,9 +1065,8 @@
     <!-- ===== 主体 ===== -->
     <div class="main-layout">
 
-        <!-- 左侧：档案列表 -->
+        <!-- 左侧：档案列表（桌面端） -->
         <div class="archive-panel" id="archivePanel">
-            <!-- 收起按钮 - 放在面板最上面 -->
             <div class="panel-toggle-area">
                 <button class="toggle-btn" id="toggleBtn" onclick="togglePanel()" title="收起侧栏">
                     ◀
@@ -875,7 +1084,6 @@
                 </div>
             </div>
 
-            <!-- 筛选 -->
             <div class="filter-bar" id="filterBar">
                 <span class="filter-label">🎯 等级：</span>
                 <button class="filter-btn active-all" data-filter="all" onclick="setFilter('all')">
@@ -892,12 +1100,10 @@
                 </button>
             </div>
 
-            <!-- 搜索 -->
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="🔍 搜索机位名称..." oninput="applySearch()">
             </div>
 
-            <!-- 列表 -->
             <div class="spot-list" id="spotList">
                 <div style="text-align:center;padding:40px 0;color:#999;">
                     <span class="spinner" style="display:inline-block;animation:spin 1s linear infinite;font-size:24px;">⟳</span>
@@ -906,7 +1112,7 @@
             </div>
         </div>
 
-        <!-- 浮动展开按钮 - 面板折叠时显示在地图左上角 -->
+        <!-- 浮动展开按钮（桌面端折叠时显示） -->
         <button class="float-toggle-btn" id="floatToggleBtn" onclick="togglePanel()" title="展开侧栏">
             ▶
         </button>
@@ -923,6 +1129,47 @@
                 <div class="legend-item"><span class="legend-dot high"></span> 上等 <span class="legend-count" id="countHigh">0</span></div>
                 <div class="legend-item"><span class="legend-dot medium"></span> 中等 <span class="legend-count" id="countMedium">0</span></div>
                 <div class="legend-item"><span class="legend-dot low"></span> 下等 <span class="legend-count" id="countLow">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    手机端底部侧栏
+    ============================================================ -->
+    <div class="mobile-bottom-bar collapsed" id="mobileBottomBar">
+        <div class="bottom-header" onclick="toggleMobileBar()">
+            <div class="title">
+                📋 机位档案
+                <span class="count" id="mobileTotalCount">0</span>
+            </div>
+            <button class="bottom-toggle-btn" id="mobileToggleBtn" onclick="event.stopPropagation();toggleMobileBar();">
+                ▲
+            </button>
+        </div>
+
+        <div class="bottom-body">
+            <div class="bottom-filter" id="mobileFilterBar">
+                <button class="filter-btn active-all" data-filter="all" onclick="setMobileFilter('all')">
+                    <span class="dot all"></span>全部
+                </button>
+                <button class="filter-btn" data-filter="high" onclick="setMobileFilter('high')">
+                    <span class="dot high"></span>上等
+                </button>
+                <button class="filter-btn" data-filter="medium" onclick="setMobileFilter('medium')">
+                    <span class="dot medium"></span>中等
+                </button>
+                <button class="filter-btn" data-filter="low" onclick="setMobileFilter('low')">
+                    <span class="dot low"></span>下等
+                </button>
+            </div>
+            <div class="bottom-search">
+                <input type="text" id="mobileSearchInput" placeholder="🔍 搜索机位名称..." oninput="applyMobileSearch()">
+            </div>
+            <div class="bottom-list" id="mobileSpotList">
+                <div style="text-align:center;padding:20px 0;color:#999;font-size:13px;">
+                    <span class="spinner" style="display:inline-block;animation:spin 1s linear infinite;font-size:20px;">⟳</span>
+                    <p style="margin-top:6px;">加载中...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -1009,7 +1256,7 @@
         }
 
         // ============================================================
-        //  面板折叠/展开
+        //  桌面端面板折叠/展开
         // ============================================================
         var panelCollapsed = false;
 
@@ -1020,22 +1267,17 @@
             var floatBtn = document.getElementById('floatToggleBtn');
 
             if (panelCollapsed) {
-                // 折叠
                 panel.classList.add('collapsed');
                 btn.textContent = '▶';
                 btn.style.background = '#1a73e8';
                 btn.style.boxShadow = '0 2px 12px rgba(26,115,232,0.35)';
-                // 显示浮动按钮
                 floatBtn.classList.add('visible');
             } else {
-                // 展开
                 panel.classList.remove('collapsed');
                 btn.textContent = '◀';
                 btn.style.background = '#e94560';
                 btn.style.boxShadow = '0 2px 12px rgba(233,69,96,0.35)';
-                // 隐藏浮动按钮
                 floatBtn.classList.remove('visible');
-                // 恢复内容显示
                 var children = panel.querySelectorAll('.archive-header, .filter-bar, .search-bar, .spot-list, .panel-toggle-area');
                 children.forEach(function(el) {
                     el.style.display = '';
@@ -1047,6 +1289,100 @@
                     map.setFitView();
                 }, 450);
             }
+        }
+
+        // ============================================================
+        //  手机端底部栏展开/收起
+        // ============================================================
+        var mobileBarCollapsed = true;
+
+        function toggleMobileBar() {
+            mobileBarCollapsed = !mobileBarCollapsed;
+            var bar = document.getElementById('mobileBottomBar');
+            var btn = document.getElementById('mobileToggleBtn');
+
+            if (mobileBarCollapsed) {
+                bar.classList.add('collapsed');
+                btn.textContent = '▲';
+                btn.style.background = '#e94560';
+                btn.style.boxShadow = '0 2px 16px rgba(233,69,96,0.4)';
+            } else {
+                bar.classList.remove('collapsed');
+                btn.textContent = '▼';
+                btn.style.background = '#1a73e8';
+                btn.style.boxShadow = '0 2px 16px rgba(26,115,232,0.4)';
+            }
+        }
+
+        // ============================================================
+        //  手机端筛选和搜索
+        // ============================================================
+        var mobileFilter = 'all';
+        var mobileSearchQuery = '';
+
+        function setMobileFilter(filter) {
+            mobileFilter = filter;
+            document.querySelectorAll('#mobileFilterBar .filter-btn').forEach(function(btn) {
+                var f = btn.dataset.filter;
+                btn.className = 'filter-btn';
+                if (f === filter) {
+                    btn.classList.add('active-' + filter);
+                }
+            });
+            applyMobileFilterAndSearch();
+        }
+
+        function applyMobileSearch() {
+            mobileSearchQuery = document.getElementById('mobileSearchInput').value.trim().toLowerCase();
+            applyMobileFilterAndSearch();
+        }
+
+        function applyMobileFilterAndSearch() {
+            var spots = allSpots.filter(function(s) {
+                if (s.status !== 'approved') return false;
+                if (mobileFilter !== 'all' && s.rank !== mobileFilter) return false;
+                if (mobileSearchQuery && !s.name.toLowerCase().includes(mobileSearchQuery)) return false;
+                return true;
+            });
+            renderMobileSpotList(spots);
+        }
+
+        function renderMobileSpotList(spots) {
+            var container = document.getElementById('mobileSpotList');
+            document.getElementById('mobileTotalCount').textContent = spots.length;
+
+            if (spots.length === 0) {
+                container.innerHTML = '<div class="spot-card"><div class="card-empty">📭 没有匹配的机位</div></div>';
+                return;
+            }
+
+            var html = '';
+            spots.forEach(function(spot) {
+                var photos = spot.photos || [];
+                var validPhotos = photos.filter(function(p) { return p.status !== 'rejected'; });
+                var photoCount = validPhotos.length;
+                if (spot.example_photo) photoCount += 1;
+
+                var rankClass = spot.rank || 'medium';
+                var rankLabel = getRankLabel(spot.rank);
+                var deviceIcon = getDeviceIcon(spot.device_type);
+
+                var isActive = (selectedSpotId == spot.id) ? 'active' : '';
+
+                html +=
+                    '<div class="spot-card ' + isActive + '" data-spot-id="' + spot.id + '" onclick="selectSpot(' + spot.id +
+                    ')">' +
+                    '<span class="card-rank ' + rankClass + '">' + rankLabel + '</span>' +
+                    '<div class="card-name">' + escapeHtml(spot.name) + '</div>' +
+                    '<div class="card-meta">' +
+                    '<span>📤 ' + escapeHtml(spot.created_by || '未知') + '</span>' +
+                    '<span>📸 ' + photoCount + ' 张</span>' +
+                    '<span>' + deviceIcon + '</span>' +
+                    '</div>' +
+                    '</div>';
+            });
+
+            container.innerHTML = html;
         }
 
         // ============================================================
@@ -1140,6 +1476,39 @@
         var mapMoveTimer = null;
 
         // ============================================================
+        //  筛选与搜索（桌面端）
+        // ============================================================
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('#filterBar .filter-btn').forEach(function(btn) {
+                var f = btn.dataset.filter;
+                btn.className = 'filter-btn';
+                if (f === filter) {
+                    btn.classList.add('active-' + filter);
+                }
+            });
+            applyFilterAndSearch();
+        }
+
+        function applySearch() {
+            searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+            applyFilterAndSearch();
+        }
+
+        function applyFilterAndSearch() {
+            var spots = allSpots.filter(function(s) {
+                if (s.status !== 'approved') return false;
+                if (currentFilter !== 'all' && s.rank !== currentFilter) return false;
+                if (searchQuery && !s.name.toLowerCase().includes(searchQuery)) return false;
+                return true;
+            });
+            filteredSpots = spots;
+            renderSpotList(spots);
+            renderMobileSpotList(spots);
+            updateMapMarkers(spots);
+        }
+
+        // ============================================================
         //  获取当前地图视野范围内的机位
         // ============================================================
         function getSpotsInView(spots) {
@@ -1218,35 +1587,10 @@
         }
 
         // ============================================================
-        //  筛选与搜索
+        //  渲染机位列表（桌面端）
         // ============================================================
-        function setFilter(filter) {
-            currentFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(function(btn) {
-                var f = btn.dataset.filter;
-                btn.className = 'filter-btn';
-                if (f === filter) {
-                    btn.classList.add('active-' + filter);
-                }
-            });
-            applyFilterAndSearch();
-        }
-
-        function applySearch() {
-            searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
-            applyFilterAndSearch();
-        }
-
-        function applyFilterAndSearch() {
-            var spots = allSpots.filter(function(s) {
-                if (s.status !== 'approved') return false;
-                if (currentFilter !== 'all' && s.rank !== currentFilter) return false;
-                if (searchQuery && !s.name.toLowerCase().includes(searchQuery)) return false;
-                return true;
-            });
-            filteredSpots = spots;
+        function renderSpotList(spots) {
             updateSpotListWithView(spots);
-            updateMapMarkers(spots);
         }
 
         // ============================================================
@@ -1294,45 +1638,84 @@
                     }, 350);
                 }
             }
+
+            if (window.innerWidth <= 640 && !mobileBarCollapsed) {
+                toggleMobileBar();
+            }
         }
 
         // ============================================================
-        //  构建 InfoWindow - 只显示完整的 description
+        //  ⭐ 构建 InfoWindow - 2列大图
         // ============================================================
         function buildInfoContent(spot) {
             var color = getRankColor(spot.rank);
 
-            var photos = spot.photos || [];
-            var validPhotos = photos.filter(function(p) { return p.status !== 'rejected'; });
-            var photoCount = validPhotos.length;
-            if (spot.example_photo) photoCount += 1;
+            // 收集照片（例图 + 用户照片）
+            var allPhotoUrls = [];
 
+            // 例图放在最前面
+            if (spot.example_photo) {
+                allPhotoUrls.push({ url: spot.example_photo, tag: '例图', isExample: true });
+            }
+
+            // 用户照片（已审核通过的）
+            if (spot.photos && spot.photos.length > 0) {
+                var validPhotos = spot.photos.filter(function(p) {
+                    return p.status === 'approved' || p.status === 'pending';
+                });
+                validPhotos.forEach(function(p) {
+                    allPhotoUrls.push({ url: p.url, tag: '📸', isExample: false });
+                });
+            }
+
+            // 最多显示6张（2列 × 3行）
+            var displayPhotos = allPhotoUrls.slice(0, 6);
+
+            // 完整描述
             var description = spot.description || '';
 
             var html = '';
             html += '<div class="spot-detail-wrap">';
 
+            // ---- 名称 ----
             html += '<div class="spot-detail-name">' + escapeHtml(spot.name) + '</div>';
+
+            // ---- 等级 ----
             html += '<span class="spot-detail-rank" style="background:' + color + ';">' + getRankLabel(spot.rank) + '</span>';
 
+            // ---- 基本信息（只有4项） ----
             html += '<div class="spot-detail-meta">';
-            html += '<div><span class="label">📤 上传者：</span>' + escapeHtml(spot.created_by || '未知') + '</div>';
-            html += '<div><span class="label">📍 位置：</span>' + spot.lng + ', ' + spot.lat + '</div>';
-            html += '<div><span class="label">📱 设备：</span>' + getDeviceLabel(spot.device_type) + '</div>';
-            html += '<div><span class="label">📸 照片：</span>' + photoCount + ' 张</div>';
+            html += '<div class="meta-row"><span class="label">📤 上传者</span>' + escapeHtml(spot.created_by || '未知') + '</div>';
+            html += '<div class="meta-row"><span class="label">📍 位置</span>' + spot.lng + ', ' + spot.lat + '</div>';
+            html += '<div class="meta-row"><span class="label">📱 设备</span>' + getDeviceLabel(spot.device_type) + '</div>';
+            html += '<div class="meta-row"><span class="label">📸 照片</span>' + allPhotoUrls.length + ' 张</div>';
             html += '</div>';
 
+            // ---- 描述区域（可滑动的框框） ----
             if (description) {
                 html += '<div class="spot-detail-desc">' + escapeHtml(description) + '</div>';
             }
 
-            if (spot.example_photo) {
-                html += '<div class="spot-detail-photo" onclick="window.open(\'' + escapeHtml(spot.example_photo) +
-                    '\',\'_blank\')">';
-                html += '<img src="' + escapeHtml(spot.example_photo) + '" alt="例图" loading="lazy" />';
+            // ---- 照片区域（2列大图，最多6张） ----
+            if (displayPhotos.length > 0) {
+                html += '<div class="spot-detail-photos">';
+                html += '<span class="photos-label">📷 照片</span>';
+                html += '<div class="photos-grid">';
+                displayPhotos.forEach(function(p) {
+                    var tagClass = p.isExample ? 'example' : '';
+                    html += '<div class="photo-thumb" onclick="window.open(\'' + escapeHtml(p.url) +
+                        '\',\'_blank\')">';
+                    html += '<img src="' + escapeHtml(p.url) + '" loading="lazy" />';
+                    if (p.tag) {
+                        html += '<span class="photo-tag ' + tagClass + '">' + escapeHtml(p.tag) + '</span>';
+                    }
+                    html += '</div>';
+                });
+                html += '</div>';
                 html += '</div>';
             }
 
+            // ---- 链接 ----
             html += '<div class="spot-detail-links">';
             html += '<a href="index.html?spot_id=' + spot.id + '">📍 定位此机位</a>';
             html += '<span class="sep">|</span>';
@@ -1485,7 +1868,6 @@
             });
 
             AMap.plugin(['AMap.ToolBar', 'AMap.Scale'], function() {
-                // 工具条放到右上角，避免和浮动按钮冲突
                 map.addControl(new AMap.ToolBar({ position: 'RT' }));
                 map.addControl(new AMap.Scale());
                 console.log('✅ 地图控件已加载（右上角）');
@@ -1514,8 +1896,8 @@
             initMap();
         });
 
-        console.log('🚌 BusLens 档案版已加载');
-        console.log('✅ 收起按钮在面板顶部 | 浮动按钮只在折叠时显示');
+        console.log('🚌 BusLens 档案版已加载（2列大图）');
+        console.log('✅ 上传者 | 位置 | 设备 | 照片数 | 描述框 | 2列照片网格 | 链接');
     </script>
 </body>
 </html>
