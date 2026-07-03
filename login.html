@@ -4,20 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录 - BusLens</title>
+
     <script>
-    var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
-    var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
-    var SESSION_KEY = 'bus_user_session';
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
     </script>
+
     <script src="config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
@@ -27,6 +29,7 @@
             justify-content: center;
             padding: 20px;
         }
+
         .login-container {
             background: white;
             border-radius: 20px;
@@ -35,19 +38,23 @@
             max-width: 400px;
             box-shadow: 0 20px 60px rgba(26, 115, 232, 0.15);
         }
+
         .login-header {
             text-align: center;
             margin-bottom: 24px;
         }
+
         .login-header .logo {
             font-size: 48px;
             display: block;
             margin-bottom: 8px;
         }
+
         .login-header h1 {
             font-size: 24px;
             color: #1a73e8;
         }
+
         .login-header p {
             color: #888;
             font-size: 14px;
@@ -69,6 +76,7 @@
         .form-group {
             margin-bottom: 18px;
         }
+
         .form-group label {
             display: block;
             font-size: 14px;
@@ -76,17 +84,21 @@
             color: #333;
             margin-bottom: 6px;
         }
+
         .form-group input {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
             font-size: 15px;
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s;
             outline: none;
+            background: #fff;
         }
+
         .form-group input:focus {
             border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
         }
 
         .btn-primary {
@@ -99,16 +111,19 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
         }
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3);
         }
+
         .btn-primary:disabled {
-            opacity: 0.6;
+            opacity: 0.65;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
         .login-footer {
@@ -117,11 +132,13 @@
             font-size: 14px;
             color: #888;
         }
+
         .login-footer a {
             color: #1a73e8;
             text-decoration: none;
             font-weight: 500;
         }
+
         .login-footer a:hover {
             text-decoration: underline;
         }
@@ -131,21 +148,31 @@
             border-radius: 10px;
             margin-bottom: 16px;
             display: none;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
+
         .message.error {
             display: block;
             background: #fee8e8;
             color: #d32f2f;
+            border: 1px solid #f3c4c4;
         }
+
         .message.success {
             display: block;
             background: #e8f5e9;
             color: #2e7d32;
+            border: 1px solid #cce8d0;
         }
+
         .message.loading {
             display: block;
             background: #e8f0fe;
             color: #1a73e8;
+            border: 1px solid #c7dafd;
         }
 
         .back-link {
@@ -156,6 +183,7 @@
             font-size: 13px;
             text-decoration: none;
         }
+
         .back-link:hover {
             color: #1a73e8;
         }
@@ -165,12 +193,37 @@
             margin-top: 6px;
             font-size: 13px;
         }
+
         .forgot-password a {
             color: #1a73e8;
             text-decoration: none;
         }
+
         .forgot-password a:hover {
             text-decoration: underline;
+        }
+
+        .debug-box {
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #f7f9fc;
+            color: #666;
+            font-size: 12px;
+            display: none;
+            line-height: 1.6;
+            border: 1px dashed #d7deea;
+        }
+
+        .debug-box.show {
+            display: block;
+        }
+
+        .small-note {
+            margin-top: 10px;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -184,29 +237,58 @@
 
         <div class="welcome-box">
             <p>📢 BusLens 已升级安全系统 🔐</p>
+            <p style="margin-top:6px;">支持新旧账号兼容登录</p>
         </div>
 
         <div class="message" id="message"></div>
+        <div class="debug-box" id="debugBox"></div>
+
         <form id="loginForm">
             <div class="form-group">
-                <label>👤 用户名</label>
-                <input type="text" id="username" placeholder="请输入用户名" required>
+                <label for="username">👤 用户名</label>
+                <input type="text" id="username" placeholder="请输入用户名" autocomplete="username" required>
             </div>
+
             <div class="form-group">
-                <label>🔒 密码</label>
-                <input type="password" id="password" placeholder="请输入密码" required>
+                <label for="password">🔒 密码</label>
+                <input type="password" id="password" placeholder="请输入密码" autocomplete="current-password" required>
             </div>
+
             <div class="forgot-password">
                 <a href="reset-password.html">🔑 忘记密码？</a>
             </div>
+
             <button type="submit" class="btn-primary" id="loginBtn">登 录</button>
         </form>
-        <div class="login-footer">还没有账号？<a href="register.html">立即注册</a></div>
+
+        <div class="login-footer">
+            还没有账号？<a href="register.html">立即注册</a>
+        </div>
+
         <a href="index.html" class="back-link">← 返回首页浏览机位</a>
+
+        <div class="small-note">如果登录异常，请刷新后重试。</div>
     </div>
 
     <script>
         var SESSION_KEY = 'bus_user_session';
+        var supabaseClient = null;
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 初始化失败:', e);
+                return false;
+            }
+        }
 
         function showMessage(text, type) {
             var el = document.getElementById('message');
@@ -215,70 +297,211 @@
             el.style.display = 'block';
         }
 
+        function clearMessage() {
+            var el = document.getElementById('message');
+            el.textContent = '';
+            el.className = 'message';
+            el.style.display = 'none';
+        }
+
+        function showDebug(info) {
+            var debugBox = document.getElementById('debugBox');
+            if (!debugBox) return;
+            debugBox.textContent = info;
+            debugBox.classList.add('show');
+        }
+
+        function clearDebug() {
+            var debugBox = document.getElementById('debugBox');
+            if (!debugBox) return;
+            debugBox.textContent = '';
+            debugBox.classList.remove('show');
+        }
+
+        function setButtonLoading(isLoading) {
+            var btn = document.getElementById('loginBtn');
+            if (!btn) return;
+
+            btn.disabled = !!isLoading;
+            btn.textContent = isLoading ? '⏳ 登录中...' : '登 录';
+        }
+
+        function saveFrontendSession(result) {
+            var session = {
+                id: result.user.id,
+                username: result.user.username,
+                email: result.user.email,
+                role: result.user.role || 'user',
+                auth_user_id: result.user.auth_user_id || null,
+                mode: result.mode || 'unknown',
+                migrated: !!result.migrated,
+                loginTime: Date.now()
+            };
+
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        }
+
+        async function saveSupabaseAuthSession(result) {
+            if (!supabaseClient) return;
+
+            if (!result.session || !result.session.access_token || !result.session.refresh_token) {
+                return;
+            }
+
+            const { error } = await supabaseClient.auth.setSession({
+                access_token: result.session.access_token,
+                refresh_token: result.session.refresh_token
+            });
+
+            if (error) {
+                console.error('❌ 写入 Supabase Auth session 失败:', error);
+                throw new Error('登录成功，但建立会话失败：' + error.message);
+            }
+
+            console.log('✅ 已写入 Supabase Auth session');
+        }
+
+        async function clearAllSessions() {
+            try {
+                sessionStorage.removeItem(SESSION_KEY);
+                localStorage.removeItem(SESSION_KEY);
+            } catch (e) {
+                console.warn('清理前端 session 失败:', e);
+            }
+
+            try {
+                if (supabaseClient) {
+                    await supabaseClient.auth.signOut();
+                }
+            } catch (e) {
+                console.warn('清理 Supabase Auth session 失败:', e);
+            }
+        }
+
+        async function handleLogin(username, password) {
+            console.log('准备请求 login function:', username);
+
+            var response = await fetch(
+                'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/login',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                }
+            );
+
+            var rawText = await response.text();
+            console.log('HTTP状态:', response.status);
+            console.log('后端原始返回:', rawText);
+
+            var result;
+            try {
+                result = JSON.parse(rawText);
+            } catch (parseError) {
+                throw new Error('登录接口返回了非 JSON 数据：' + rawText);
+            }
+
+            console.log('解析后的结果:', result);
+
+            if (!response.ok || !result.success) {
+                var detail = result && result.error ? result.error : '登录失败';
+                if (result && result.stage) {
+                    console.warn('登录失败阶段:', result.stage);
+                    showDebug('stage: ' + result.stage + (result.detail ? '\n' + result.detail : ''));
+                }
+                throw new Error(detail);
+            }
+
+            await saveSupabaseAuthSession(result);
+            saveFrontendSession(result);
+
+            return result;
+        }
+
+        async function checkExistingSessionAndRedirect() {
+            try {
+                if (supabaseClient) {
+                    const { data, error } = await supabaseClient.auth.getSession();
+                    if (!error && data && data.session) {
+                        console.log('检测到 Supabase Auth 已登录，跳转首页');
+                        window.location.href = 'index.html';
+                        return true;
+                    }
+                }
+
+                var localSession = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                if (localSession) {
+                    console.log('检测到前端 session，跳转首页');
+                    window.location.href = 'index.html';
+                    return true;
+                }
+            } catch (e) {
+                console.warn('检查登录态失败:', e);
+            }
+
+            return false;
+        }
+
+        (async function initPage() {
+            initSupabase();
+            await checkExistingSessionAndRedirect();
+        })();
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            clearMessage();
+            clearDebug();
+
             var username = document.getElementById('username').value.trim();
-            var password = document.getElementById('password').value.trim();
-            var btn = document.getElementById('loginBtn');
+            var password = document.getElementById('password').value;
 
             if (!username || !password) {
                 showMessage('❌ 请填写用户名和密码', 'error');
                 return;
             }
 
-            btn.disabled = true;
-            btn.textContent = '⏳ 登录中...';
+            setButtonLoading(true);
             showMessage('⏳ 验证中...', 'loading');
 
             try {
-                // ✅ 调用 Edge Function 验证（users 表 + bcrypt）
-                var response = await fetch(
-                    'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/login',
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            username: username,
-                            password: password
-                        })
-                    }
-                );
+                // 先清一次旧 session，避免脏状态
+                await clearAllSessions();
 
-                var result = await response.json();
+                var result = await handleLogin(username, password);
 
-                if (!response.ok || !result.success) {
-                    throw new Error(result.error || '登录失败');
+                var successText = '✅ 登录成功！正在跳转...';
+
+                if (result.mode === 'auth') {
+                    successText = '✅ 登录成功！正在跳转...';
+                } else if (result.mode === 'legacy' && result.migrated) {
+                    successText = '✅ 登录成功，旧账号已自动升级，正在跳转...';
+                } else if (result.mode === 'legacy') {
+                    successText = '✅ 登录成功！';
                 }
 
-                // ✅ 保存 session
-                var session = {
-                    id: result.user.id,
-                    username: result.user.username,
-                    email: result.user.email,
-                    role: result.user.role || 'user',
-                    loginTime: Date.now()
-                };
-                sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+                if (result.warning) {
+                    successText += '\n' + result.warning;
+                }
 
-                showMessage('✅ 登录成功！正在跳转...', 'success');
+                showMessage(successText, 'success');
+
                 setTimeout(function() {
                     window.location.href = 'index.html';
-                }, 800);
+                }, 900);
 
             } catch (error) {
                 console.error('登录失败:', error);
-                showMessage('❌ ' + error.message, 'error');
-                btn.disabled = false;
-                btn.textContent = '登 录';
+                showMessage('❌ ' + (error.message || '登录失败，请稍后重试'), 'error');
+                setButtonLoading(false);
             }
         });
-
-        if (sessionStorage.getItem(SESSION_KEY)) {
-            window.location.href = 'index.html';
-        }
     </script>
 </body>
 </html>
