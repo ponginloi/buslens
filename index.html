@@ -28,9 +28,9 @@
             flex-direction: column;
         }
 
-        /* ===== 导航栏 ===== */
+        /* ===== 导航栏 - upload.html 风格 ===== */
         .navbar {
-            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
             color: white;
             padding: 10px 24px;
             display: flex;
@@ -39,8 +39,9 @@
             flex-wrap: wrap;
             gap: 6px;
             flex-shrink: 0;
-            border-bottom: 2px solid #e94560;
+            border-bottom: 2px solid #1565c0;
             z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
         .navbar .brand {
             font-size: 20px;
@@ -80,8 +81,8 @@
             color: white;
         }
         .navbar .nav-links a.active {
-            background: rgba(233, 69, 96, 0.3);
-            color: #e94560;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
         }
         .navbar .user-area {
             display: flex;
@@ -170,10 +171,10 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: #e94560;
+            background: #1a73e8;
             color: white;
             border: 2px solid white;
-            box-shadow: 0 2px 12px rgba(233, 69, 96, 0.35);
+            box-shadow: 0 2px 12px rgba(26, 115, 232, 0.35);
             cursor: pointer;
             font-size: 16px;
             display: flex;
@@ -304,6 +305,9 @@
             border-color: #1a73e8;
             background: #e8f0fe;
             color: #1a73e8;
+        }
+        .filter-btn.active-all .dot.all {
+            background: #1a73e8;
         }
         .filter-btn.active-high {
             border-color: #ff4444;
@@ -565,7 +569,7 @@
         }
 
         /* ============================================================
-           InfoWindow 样式 - 全新布局
+           InfoWindow 样式
            ============================================================ */
         .amap-info-content {
             padding: 0 !important;
@@ -640,7 +644,6 @@
             gap: 4px;
         }
 
-        /* 描述区域 - 可滑动框 */
         .amap-info-content .spot-detail-desc {
             font-size: 13px;
             color: #444;
@@ -666,7 +669,6 @@
             background: transparent;
         }
 
-        /* 图片区域 - 2列大图 */
         .amap-info-content .spot-detail-photos {
             margin: 6px 0 8px 0;
         }
@@ -755,7 +757,7 @@
             right: 0;
             z-index: 9998;
             background: #ffffff;
-            border-top: 2px solid #e94560;
+            border-top: 2px solid #1a73e8;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             max-height: 55vh;
@@ -799,10 +801,10 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: #e94560;
+            background: #1a73e8;
             color: white;
             border: 3px solid white;
-            box-shadow: 0 2px 16px rgba(233, 69, 96, 0.4);
+            box-shadow: 0 2px 16px rgba(26, 115, 232, 0.4);
             cursor: pointer;
             font-size: 18px;
             display: flex;
@@ -1275,8 +1277,8 @@
             } else {
                 panel.classList.remove('collapsed');
                 btn.textContent = '◀';
-                btn.style.background = '#e94560';
-                btn.style.boxShadow = '0 2px 12px rgba(233,69,96,0.35)';
+                btn.style.background = '#1a73e8';
+                btn.style.boxShadow = '0 2px 12px rgba(26,115,232,0.35)';
                 floatBtn.classList.remove('visible');
                 var children = panel.querySelectorAll('.archive-header, .filter-bar, .search-bar, .spot-list, .panel-toggle-area');
                 children.forEach(function(el) {
@@ -1304,8 +1306,8 @@
             if (mobileBarCollapsed) {
                 bar.classList.add('collapsed');
                 btn.textContent = '▲';
-                btn.style.background = '#e94560';
-                btn.style.boxShadow = '0 2px 16px rgba(233,69,96,0.4)';
+                btn.style.background = '#1a73e8';
+                btn.style.boxShadow = '0 2px 16px rgba(26,115,232,0.4)';
             } else {
                 bar.classList.remove('collapsed');
                 btn.textContent = '▼';
@@ -1434,43 +1436,43 @@
         }
 
         function loadAmap() {
-    // ✅ 从 Edge Function 获取高德地图配置
-    fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config')
-        .then(function(response) { return response.json(); })
-        .then(function(config) {
-            if (!config.key) {
-                console.error('❌ 无法获取高德地图密钥');
-                return;
-            }
+            // ✅ 从 Edge Function 获取高德地图配置
+            fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config')
+                .then(function(response) { return response.json(); })
+                .then(function(config) {
+                    if (!config.key) {
+                        console.error('❌ 无法获取高德地图密钥');
+                        return;
+                    }
 
-            window._AMapSecurityConfig = {
-                securityJsCode: config.security
-            };
+                    window._AMapSecurityConfig = {
+                        securityJsCode: config.security
+                    };
 
-            if (typeof AMap !== 'undefined') {
-                mapLoaded = true;
-                mapReadyCallbacks.forEach(function(cb) { cb(); });
-                mapReadyCallbacks = [];
-                return;
-            }
+                    if (typeof AMap !== 'undefined') {
+                        mapLoaded = true;
+                        mapReadyCallbacks.forEach(function(cb) { cb(); });
+                        mapReadyCallbacks = [];
+                        return;
+                    }
 
-            var script = document.createElement('script');
-            script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + config.key;
-            script.onload = function() {
-                console.log('✅ 高德地图加载成功');
-                mapLoaded = true;
-                mapReadyCallbacks.forEach(function(cb) { cb(); });
-                mapReadyCallbacks = [];
-            };
-            script.onerror = function() {
-                console.error('❌ 高德地图加载失败');
-            };
-            document.head.appendChild(script);
-        })
-        .catch(function(error) {
-            console.error('❌ 获取高德配置失败:', error);
-        });
-}
+                    var script = document.createElement('script');
+                    script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + config.key;
+                    script.onload = function() {
+                        console.log('✅ 高德地图加载成功');
+                        mapLoaded = true;
+                        mapReadyCallbacks.forEach(function(cb) { cb(); });
+                        mapReadyCallbacks = [];
+                    };
+                    script.onerror = function() {
+                        console.error('❌ 高德地图加载失败');
+                    };
+                    document.head.appendChild(script);
+                })
+                .catch(function(error) {
+                    console.error('❌ 获取高德配置失败:', error);
+                });
+        }
 
         // ============================================================
         //  全局状态
@@ -1906,7 +1908,7 @@
             initMap();
         });
 
-        console.log('🚌 BusLens 档案版已加载（2列大图）');
+        console.log('🚌 BusLens 地图已加载（upload.html 风格）');
         console.log('✅ 上传者 | 位置 | 设备 | 照片数 | 描述框 | 2列照片网格 | 链接');
     </script>
 </body>
