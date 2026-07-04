@@ -1,46 +1,20 @@
-# 🚌 BusLens - 巴士摄影机位分享平台
+# 🚌 BusLens - 巴士机位地图
 
-BusLens 是一个专为巴士摄影爱好者设计的机位分享与发现平台。用户可以上传、分享和发现巴士摄影的最佳拍摄位置，所有机位经过管理员审核后展示在地图上。
+BusLens 是一个巴士摄影机位分享平台，巴士迷可以在这里分享和发现巴士拍摄位置。
+
+
 
 ---
 
 ## ✨ 功能特性
 
-### 🗺️ 机位地图
-- 基于高德地图展示所有已审核通过的机位
-- 不同颜色标记不同等级（上等🔴 / 中等🟡 / 下等🟢）
-- 点击地图标记查看机位详情（照片、描述、上传者等）
-- 侧边栏列表与地图联动，支持筛选和搜索
-- 响应式设计，完美支持手机端
-
-### 🔍 发现页
-- 🎲 **随机上等机位** - 每次刷新随机推荐一个上等机位，点击跳转到地图定位
-- 🔥 **热门上等机位** - 按照片数量排序，展示最热门的 TOP 10 上等机位
-- 📸 **今日精选** - 管理员精选的优秀摄影作品展示（支持懒加载）
-
-### 📤 上传机位
-- 📍 **地图选点** - 拖动地图选择机位位置，自动获取经纬度
-- 📝 **智能描述生成** - 根据用户填写的机位信息自动生成完整描述
-- 🧭 **朝向选择** - 支持 8 个方位选择，自动计算正光时间（夏季/冬季）
-- 🚌 **拍摄角度** - 司位/门位/两者皆可
-- 📷 **推荐焦距** - 选择适合该机位的焦距范围
-- 🖼️ **例图上传** - 自动添加 BusLens 水印和版权信息（1920×1080 压缩）
-- 🔒 **审核机制** - 提交后进入审核队列，管理员审核通过后展示
-
-### 👤 个人中心
-- 📊 **数据统计** - 机位数、照片数、上等数、待审核数
+- 🗺️ **地图展示** - 高德地图显示已审核通过的机位，不同颜色代表不同等级
+- 📤 **上传机位** - 用户可上传新机位，提交后进入审核队列
+- 📸 **多图上传** - 每个机位可上传多张照片（ImgBB 图床存储）
+- ⚙️ **审核管理** - 管理员可审核机位，修改等级，填写审核理由
+- 👤 **个人中心** - 查看审核进度、个人贡献统计
 - 🎖️ **头衔系统** - 6 级高难度头衔，激励用户持续贡献
-- 🏅 **成就徽章** - 首次上传、首次上等、十全十美、摄影达人、百夫长、大神认证、传奇大师
-- 📋 **审核进度** - 可视化展示机位审核状态（待审核/已通过/已拒绝）
-- 🖼️ **作品展示墙** - 展示用户上传的所有照片
-- ✏️ **个人简介** - 编辑个人简介
-- 🔑 **修改密码** - 验证当前密码后安全修改
-
-### ⚙️ 审核管理端（管理员）
-- 📍 **机位审核** - 审核待机位，修改等级、设备类型、描述，填写审核理由
-- 📸 **图片审核** - 独立审核用户上传的照片（通过/拒绝/删除）
-- ⭐ **精选管理** - 管理今日精选照片（添加/删除/排序/显示切换）
-- 📋 **更新日志** - Markdown 格式编辑网站更新日志
+- 🏷️ **管理员标记** - 管理员在导航栏有专属标识
 
 ---
 
@@ -48,72 +22,15 @@ BusLens 是一个专为巴士摄影爱好者设计的机位分享与发现平台
 
 | 技术 | 用途 |
 |------|------|
-| **原生 HTML + CSS + JavaScript** | 纯前端开发，无框架依赖 |
-| **Supabase** | 数据库 + 认证（Auth）+ 行级安全（RLS） |
-| **高德地图 JavaScript API** | 地图展示与机位标记 |
-| **ImgBB** | 图床服务（图片存储） |
-| **Supabase Edge Functions** | 安全代理第三方 API 调用 |
-| **Netlify** | 网站托管与部署 |
+| 原生 HTML + CSS + JavaScript | 前端开发 |
+| 高德地图 JavaScript API | 地图展示 |
+| Supabase (PostgreSQL) | 数据库 |
+| ImgBB | 图床（图片存储） |
+| Netlify | 网站部署 |
 
 ---
 
-## 🗄️ 数据库结构
-
-### spots 表（机位主表）
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `id` | BIGSERIAL | 主键 |
-| `name` | TEXT | 机位名称 |
-| `lng` | DECIMAL(10,6) | 经度 |
-| `lat` | DECIMAL(10,6) | 纬度 |
-| `rank` | TEXT | 等级 (high/medium/low) |
-| `device_type` | TEXT | 设备类型 (phone/camera/both) |
-| `description` | TEXT | 完整描述 |
-| `example_photo` | TEXT | 例图链接 |
-| `photos` | JSONB | 用户照片数组 |
-| `created_by` | TEXT | 上传者用户名 |
-| `created_at` | DATE | 创建日期 |
-| `status` | TEXT | 状态 (pending/approved/rejected) |
-| `reviewed_by` | TEXT | 审核人 |
-| `reviewed_at` | DATE | 审核日期 |
-| `review_reason` | TEXT | 审核理由 |
-
-### users 表（用户表）
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `id` | BIGSERIAL | 主键 |
-| `username` | TEXT | 用户名（唯一） |
-| `email` | TEXT | 邮箱 |
-| `auth_user_id` | UUID | 关联 Supabase Auth |
-| `role` | TEXT | 角色 (user/admin) |
-| `bio` | TEXT | 个人简介 |
-| `created_at` | DATE | 注册日期 |
-
-### featured_photos 表（精选照片）
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `id` | BIGSERIAL | 主键 |
-| `photo_url` | TEXT | 图片链接 |
-| `spot_id` | BIGINT | 关联机位 |
-| `spot_name` | TEXT | 机位名称 |
-| `uploader` | TEXT | 上传者 |
-| `caption` | TEXT | 图片描述 |
-| `reason` | TEXT | 入选理由 |
-| `selected_by` | TEXT | 操作管理员 |
-| `selected_at` | DATE | 选择日期 |
-| `is_active` | BOOLEAN | 是否展示 |
-| `display_order` | INT | 显示顺序 |
-
-### favorites 表（收藏）
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `id` | BIGSERIAL | 主键 |
-| `user_id` | TEXT | 用户ID |
-| `spot_id` | BIGINT | 机位ID |
-
----
-
-## 🎖️ 头衔系统（6 级）
+## 🎖️ 头衔系统（6 级高难度）
 
 | 等级 | 头衔 | 条件 |
 |------|------|------|
@@ -128,28 +45,37 @@ BusLens 是一个专为巴士摄影爱好者设计的机位分享与发现平台
 
 ---
 
-## 🏅 成就徽章
+## 📋 数据库表结构
 
-| 徽章 | 名称 | 解锁条件 |
-|------|------|----------|
-| 📷 | 首次上传 | 上传 1 个机位 |
-| ⭐ | 首次上等 | 获得 1 个上等机位 |
-| 🔥 | 十全十美 | 获得 10 个上等机位 |
-| 📸 | 摄影达人 | 上传 50 张照片 |
-| 🏆 | 百夫长 | 上传 100 个机位 |
-| 👑 | 大神认证 | 获得 50 个上等机位 |
-| 💎 | 传奇大师 | 150 个机位 + 35 个上等 + 100 张照片 |
+### spots 表
 
----
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGSERIAL | 主键 |
+| name | TEXT | 机位名称 |
+| lng | DECIMAL(10,6) | 经度 |
+| lat | DECIMAL(10,6) | 纬度 |
+| rank | TEXT | 等级 (high/medium/low) |
+| description | TEXT | 描述 |
+| example_photo | TEXT | 例图链接 |
+| photos | JSONB | 用户照片数组 |
+| created_by | TEXT | 上传者 |
+| created_at | DATE | 创建日期 |
+| status | TEXT | 状态 (pending/approved/rejected) |
+| reviewed_by | TEXT | 审核人 |
+| reviewed_at | DATE | 审核日期 |
+| review_reason | TEXT | 审核理由 |
 
-## 🔐 安全特性
+### users 表
 
-- **Supabase Auth** - 安全的用户认证，密码 bcrypt 加密存储
-- **RLS 行级安全** - 严格的数据库访问控制，保护用户数据
-- **Edge Function 代理** - ImgBB、高德地图等 API 密钥不暴露在前端
-- **XSS 防护** - 所有用户输入通过 `escapeHtml()` 转义
-- **Session 管理** - 统一使用 Supabase Auth Session
-- **管理员验证** - 硬编码管理员列表，防止越权访问
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGSERIAL | 主键 |
+| username | TEXT | 用户名（唯一） |
+| password | TEXT | 密码 |
+| email | TEXT | 邮箱 |
+| role | TEXT | 角色 (user/admin) |
+| created_at | DATE | 注册日期 |
 
 ---
 
@@ -157,11 +83,11 @@ BusLens 是一个专为巴士摄影爱好者设计的机位分享与发现平台
 
 ### 1. 部署到 Netlify
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/ponginloi/buslens)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/你的用户名/buslens)
 
-### 2. 手动部署
+或手动部署：
 
 ```bash
-git clone https://github.com/ponginloi/buslens.git
+git clone https://github.com/你的用户名/buslens.git
 cd buslens
-# 将所有 HTML 文件上传到 Netlify / 任何静态托管服务
+# 将所有 HTML 文件上传到 Netlify
