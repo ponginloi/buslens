@@ -3,77 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>设置新密码 - BusLens</title>
+    <title>登录 - BusLens</title>
+
     <script>
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var SESSION_KEY = 'bus_user_session';
     </script>
+
     <script src="config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0d1117, #161b22);
+            background: linear-gradient(135deg, #e8f0fe 0%, #f0f2f5 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
-        .container {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
+        .login-container {
+            background: white;
             border-radius: 20px;
             padding: 48px 40px;
             width: 100%;
             max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 60px rgba(26, 115, 232, 0.15);
         }
-        .logo {
-            font-size: 48px;
-            text-align: center;
-            display: block;
-            margin-bottom: 8px;
-        }
-        h1 {
-            color: #e6edf3;
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-        .sub {
-            color: #666;
-            text-align: center;
+        .login-header { text-align: center; margin-bottom: 24px; }
+        .login-header .logo { font-size: 48px; display: block; margin-bottom: 8px; }
+        .login-header h1 { font-size: 24px; color: #1a73e8; }
+        .login-header p { color: #888; font-size: 14px; margin-top: 4px; }
+        .welcome-box {
+            background: linear-gradient(135deg, #e8f0fe, #d2e3fc);
+            border-left: 4px solid #1a73e8;
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             font-size: 14px;
-            margin-bottom: 24px;
+            color: #333;
+            line-height: 1.8;
+            text-align: center;
         }
-        .form-group {
-            margin-bottom: 16px;
-        }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 6px; }
         .form-group input {
             width: 100%;
-            padding: 14px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
             border-radius: 12px;
             font-size: 15px;
-            background: rgba(255, 255, 255, 0.04);
-            color: #e6edf3;
+            transition: border-color 0.3s, box-shadow 0.3s;
             outline: none;
-            transition: border-color 0.3s;
+            background: #fff;
         }
-        .form-group input:focus {
-            border-color: #1a73e8;
-        }
-        .form-group input::placeholder {
-            color: #444;
-        }
-        .btn {
+        .form-group input:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12); }
+        .btn-primary {
             width: 100%;
             padding: 14px;
             background: linear-gradient(135deg, #1a73e8, #0d47a1);
@@ -83,319 +71,217 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3);
-        }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .message {
-            padding: 12px 16px;
-            border-radius: 10px;
-            margin-bottom: 16px;
-            display: none;
-            font-size: 14px;
-        }
-        .message.error {
-            display: block;
-            background: rgba(244, 67, 54, 0.15);
-            color: #f44336;
-            border: 1px solid rgba(244, 67, 54, 0.2);
-        }
-        .message.success {
-            display: block;
-            background: rgba(76, 175, 80, 0.15);
-            color: #4caf50;
-            border: 1px solid rgba(76, 175, 80, 0.2);
-        }
-        .message.loading {
-            display: block;
-            background: rgba(26, 115, 232, 0.15);
-            color: #58a6ff;
-            border: 1px solid rgba(26, 115, 232, 0.2);
-        }
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 16px;
-            color: #666;
-            font-size: 13px;
-            text-decoration: none;
-        }
-        .back-link:hover {
-            color: #58a6ff;
-        }
-        .status-box {
-            text-align: center;
-            padding: 16px;
-            border-radius: 10px;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-        .status-box.valid {
-            background: rgba(76, 175, 80, 0.1);
-            color: #4caf50;
-            border: 1px solid rgba(76, 175, 80, 0.2);
-        }
-        .status-box.invalid {
-            background: rgba(244, 67, 54, 0.1);
-            color: #f44336;
-            border: 1px solid rgba(244, 67, 54, 0.2);
-        }
-        .status-box.loading {
-            background: rgba(26, 115, 232, 0.1);
-            color: #58a6ff;
-            border: 1px solid rgba(26, 115, 232, 0.2);
-        }
-        .debug-info {
-            margin-top: 12px;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 8px;
-            font-size: 12px;
-            color: #555;
-            font-family: monospace;
-            word-break: break-all;
-            display: none;
-        }
-        .debug-info.show {
-            display: block;
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3); }
+        .btn-primary:disabled { opacity: 0.65; cursor: not-allowed; transform: none; box-shadow: none; }
+        .login-footer { text-align: center; margin-top: 20px; font-size: 14px; color: #888; }
+        .login-footer a { color: #1a73e8; text-decoration: none; font-weight: 500; }
+        .login-footer a:hover { text-decoration: underline; }
+        .message { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; display: none; font-size: 14px; line-height: 1.6; }
+        .message.error { display: block; background: #fee8e8; color: #d32f2f; border: 1px solid #f3c4c4; }
+        .message.success { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #cce8d0; }
+        .message.loading { display: block; background: #e8f0fe; color: #1a73e8; border: 1px solid #c7dafd; }
+        .message.warning { display: block; background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+        .back-link { display: block; text-align: center; margin-top: 16px; color: #999; font-size: 13px; text-decoration: none; }
+        .back-link:hover { color: #1a73e8; }
+        .forgot-password { text-align: right; margin-top: 6px; font-size: 13px; }
+        .forgot-password a { color: #1a73e8; text-decoration: none; }
+        .forgot-password a:hover { text-decoration: underline; }
+        .email-hint { font-size: 12px; color: #999; margin-top: 4px; }
+        @media (max-width: 600px) {
+            .login-container { padding: 32px 24px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <span class="logo">🔑</span>
-        <h1>设置新密码</h1>
-        <div class="sub" id="statusText">正在验证链接...</div>
+    <div class="login-container">
+        <div class="login-header">
+            <span class="logo">🚌</span>
+            <h1>登录 BusLens</h1>
+            <p>登录后可以上传机位和照片</p>
+        </div>
 
-        <div class="status-box loading" id="statusBox">⏳ 验证中...</div>
+        <div class="welcome-box">
+            <p>📢 新系统支持旧账号自动升级</p>
+            <p style="margin-top:6px;font-size:13px;">旧用户直接使用 <strong>用户名 + 密码</strong> 登录即可</p>
+        </div>
 
         <div class="message" id="message"></div>
 
-        <div id="resetFormContainer" style="display:none;">
-            <form id="resetForm">
-                <div class="form-group">
-                    <input type="password" id="newPassword" placeholder="🔒 新密码（至少6位）" required minlength="6">
-                </div>
-                <div class="form-group">
-                    <input type="password" id="confirmPassword" placeholder="🔒 确认新密码" required>
-                </div>
-                <button type="submit" class="btn" id="resetBtn">✅ 确认重置</button>
-            </form>
+        <form id="loginForm">
+            <!-- 用户名（必填） -->
+            <div class="form-group">
+                <label for="username">👤 用户名 <span style="color:#ff4444;">*</span></label>
+                <input type="text" id="username" placeholder="请输入用户名" autocomplete="username" required>
+            </div>
+
+            <!-- 邮箱（选填，用于 Auth 登录） -->
+            <div class="form-group">
+                <label for="email">📧 邮箱 <span style="color:#999;font-weight:400;">（选填）</span></label>
+                <input type="email" id="email" placeholder="已绑定邮箱的用户请填写，加快登录速度" autocomplete="email">
+                <div class="email-hint">💡 如果你之前绑定过邮箱，填写后可加速登录</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">🔒 密码 <span style="color:#ff4444;">*</span></label>
+                <input type="password" id="password" placeholder="请输入密码" autocomplete="current-password" required>
+            </div>
+
+            <div class="forgot-password">
+                <a href="reset-password.html">🔑 更改密码？</a>
+            </div>
+
+            <button type="submit" class="btn-primary" id="loginBtn">登 录</button>
+        </form>
+
+        <div class="login-footer">
+            还没有账号？<a href="register.html">立即注册</a>
         </div>
 
-        <a href="login.html" class="back-link">← 返回登录</a>
-
-        <div class="debug-info" id="debugInfo"></div>
+        <a href="index.html" class="back-link">← 返回首页浏览机位</a>
     </div>
 
     <script>
-        // ============================================================
-        //  ✅ 安全初始化 Supabase
-        // ============================================================
-        var supabaseClient = null;
-        var initError = null;
+    var SESSION_KEY = 'bus_admin_session';
+    var ADMIN_USERNAMES = ['ponginloi', 'lnx', 'shaojiu_0053'];
+    var supabaseClient = null;
 
-        function initSupabase() {
-            // 检查 Supabase SDK 是否加载
-            if (typeof supabase === 'undefined') {
-                initError = 'Supabase SDK 未加载，请检查网络连接';
-                console.error(initError);
-                return false;
+    function initSupabase() {
+        if (typeof supabase === 'undefined') {
+            console.error('Supabase SDK 未加载');
+            return false;
+        }
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('Supabase 初始化成功');
+            return true;
+        } catch (e) {
+            console.error('Supabase 初始化失败:', e);
+            return false;
+        }
+    }
+    initSupabase();
+
+    function showMessage(text, type) {
+        var el = document.getElementById('message');
+        el.textContent = text;
+        el.className = 'message ' + type;
+        el.style.display = 'block';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        var username = document.getElementById('username').value.trim();
+        var email = document.getElementById('email').value.trim();
+        var password = document.getElementById('password').value.trim();
+        var btn = document.getElementById('loginBtn');
+
+        if (!username || !password) {
+            showMessage('请填写用户名和密码', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = '验证中...';
+        showMessage('验证中...', 'loading');
+
+        try {
+            var loginEmail = email;
+
+            if (!loginEmail) {
+                var { data: userData } = await supabaseClient
+                    .from('users')
+                    .select('email')
+                    .eq('username', username)
+                    .single();
+
+                if (userData && userData.email) {
+                    loginEmail = userData.email;
+                } else {
+                    loginEmail = username + '@buslens.local';
+                }
             }
 
-            // 检查配置是否存在
-            if (!SUPABASE_URL || !SUPABASE_KEY) {
-                initError = 'SUPABASE_URL 或 SUPABASE_KEY 未定义，请检查 config.js';
-                console.error(initError);
-                return false;
+            console.log('尝试登录:', loginEmail);
+
+            var { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: loginEmail,
+                password: password
+            });
+
+            if (error) {
+                throw new Error(error.message || '用户名或密码错误');
             }
 
+            if (!data || !data.user) {
+                throw new Error('登录失败，请重试');
+            }
+
+            var authUsername = data.user.user_metadata?.username ||
+                data.user.raw_user_meta_data?.username ||
+                username;
+
+            if (ADMIN_USERNAMES.indexOf(authUsername) === -1) {
+                var { data: publicUser } = await supabaseClient
+                    .from('users')
+                    .select('username, role')
+                    .eq('auth_user_id', data.user.id)
+                    .single();
+
+                if (publicUser && ADMIN_USERNAMES.indexOf(publicUser.username) !== -1) {
+                    authUsername = publicUser.username;
+                } else {
+                    await supabaseClient.auth.signOut();
+                    throw new Error('该账号没有管理员权限');
+                }
+            }
+
+            var session = {
+                id: data.user.id,
+                username: authUsername,
+                email: data.user.email,
+                role: 'admin',
+                loginTime: Date.now()
+            };
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+            showMessage('登录成功！正在跳转...', 'success');
+            setTimeout(function() {
+                window.location.href = 'index.html';
+            }, 800);
+
+        } catch (error) {
+            console.error('登录失败:', error);
+            showMessage(error.message, 'error');
+            btn.disabled = false;
+            btn.textContent = '登录';
+        }
+    });
+
+    // ============================================================
+    //  ✅ 修复：只有有效管理员 session 才跳转
+    // ============================================================
+    (function checkSession() {
+        var saved = sessionStorage.getItem(SESSION_KEY);
+        if (saved) {
             try {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log('✅ Supabase 客户端初始化成功');
-                return true;
+                var user = JSON.parse(saved);
+                if (user && ADMIN_USERNAMES.indexOf(user.username) !== -1) {
+                    // 有效管理员，跳转到审核页
+                    window.location.href = 'index.html';
+                } else {
+                    // 无效 session，清除
+                    sessionStorage.removeItem(SESSION_KEY);
+                    console.log('🧹 已清除无效 session');
+                }
             } catch (e) {
-                initError = 'Supabase 初始化失败: ' + e.message;
-                console.error(initError, e);
-                return false;
+                sessionStorage.removeItem(SESSION_KEY);
+                console.log('🧹 已清除损坏 session');
             }
         }
-
-        // 立即初始化
-        var initSuccess = initSupabase();
-
-        // 显示调试信息
-        function showDebug(msg) {
-            var el = document.getElementById('debugInfo');
-            if (el) {
-                el.textContent = '🔍 ' + msg;
-                el.className = 'debug-info show';
-            }
-        }
-
-        // ============================================================
-        //  UI 工具函数
-        // ============================================================
-        function showMessage(text, type) {
-            var el = document.getElementById('message');
-            el.textContent = text;
-            el.className = 'message ' + type;
-            el.style.display = 'block';
-        }
-
-        function setStatus(text, type) {
-            var box = document.getElementById('statusBox');
-            var statusText = document.getElementById('statusText');
-            box.textContent = text;
-            box.className = 'status-box ' + type;
-
-            if (type === 'valid') {
-                statusText.textContent = '✅ 验证通过，请设置新密码';
-            } else if (type === 'invalid') {
-                statusText.textContent = '❌ 链接无效或已过期';
-            } else {
-                statusText.textContent = '⏳ 验证中...';
-            }
-        }
-
-        // 从 URL 获取 access_token
-        function getAccessTokenFromURL() {
-            var hash = window.location.hash;
-            if (hash) {
-                var params = new URLSearchParams(hash.substring(1));
-                return params.get('access_token');
-            }
-            return null;
-        }
-
-        // ============================================================
-        //  ✅ 验证链接 - 无需登录
-        // ============================================================
-        async function verifyToken() {
-            // 检查 Supabase 是否初始化成功
-            if (!initSuccess || !supabaseClient) {
-                setStatus('❌ 系统初始化失败，请刷新重试', 'invalid');
-                showDebug(initError || 'Supabase 客户端未初始化');
-                return;
-            }
-
-            var token = getAccessTokenFromURL();
-
-            if (!token) {
-                setStatus('❌ 无效的重置链接，请重新申请', 'invalid');
-                showDebug('未找到 access_token');
-                return;
-            }
-
-            showDebug('token 已获取，长度: ' + token.length);
-
-            try {
-                // 用 token 获取用户信息
-                var { data, error } = await supabaseClient.auth.getUser(token);
-
-                if (error) {
-                    console.error('验证失败:', error);
-                    setStatus('❌ 链接已过期或无效，请重新申请', 'invalid');
-                    showDebug('验证错误: ' + error.message);
-                    return;
-                }
-
-                if (!data || !data.user) {
-                    setStatus('❌ 无法获取用户信息，请重新申请', 'invalid');
-                    showDebug('用户数据为空');
-                    return;
-                }
-
-                var email = data.user.email || '用户';
-                setStatus('✅ 验证通过！请为 ' + email + ' 设置新密码', 'valid');
-                document.getElementById('resetFormContainer').style.display = 'block';
-                window._resetToken = token;
-
-                showDebug('✅ 验证成功，用户: ' + email);
-
-            } catch (error) {
-                console.error('验证异常:', error);
-                setStatus('❌ 验证失败，请重新申请', 'invalid');
-                showDebug('异常: ' + error.message);
-            }
-        }
-
-        // ============================================================
-        //  ✅ 提交新密码 - 无需登录
-        // ============================================================
-        document.getElementById('resetForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            if (!initSuccess || !supabaseClient) {
-                showMessage('系统初始化失败，请刷新重试', 'error');
-                return;
-            }
-
-            var newPassword = document.getElementById('newPassword').value;
-            var confirmPassword = document.getElementById('confirmPassword').value;
-            var btn = document.getElementById('resetBtn');
-
-            if (newPassword.length < 6) {
-                showMessage('❌ 密码至少6位', 'error');
-                return;
-            }
-
-            if (newPassword !== confirmPassword) {
-                showMessage('❌ 两次密码不一致', 'error');
-                return;
-            }
-
-            var token = window._resetToken;
-            if (!token) {
-                showMessage('❌ 链接已失效，请重新申请', 'error');
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = '⏳ 更新中...';
-            showMessage('⏳ 正在更新密码...', 'loading');
-
-            try {
-                // ✅ 用 token 更新密码
-                var { data, error } = await supabaseClient.auth.updateUser({
-                    password: newPassword
-                }, {
-                    headers: {
-                        Authorization: 'Bearer ' + token
-                    }
-                });
-
-                if (error) {
-                    throw new Error(error.message);
-                }
-
-                showMessage('✅ 密码重置成功！请用新密码登录', 'success');
-                document.getElementById('resetFormContainer').style.display = 'none';
-                setStatus('✅ 密码已重置，即将跳转登录...', 'valid');
-
-                setTimeout(function() {
-                    window.location.href = 'login.html';
-                }, 2500);
-
-            } catch (error) {
-                console.error('重置失败:', error);
-                showMessage('❌ ' + error.message, 'error');
-                btn.disabled = false;
-                btn.textContent = '✅ 确认重置';
-            }
-        });
-
-        // ============================================================
-        //  🚀 启动
-        // ============================================================
-        verifyToken();
-        console.log('🔑 重置确认页面已加载');
-    </script>
+    })();
+</script>
 </body>
 </html>
