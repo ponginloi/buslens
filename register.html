@@ -39,7 +39,7 @@
         }
         .register-header {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
         .register-header .logo {
             font-size: 48px;
@@ -55,6 +55,34 @@
             font-size: 14px;
             margin-top: 4px;
         }
+
+        .welcome-box {
+            background: linear-gradient(135deg, #e8f0fe, #d2e3fc);
+            border-left: 4px solid #1a73e8;
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+            text-align: center;
+        }
+
+        /* ✅ 邮箱验证提示框 */
+        .notice-box {
+            background: #fff8e1;
+            border-left: 4px solid #ff9800;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #e65100;
+            line-height: 1.6;
+        }
+        .notice-box strong {
+            color: #bf360c;
+        }
+
         .form-group {
             margin-bottom: 18px;
         }
@@ -86,6 +114,7 @@
             color: #999;
             margin-top: 4px;
         }
+
         .btn-primary {
             width: 100%;
             padding: 14px;
@@ -107,6 +136,7 @@
             cursor: not-allowed;
             transform: none;
         }
+
         .register-footer {
             text-align: center;
             margin-top: 20px;
@@ -121,11 +151,13 @@
         .register-footer a:hover {
             text-decoration: underline;
         }
+
         .message {
             padding: 12px 16px;
             border-radius: 10px;
             margin-bottom: 16px;
             display: none;
+            font-size: 14px;
         }
         .message.error {
             display: block;
@@ -151,6 +183,7 @@
             color: #e65100;
             border: 1px solid #ffcc80;
         }
+
         .back-link {
             display: block;
             text-align: center;
@@ -162,17 +195,26 @@
         .back-link:hover {
             color: #1a73e8;
         }
-        .welcome-box {
-            background: linear-gradient(135deg, #e8f0fe, #d2e3fc);
-            border-left: 4px solid #1a73e8;
-            padding: 16px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #333;
+
+        /* ✅ 成功后的额外提示 */
+        .success-tip {
+            display: none;
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #2e7d32;
             line-height: 1.8;
-            text-align: center;
         }
+        .success-tip.show {
+            display: block;
+        }
+        .success-tip strong {
+            color: #1b5e20;
+        }
+
         @media (max-width: 600px) {
             .register-container {
                 padding: 32px 24px;
@@ -193,6 +235,12 @@
             <p style="font-size:13px;margin-top:4px;">🔐 密码由 Supabase Auth 安全托管</p>
         </div>
 
+        <!-- ✅ 邮箱验证提示 -->
+        <div class="notice-box">
+            📧 注册后需要 <strong>邮箱验证</strong>，请使用真实邮箱<br>
+            验证邮件可能被误判为垃圾邮件，请检查 <strong>垃圾箱</strong>
+        </div>
+
         <div class="message" id="message"></div>
 
         <form id="registerForm">
@@ -205,7 +253,7 @@
             <div class="form-group">
                 <label>📧 邮箱 <span class="required">*</span></label>
                 <input type="email" id="email" placeholder="请输入邮箱地址" required>
-                <div class="hint">用于登录和接收通知</div>
+                <div class="hint">用于登录和接收验证邮件</div>
             </div>
 
             <div class="form-group">
@@ -221,6 +269,12 @@
 
             <button type="submit" class="btn-primary" id="registerBtn">注 册</button>
         </form>
+
+        <!-- ✅ 注册成功后的提示 -->
+        <div class="success-tip" id="successTip">
+            📧 验证邮件已发送至您的邮箱<br>
+            请点击邮件中的链接完成验证，然后 <a href="login.html" style="color:#1a73e8;font-weight:500;">前往登录</a>
+        </div>
 
         <div class="register-footer">已有账号？<a href="login.html">立即登录</a></div>
         <a href="index.html" class="back-link">← 返回首页浏览机位</a>
@@ -274,7 +328,7 @@
         }
 
         // ============================================================
-        //  保存 Session（注册后自动登录）
+        //  保存 Session
         // ============================================================
         function saveSession(result) {
             var session = {
@@ -283,8 +337,6 @@
                 email: result.user.email,
                 role: result.user.role || 'user',
                 auth_user_id: result.user.id,
-                mode: 'auth',
-                migrated: false,
                 loginTime: Date.now()
             };
 
@@ -302,7 +354,7 @@
         }
 
         // ============================================================
-        //  ✅ 注册函数 - 调用 Edge Function
+        //  注册函数
         // ============================================================
         async function handleRegister(username, email, password) {
             console.log('📝 开始注册:', username, email);
@@ -346,6 +398,7 @@
             e.preventDefault();
 
             clearMessage();
+            document.getElementById('successTip').classList.remove('show');
 
             var username = document.getElementById('username').value.trim();
             var email = document.getElementById('email').value.trim();
@@ -379,21 +432,21 @@
             try {
                 var result = await handleRegister(username, email, password);
 
-                // 如果自动登录成功，保存 session
-                if (result.auto_login && result.session) {
-                    saveSession(result);
-                    showMessage('✅ 注册成功！正在跳转...', 'success');
+                // ✅ 注册成功，显示邮箱验证提示
+                showMessage('✅ 注册成功！请查收邮箱并完成验证', 'success');
+                document.getElementById('successTip').classList.add('show');
 
+                // ✅ 尝试自动登录（如果邮箱已确认，会自动登录）
+                if (result.session) {
+                    saveSession(result);
                     setTimeout(function() {
                         window.location.href = 'index.html';
-                    }, 1000);
+                    }, 1500);
                 } else {
-                    // 注册成功但未自动登录
-                    showMessage('✅ 注册成功！请前往登录', 'success');
-
+                    // 需要邮箱验证，跳转到登录页
                     setTimeout(function() {
                         window.location.href = 'login.html';
-                    }, 1500);
+                    }, 3000);
                 }
 
             } catch (error) {
@@ -403,9 +456,6 @@
             }
         });
 
-        // ============================================================
-        //  ✅ 启动 - 不检查登录状态，避免闪退
-        // ============================================================
         console.log('🚀 注册页面已加载');
     </script>
 </body>
