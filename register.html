@@ -11,6 +11,7 @@
         var SESSION_KEY = 'bus_user_session';
     </script>
 
+    <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -48,7 +49,7 @@
             transition: border-color 0.3s;
             outline: none;
         }
-        .form-group input:focus { border-color: #1a73e8; }
+        .form-group input:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12); }
         .form-group .hint { font-size: 12px; color: #999; margin-top: 4px; }
         .btn-primary {
             width: 100%;
@@ -68,9 +69,10 @@
         .register-footer a { color: #1a73e8; text-decoration: none; font-weight: 500; }
         .register-footer a:hover { text-decoration: underline; }
         .message { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; display: none; }
-        .message.error { display: block; background: #fee8e8; color: #d32f2f; }
-        .message.success { display: block; background: #e8f5e9; color: #2e7d32; }
-        .message.loading { display: block; background: #e8f0fe; color: #1a73e8; }
+        .message.error { display: block; background: #fee8e8; color: #d32f2f; border: 1px solid #f3c4c4; }
+        .message.success { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #cce8d0; }
+        .message.loading { display: block; background: #e8f0fe; color: #1a73e8; border: 1px solid #c7dafd; }
+        .message.warning { display: block; background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
         .back-link { display: block; text-align: center; margin-top: 16px; color: #999; font-size: 13px; text-decoration: none; }
         .back-link:hover { color: #1a73e8; }
         .welcome-box {
@@ -84,20 +86,22 @@
             line-height: 1.8;
             text-align: center;
         }
+        @media (max-width: 600px) {
+            .register-container { padding: 32px 24px; }
+        }
     </style>
 </head>
 <body>
     <div class="register-container">
         <div class="register-header">
             <span class="logo">🚌</span>
-            <h1>加入我们</h1>
+            <h1>加入 BusLens</h1>
             <p>注册后可以上传机位和照片</p>
         </div>
 
         <div class="welcome-box">
-            <p>📸 每一张照片，都是你独一无二的视角。</p>
-            <p>记录巴士的瞬间，分享城市的故事。</p>
-            <p style="margin-top:6px;font-weight:600;color:#1a73e8;font-size:15px;">🔐 密码由 Supabase Auth 安全托管</p>
+            <p>📸 每一张照片，都是你独一无二的视角</p>
+            <p style="font-size:13px;margin-top:4px;">🔐 密码由 Supabase Auth 安全托管</p>
         </div>
 
         <div class="message" id="message"></div>
@@ -105,24 +109,25 @@
         <form id="registerForm">
             <div class="form-group">
                 <label>👤 用户名 <span class="required">*</span></label>
-                <input type="text" id="username" placeholder="请设置用户名（4-20个字符）" required minlength="4" maxlength="20">
+                <input type="text" id="username" placeholder="4-20个字符，字母/数字/下划线" required minlength="4" maxlength="20">
                 <div class="hint">只支持英文、数字和下划线</div>
             </div>
 
             <div class="form-group">
                 <label>📧 邮箱 <span class="required">*</span></label>
                 <input type="email" id="email" placeholder="请输入邮箱地址" required>
+                <div class="hint">用于登录和接收通知</div>
             </div>
 
             <div class="form-group">
                 <label>🔒 密码 <span class="required">*</span></label>
-                <input type="password" id="password" placeholder="请设置密码（至少6位）" required minlength="6">
-                <div class="hint">密码至少6位，建议包含字母和数字</div>
+                <input type="password" id="password" placeholder="至少6位" required minlength="6">
+                <div class="hint">建议包含字母和数字</div>
             </div>
 
             <div class="form-group">
                 <label>🔒 确认密码 <span class="required">*</span></label>
-                <input type="password" id="confirmPassword" placeholder="请再次输入密码" required>
+                <input type="password" id="confirmPassword" placeholder="再次输入密码" required>
             </div>
 
             <button type="submit" class="btn-primary" id="registerBtn">注 册</button>
@@ -133,118 +138,212 @@
     </div>
 
     <script>
-    var supabaseClient = null;
+        var SESSION_KEY = 'bus_user_session';
+        var supabaseClient = null;
 
-    function initSupabase() {
-        if (typeof supabase === 'undefined') {
-            console.error('❌ Supabase SDK 未加载');
+        // ============================================================
+        //  初始化 Supabase
+        // ============================================================
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+        initSupabase();
+
+        // ============================================================
+        //  UI 工具函数
+        // ============================================================
+        function showMessage(text, type) {
+            var el = document.getElementById('message');
+            el.textContent = text;
+            el.className = 'message ' + type;
+            el.style.display = 'block';
+        }
+
+        function clearMessage() {
+            var el = document.getElementById('message');
+            el.textContent = '';
+            el.className = 'message';
+            el.style.display = 'none';
+        }
+
+        function setButtonLoading(isLoading) {
+            var btn = document.getElementById('registerBtn');
+            if (!btn) return;
+            btn.disabled = !!isLoading;
+            btn.textContent = isLoading ? '⏳ 注册中...' : '注 册';
+        }
+
+        // ============================================================
+        //  保存 Session（注册后自动登录）
+        // ============================================================
+        function saveSession(result) {
+            var session = {
+                id: result.user.id,
+                username: result.user.username,
+                email: result.user.email,
+                role: result.user.role || 'user',
+                auth_user_id: result.user.id,
+                mode: 'auth',
+                migrated: false,
+                loginTime: Date.now()
+            };
+
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+            if (result.access_token && supabaseClient) {
+                supabaseClient.auth.setSession({
+                    access_token: result.access_token,
+                    refresh_token: result.session?.refresh_token || ''
+                }).catch(function(err) {
+                    console.warn('写入 Supabase session 失败:', err);
+                });
+            }
+        }
+
+        // ============================================================
+        //  检查是否已登录
+        // ============================================================
+        async function checkExistingSession() {
+            try {
+                if (supabaseClient) {
+                    const { data } = await supabaseClient.auth.getSession();
+                    if (data && data.session) {
+                        window.location.href = 'index.html';
+                        return true;
+                    }
+                }
+                var localSession = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                if (localSession) {
+                    window.location.href = 'index.html';
+                    return true;
+                }
+            } catch (e) {
+                console.warn('检查登录态失败:', e);
+            }
             return false;
         }
-        try {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log('✅ Supabase 初始化成功');
-            return true;
-        } catch (e) {
-            console.error('❌ Supabase 初始化失败:', e);
-            return false;
-        }
-    }
-    initSupabase();
 
-    function showMessage(text, type) {
-        var el = document.getElementById('message');
-        el.textContent = text;
-        el.className = 'message ' + type;
-        el.style.display = 'block';
-    }
+        // ============================================================
+        //  注册函数
+        // ============================================================
+        async function handleRegister(username, email, password) {
+            console.log('📝 开始注册:', username, email);
 
-    document.getElementById('registerForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        var username = document.getElementById('username').value.trim();
-        var email = document.getElementById('email').value.trim();
-        var password = document.getElementById('password').value;
-        var confirmPassword = document.getElementById('confirmPassword').value;
-        var btn = document.getElementById('registerBtn');
-
-        if (!/^[a-zA-Z0-9_]{4,20}$/.test(username)) {
-            showMessage('❌ 用户名只能包含英文、数字、下划线，且4-20个字符', 'error');
-            return;
-        }
-        if (!email || !email.includes('@')) {
-            showMessage('❌ 请填写有效的邮箱地址', 'error');
-            return;
-        }
-        if (password.length < 6) {
-            showMessage('❌ 密码至少6位', 'error');
-            return;
-        }
-        if (password !== confirmPassword) {
-            showMessage('❌ 两次密码不一致', 'error');
-            return;
-        }
-
-        btn.disabled = true;
-        btn.textContent = '⏳ 注册中...';
-        showMessage('⏳ 正在注册...', 'loading');
-
-        try {
-            const response = await fetch(
+            var response = await fetch(
                 'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/register',
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ username, email, password })
+                    body: JSON.stringify({
+                        username: username,
+                        email: email,
+                        password: password
+                    })
                 }
             );
 
-            const result = await response.json();
-            console.log('register 返回：', result);
+            var rawText = await response.text();
+            console.log('📦 服务器响应:', rawText);
+
+            var result;
+            try {
+                result = JSON.parse(rawText);
+            } catch (parseError) {
+                throw new Error('服务器返回了无效数据，请稍后重试');
+            }
 
             if (!response.ok || !result.success) {
                 throw new Error(result.error || '注册失败');
             }
 
-            // 如果后端已经返回了 Supabase session，就直接写入 Supabase Auth
-            if (result.session && supabaseClient) {
-                const { error: sessionError } = await supabaseClient.auth.setSession({
-                    access_token: result.session.access_token,
-                    refresh_token: result.session.refresh_token
-                });
+            return result;
+        }
 
-                if (sessionError) {
-                    console.warn('⚠️ setSession 失败，但注册本身已成功:', sessionError);
-                    showMessage('✅ 注册成功，请前往登录页登录', 'success');
-                    setTimeout(function() {
-                        window.location.href = 'login.html';
-                    }, 1000);
-                    return;
-                }
+        // ============================================================
+        //  表单提交
+        // ============================================================
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            clearMessage();
+
+            var username = document.getElementById('username').value.trim();
+            var email = document.getElementById('email').value.trim();
+            var password = document.getElementById('password').value;
+            var confirmPassword = document.getElementById('confirmPassword').value;
+
+            // 验证
+            if (!/^[a-zA-Z0-9_]{4,20}$/.test(username)) {
+                showMessage('❌ 用户名只能包含英文、数字、下划线，且4-20个字符', 'error');
+                return;
             }
 
-            showMessage('✅ 注册成功，正在跳转...', 'success');
-            setTimeout(function() {
-                window.location.href = 'index.html';
-            }, 800);
+            if (!email || !email.includes('@')) {
+                showMessage('❌ 请填写有效的邮箱地址', 'error');
+                return;
+            }
 
-        } catch (error) {
-            console.error('注册失败:', error);
-            showMessage('❌ ' + error.message, 'error');
-            btn.disabled = false;
-            btn.textContent = '注 册';
-        }
-    });
+            if (password.length < 6) {
+                showMessage('❌ 密码至少6位', 'error');
+                return;
+            }
 
-    // 如果已经登录了 Supabase Auth，就直接回首页
-    (async function() {
-        if (!supabaseClient) return;
-        const { data } = await supabaseClient.auth.getSession();
-        if (data && data.session) {
-            window.location.href = 'index.html';
-        }
-    })();
-</script>
+            if (password !== confirmPassword) {
+                showMessage('❌ 两次密码不一致', 'error');
+                return;
+            }
+
+            setButtonLoading(true);
+            showMessage('⏳ 正在注册...', 'loading');
+
+            try {
+                var result = await handleRegister(username, email, password);
+
+                // 如果自动登录成功，保存 session
+                if (result.auto_login && result.session) {
+                    saveSession(result);
+                    showMessage('✅ 注册成功！正在跳转...', 'success');
+
+                    setTimeout(function() {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    // 注册成功但未自动登录（一般不会发生）
+                    showMessage('✅ 注册成功！请前往登录', 'success');
+
+                    setTimeout(function() {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                }
+
+            } catch (error) {
+                console.error('❌ 注册失败:', error);
+                showMessage('❌ ' + error.message, 'error');
+                setButtonLoading(false);
+            }
+        });
+
+        // ============================================================
+        //  启动
+        // ============================================================
+        (async function initPage() {
+            await checkExistingSession();
+            console.log('🚀 注册页面已加载');
+        })();
+    </script>
 </body>
 </html>
