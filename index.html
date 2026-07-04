@@ -2238,76 +2238,98 @@
         }
 
         async function submitUploadPhoto() {
-            if (uploadPhotoFiles.length === 0) {
-                showUploadMessage('请至少选择 1 张照片', 'error');
-                return;
-            }
+    if (uploadPhotoFiles.length === 0) {
+        showUploadMessage('请至少选择 1 张照片', 'error');
+        return;
+    }
 
-            var user = getCurrentUser();
-            if (!user) {
-                showUploadMessage('请先登录', 'error');
-                return;
-            }
+    var user = getCurrentUser();
+    if (!user) {
+        showUploadMessage('请先登录', 'error');
+        return;
+    }
 
-            var btn = document.getElementById('uploadPhotoSubmitBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ 上传中...';
-            showUploadMessage('正在上传...', 'loading');
+    // ✅ 调试：检查 token 是否存在
+    console.log('🔍 当前用户:', user);
+    console.log('🔍 access_token:', user.access_token ? '存在' : '不存在');
 
-            try {
-                var uploadedUrls = [];
-                for (var i = 0; i < uploadPhotoFiles.length; i++) {
-                    showUploadMessage('上传 ' + (i + 1) + '/' + uploadPhotoFiles.length + '...', 'loading');
-                    var processedFile = await processImageWithCanvas(uploadPhotoFiles[i], {
-                        maxWidth: 1920,
-                        maxHeight: 1080,
-                        quality: 0.85,
-                        maxSizeMB: 4.5,
-                        barHeight: 50,
-                        watermarkText: 'BusLens',
-                        copyrightText: '© 2026 ' + user.username + ' 版权所有'
-                    }, user.username);
-                    var url = await uploadToImgBB(processedFile);
-                    uploadedUrls.push(url);
-                }
-
-                var response = await fetch(
-                    'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/update-spot-photos', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + (user.access_token || '')
-                        },
-                        body: JSON.stringify({
-                            spot_id: uploadPhotoSpotId,
-                            photos: uploadedUrls,
-                            uploader: user.username
-                        })
-                    }
-                );
-
-                var result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(result.error || '上传失败');
-                }
-
-                showUploadMessage('✅ 已上传 ' + uploadedUrls.length + ' 张照片！', 'success');
-                btn.textContent = '✅ 已完成';
-
-                setTimeout(function() {
-                    closeUploadModal();
-                    loadData();
-                    showStatus('✅ 照片上传成功！', 'success');
-                }, 1500);
-
-            } catch (error) {
-                console.error('上传失败:', error);
-                showUploadMessage('❌ ' + error.message, 'error');
-                btn.disabled = false;
-                btn.textContent = '📤 上传';
-            }
+    // ✅ 如果没有 access_token，从 Supabase session 获取
+    var accessToken = user.access_token;
+    if (!accessToken && supabaseClient) {
+        var { data } = await supabaseClient.auth.getSession();
+        if (data && data.session) {
+            accessToken = data.session.access_token;
+            console.log('✅ 从 Supabase session 获取 token');
         }
+    }
+
+    if (!accessToken) {
+        showUploadMessage('❌ 请重新登录后再试', 'error');
+        return;
+    }
+
+    var btn = document.getElementById('uploadPhotoSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 上传中...';
+    showUploadMessage('正在上传...', 'loading');
+
+    try {
+        var uploadedUrls = [];
+        for (var i = 0; i < uploadPhotoFiles.length; i++) {
+            showUploadMessage('上传 ' + (i + 1) + '/' + uploadPhotoFiles.length + '...', 'loading');
+            var processedFile = await processImageWithCanvas(uploadPhotoFiles[i], {
+                maxWidth: 1920,
+                maxHeight: 1080,
+                quality: 0.85,
+                maxSizeMB: 4.5,
+                barHeight: 50,
+                watermarkText: 'BusLens',
+                copyrightText: '© 2026 ' + user.username + ' 版权所有'
+            }, user.username);
+            var url = await uploadToImgBB(processedFile);
+            uploadedUrls.push(url);
+        }
+
+        // ✅ 调用 Edge Function
+        var response = await fetch(
+            'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/update-spot-photos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + accessToken
+                },
+                body: JSON.stringify({
+                    spot_id: uploadPhotoSpotId,
+                    photos: uploadedUrls,
+                    uploader: user.username
+                })
+            }
+        );
+
+        var result = await response.json();
+
+        if (!response.ok || !result.success) {
+            console.error('❌ 服务器返回:', result);
+            throw new Error(result.error || '上传失败');
+        }
+
+        showUploadMessage('✅ 已上传 ' + uploadedUrls.length + ' 张照片！', 'success');
+        btn.textContent = '✅ 已完成';
+
+        setTimeout(function() {
+            closeUploadModal();
+            loadData();
+            showStatus('✅ 照片上传成功！', 'success');
+        }, 1500);
+
+    } catch (error) {
+        console.error('❌ 上传失败:', error);
+        showUploadMessage('❌ ' + error.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '📤 上传';
+    }
+}
+
 
         // ============================================================
         //  启动
