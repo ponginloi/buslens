@@ -163,6 +163,7 @@
             margin-top: 4px;
         }
 
+        /* 路线 */
         .route-input-group {
             display: flex;
             gap: 10px;
@@ -215,6 +216,7 @@
             color: #ff4444;
         }
 
+        /* 地图 */
         .map-picker {
             border-radius: 12px;
             overflow: hidden;
@@ -332,6 +334,7 @@
             background: white;
         }
 
+        /* 等级 */
         .rank-options {
             display: flex;
             gap: 12px;
@@ -366,6 +369,7 @@
             color: #00c851;
         }
 
+        /* 设备 */
         .device-options {
             display: flex;
             gap: 12px;
@@ -397,6 +401,7 @@
             font-weight: 500;
         }
 
+        /* 朝向 */
         .direction-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -430,6 +435,7 @@
             margin-bottom: 2px;
         }
 
+        /* 拍摄角度 */
         .angle-options {
             display: flex;
             gap: 12px;
@@ -462,6 +468,7 @@
             color: #1a73e8;
         }
 
+        /* 焦距 */
         .focal-range-group {
             display: flex;
             align-items: center;
@@ -511,6 +518,7 @@
             margin-top: 18px;
         }
 
+        /* 正光时间 */
         .light-time-display {
             background: #f5f7fa;
             border-radius: 10px;
@@ -533,6 +541,7 @@
             color: #1a73e8;
         }
 
+        /* 季节 */
         .season-options {
             display: flex;
             gap: 10px;
@@ -564,6 +573,7 @@
             color: #1a73e8;
         }
 
+        /* 例图预览 */
         .example-preview {
             margin-top: 8px;
             display: none;
@@ -599,6 +609,61 @@
             background: rgba(200, 0, 0, 0.8);
         }
 
+        /* ✅ 机位图片预览网格 */
+        .photo-preview-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .photo-preview-grid.show {
+            display: grid;
+        }
+        .photo-preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+            aspect-ratio: 4/3;
+            background: #f5f5f5;
+        }
+        .photo-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-preview-item .remove-photo-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .photo-preview-item .remove-photo-btn:hover {
+            background: rgba(200, 0, 0, 0.8);
+        }
+        .photo-preview-item .photo-index {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 11px;
+            padding: 1px 8px;
+            border-radius: 4px;
+        }
+
+        /* 描述预览 */
         .description-preview {
             background: #f8f9fa;
             border-radius: 12px;
@@ -621,10 +686,6 @@
             color: #333;
             white-space: pre-wrap;
             word-break: break-word;
-        }
-        .description-preview .preview-content .highlight {
-            color: #1a73e8;
-            font-weight: 500;
         }
 
         .btn-primary {
@@ -847,6 +908,9 @@
                 margin-top: 16px;
                 padding: 0 2px;
             }
+            .photo-preview-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
         }
     </style>
 </head>
@@ -1059,7 +1123,7 @@
 
                 <!-- ========== 例图 ========== -->
                 <div class="form-group">
-                    <label>📸 机位例图 <span class="hint-text">（选填，建议上传）</span></label>
+                    <label>📸 例图 <span class="hint-text">（选填，建议上传）</span></label>
                     <input type="file" id="examplePhoto" accept="image/*">
                     <div class="hint">上传一张示例照片，帮助审核员和用户了解这个机位</div>
                     <div class="watermark-preview" id="watermarkPreview">
@@ -1073,6 +1137,18 @@
                         <img id="examplePreviewImg" src="" alt="例图预览">
                         <button type="button" class="remove-btn" onclick="removeExamplePhoto()">×</button>
                     </div>
+                </div>
+
+                <!-- ========== ✅ 机位图片（多图） ========== -->
+                <div class="form-group">
+                    <label>📸 机位图片 <span class="hint-text">（选填，最多5张）</span></label>
+                    <p style="font-size:13px;color:#888;margin-bottom:8px;">上传在这个机位拍摄的巴士照片</p>
+                    <input type="file" id="spotPhotos" accept="image/*" multiple>
+                    <div class="hint">支持多选，最多上传 5 张，建议 1920×1080</div>
+                    <div class="compress-info" id="photoCompressInfo" style="display:none;">
+                        📦 图片将在上传前自动压缩，<span class="saved">节省流量、加速加载</span>
+                    </div>
+                    <div class="photo-preview-grid" id="photoPreviewGrid"></div>
                 </div>
 
                 <!-- ========== 设备类型 ========== -->
@@ -1103,10 +1179,6 @@
                         <div class="preview-content" id="descriptionContent"></div>
                     </div>
                     <div class="hint">💡 系统将根据以上信息自动生成完整的机位描述</div>
-                </div>
-
-                <div class="compress-info" id="compressInfo">
-                    📦 图片将在上传前自动压缩（1920×1080，质量85%），<span class="saved">节省流量、加速加载</span>
                 </div>
 
                 <button type="submit" class="btn-primary" id="submitBtn">📤 提交审核</button>
@@ -1250,8 +1322,7 @@
         }
 
         // ============================================================
-        //  正光时间计算（修正版：相机朝向 ≠ 太阳方向）
-        //  顺光 = 太阳在相机背后
+        //  正光时间计算
         // ============================================================
         var directionMap = {
             '正西': {
@@ -1349,7 +1420,6 @@
             var shootingAngle = document.querySelector('input[name="shooting_angle"]:checked');
             var opinion = document.getElementById('authorOpinion').value.trim();
 
-            // 获取焦距
             var focalMin = document.getElementById('focalMin').value;
             var focalMax = document.getElementById('focalMax').value;
             var focalRange = focalMin + '-' + focalMax + 'mm';
@@ -1414,7 +1484,7 @@
         }
 
         // ============================================================
-        //  监听所有输入变化，更新描述
+        //  监听所有输入变化
         // ============================================================
         function bindDescriptionUpdate() {
             var fields = [
@@ -1472,7 +1542,6 @@
                 });
             });
 
-            // 焦距变化监听
             document.getElementById('focalMin').addEventListener('change', function() {
                 if (document.querySelector('input[name="direction"]:checked')) {
                     updateDescription();
@@ -1499,7 +1568,7 @@
         }
 
         // ============================================================
-        //  📤 安全上传到 ImgBB
+        //  📤 上传到 ImgBB（通过 Edge Function）
         // ============================================================
         async function uploadToImgBB(file) {
             var user = getCurrentUser();
@@ -1655,7 +1724,6 @@
             reader.onload = function(ev) {
                 document.getElementById('examplePreviewImg').src = ev.target.result;
                 document.getElementById('examplePreview').style.display = 'block';
-                document.getElementById('compressInfo').style.display = 'block';
                 document.getElementById('watermarkPreview').style.display = 'block';
             };
             reader.readAsDataURL(file);
@@ -1665,8 +1733,115 @@
             examplePhotoFile = null;
             document.getElementById('examplePhoto').value = '';
             document.getElementById('examplePreview').style.display = 'none';
-            document.getElementById('compressInfo').style.display = 'none';
             document.getElementById('watermarkPreview').style.display = 'none';
+        }
+
+        // ============================================================
+        //  ✅ 机位图片（多图）管理
+        // ============================================================
+        var spotPhotoFiles = [];
+
+        document.getElementById('spotPhotos').addEventListener('change', function(e) {
+            var files = e.target.files;
+            if (files.length === 0) return;
+
+            // 限制最多5张
+            if (files.length > 5) {
+                alert('最多只能上传 5 张照片');
+                this.value = '';
+                return;
+            }
+
+            // 检查文件大小
+            for (var i = 0; i < files.length; i++) {
+                if (files[i].size > 50 * 1024 * 1024) {
+                    alert('单张照片不能超过 50MB');
+                    this.value = '';
+                    return;
+                }
+            }
+
+            // 合并文件列表（追加而不是替换）
+            var newFiles = Array.from(files);
+            var totalFiles = spotPhotoFiles.length + newFiles.length;
+            if (totalFiles > 5) {
+                alert('总共最多只能上传 5 张，当前已有 ' + spotPhotoFiles.length + ' 张');
+                this.value = '';
+                return;
+            }
+
+            spotPhotoFiles = spotPhotoFiles.concat(newFiles);
+            document.getElementById('photoCompressInfo').style.display = 'block';
+            renderPhotoPreview();
+        });
+
+        function renderPhotoPreview() {
+            var grid = document.getElementById('photoPreviewGrid');
+            if (spotPhotoFiles.length === 0) {
+                grid.classList.remove('show');
+                grid.innerHTML = '';
+                document.getElementById('photoCompressInfo').style.display = 'none';
+                document.getElementById('spotPhotos').value = '';
+                return;
+            }
+
+            grid.classList.add('show');
+            grid.innerHTML = '';
+
+            spotPhotoFiles.forEach(function(file, index) {
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    var div = document.createElement('div');
+                    div.className = 'photo-preview-item';
+                    div.innerHTML =
+                        '<img src="' + ev.target.result + '" />' +
+                        '<button type="button" class="remove-photo-btn" onclick="removeSpotPhoto(' + index +
+                        ')">×</button>' +
+                        '<span class="photo-index">' + (index + 1) + '/' + spotPhotoFiles.length + '</span>';
+                    grid.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeSpotPhoto(index) {
+            spotPhotoFiles.splice(index, 1);
+            renderPhotoPreview();
+            if (spotPhotoFiles.length === 0) {
+                document.getElementById('photoPreviewGrid').classList.remove('show');
+                document.getElementById('photoCompressInfo').style.display = 'none';
+                document.getElementById('spotPhotos').value = '';
+            }
+        }
+
+        // ============================================================
+        //  ✅ 上传多张机位图片
+        // ============================================================
+        async function uploadSpotPhotos(files, username) {
+            var urls = [];
+            for (var i = 0; i < files.length; i++) {
+                try {
+                    showStatus('📤 上传机位图片 ' + (i + 1) + '/' + files.length + '...', 'loading');
+
+                    var processedFile = await processImageWithCanvas(files[i], {
+                        maxWidth: 1920,
+                        maxHeight: 1080,
+                        quality: 0.85,
+                        maxSizeMB: 4.5,
+                        barHeight: 50,
+                        watermarkText: 'BusLens',
+                        copyrightText: '© 2026 ' + username + ' 版权所有'
+                    }, username);
+
+                    var url = await uploadToImgBB(processedFile);
+                    urls.push(url);
+                    console.log('✅ 第 ' + (i + 1) + ' 张上传成功:', url);
+                } catch (err) {
+                    console.warn('⚠️ 第 ' + (i + 1) + ' 张图片上传失败:', err);
+                    // 继续上传其他图片
+                }
+            }
+            return urls;
         }
 
         // ============================================================
@@ -1826,12 +2001,13 @@
             var btn = document.getElementById('submitBtn');
             btn.disabled = true;
             btn.textContent = '⏳ 处理中...';
-            showMessage('⏳ 正在处理图片（压缩 + 水印）...', 'loading');
-            showStatus('🖼️ 正在添加水印...', 'loading');
+            showMessage('⏳ 正在处理图片...', 'loading');
 
             var examplePhotoUrl = null;
+            var photoUrls = [];
 
             try {
+                // 1) 上传例图
                 var exampleFileInput = document.getElementById('examplePhoto');
                 if (exampleFileInput && exampleFileInput.files && exampleFileInput.files.length > 0) {
                     try {
@@ -1848,28 +2024,35 @@
                             copyrightText: '© 2026 ' + user.username + ' 版权所有'
                         }, user.username);
 
-                        showStatus('📤 正在上传例图到 ImgBB...', 'loading');
+                        showStatus('📤 正在上传例图...', 'loading');
                         examplePhotoUrl = await uploadToImgBB(processedExample);
-                        console.log('✅ 例图上传成功，URL:', examplePhotoUrl);
+                        console.log('✅ 例图上传成功:', examplePhotoUrl);
                     } catch (uploadErr) {
                         console.warn('⚠️ 例图处理失败:', uploadErr);
                         showMessage('⚠️ 例图上传失败：' + uploadErr.message, 'warning');
                     }
                 }
 
+                // 2) ✅ 上传机位图片（多图）
+                if (spotPhotoFiles.length > 0) {
+                    photoUrls = await uploadSpotPhotos(spotPhotoFiles, user.username);
+                    console.log('✅ 机位图片上传成功:', photoUrls.length + ' 张');
+                }
+
+                // 3) 提交到数据库
                 showStatus('📝 正在保存到数据库...', 'loading');
 
-                const result = await supabaseClient
-                    .rpc('upload_spot', {
-                        p_name: name,
-                        p_lng: lng,
-                        p_lat: lat,
-                        p_rank: rank.value,
-                        p_device_type: deviceType.value,
-                        p_description: description,
-                        p_example_photo: examplePhotoUrl || null,
-                        p_username: user.username
-                    });
+                const result = await supabaseClient.rpc('upload_spot', {
+                    p_name: name,
+                    p_lng: lng,
+                    p_lat: lat,
+                    p_rank: rank.value,
+                    p_device_type: deviceType.value,
+                    p_description: description,
+                    p_example_photo: examplePhotoUrl || null,
+                    p_username: user.username,
+                    p_photos: photoUrls  // ✅ 新增：机位图片数组
+                });
 
                 if (result.error) {
                     console.error('❌ RPC 调用失败:', result.error);
@@ -1878,11 +2061,15 @@
 
                 console.log('✅ 机位提交成功，ID:', result.data);
 
-                showMessage('✅ 提交成功！等待管理员审核', 'success');
+                showMessage('✅ 提交成功！' + (photoUrls.length > 0 ? '共上传 ' + photoUrls.length + ' 张机位图片' : '') + '，等待管理员审核',
+                    'success');
                 showStatus('✅ 机位提交成功！', 'success');
 
+                // 重置表单
                 document.getElementById('uploadForm').reset();
                 removeExamplePhoto();
+                spotPhotoFiles = [];
+                renderPhotoPreview();
                 routes = [];
                 renderRoutes();
                 currentLng = 114.169;
@@ -1943,8 +2130,8 @@
             initApp();
         }
 
-        console.log('📤 上传页面已加载（智能描述生成版 + 司位/门位 + 焦距选择）');
-        console.log('🛡️ 使用 upload_spot RPC 函数（8个参数）');
+        console.log('📤 上传页面已加载（支持多张机位图片上传）');
+        console.log('🛡️ 使用 upload_spot RPC 函数（9个参数）');
     </script>
 </body>
 </html>
