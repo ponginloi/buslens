@@ -2238,6 +2238,99 @@
         }
 
         async function submitUploadPhoto() {
+            // ============================================================
+//  ✅ 直接使用 Supabase 客户端上传照片到已有机位
+// ============================================================
+var uploadPhotoSpotId = null;
+var uploadPhotoSpotName = '';
+var uploadPhotoFiles = [];
+
+function openUploadModal(spotId, spotName) {
+    var user = getCurrentUser();
+    if (!user) {
+        showStatus('⚠️ 请先登录再上传照片', 'error');
+        return;
+    }
+    uploadPhotoSpotId = spotId;
+    uploadPhotoSpotName = spotName;
+    uploadPhotoFiles = [];
+    document.getElementById('uploadPhotoSpotName').textContent = '机位：' + escapeHtml(spotName);
+    document.getElementById('uploadPhotoInput').value = '';
+    document.getElementById('uploadPhotoPreview').innerHTML = '';
+    document.getElementById('uploadPhotoPreview').style.display = 'none';
+    document.getElementById('uploadPhotoMessage').className = 'modal-msg';
+    document.getElementById('uploadPhotoMessage').style.display = 'none';
+    document.getElementById('uploadPhotoModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeUploadModal() {
+    document.getElementById('uploadPhotoModal').classList.remove('active');
+    document.body.style.overflow = '';
+    uploadPhotoFiles = [];
+}
+
+function showUploadMessage(text, type) {
+    var el = document.getElementById('uploadPhotoMessage');
+    el.textContent = text;
+    el.className = 'modal-msg ' + type;
+    el.style.display = 'block';
+}
+
+document.getElementById('uploadPhotoInput').addEventListener('change', function(e) {
+    var files = e.target.files;
+    if (files.length === 0) return;
+    if (files.length > 5) {
+        alert('最多只能上传 5 张照片');
+        this.value = '';
+        return;
+    }
+    for (var i = 0; i < files.length; i++) {
+        if (files[i].size > 50 * 1024 * 1024) {
+            alert('单张照片不能超过 50MB');
+            this.value = '';
+            return;
+        }
+    }
+    uploadPhotoFiles = Array.from(files);
+    renderUploadPreview();
+});
+
+function renderUploadPreview() {
+    var grid = document.getElementById('uploadPhotoPreview');
+    if (uploadPhotoFiles.length === 0) {
+        grid.style.display = 'none';
+        grid.innerHTML = '';
+        return;
+    }
+    grid.style.display = 'grid';
+    grid.innerHTML = '';
+    uploadPhotoFiles.forEach(function(file, index) {
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            var div = document.createElement('div');
+            div.className = 'photo-preview-item';
+            div.innerHTML =
+                '<img src="' + ev.target.result + '" />' +
+                '<button type="button" class="remove-photo-btn" onclick="removeUploadPhoto(' + index +
+                ')">×</button>' +
+                '<span class="photo-index">' + (index + 1) + '/' + uploadPhotoFiles.length + '</span>';
+            grid.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function removeUploadPhoto(index) {
+    uploadPhotoFiles.splice(index, 1);
+    renderUploadPreview();
+    if (uploadPhotoFiles.length === 0) {
+        document.getElementById('uploadPhotoPreview').style.display = 'none';
+    }
+}
+
+// ✅ 使用 Supabase 客户端直接更新
+async function submitUploadPhoto() {
     if (uploadPhotoFiles.length === 0) {
         showUploadMessage('请至少选择 1 张照片', 'error');
         return;
@@ -2249,31 +2342,13 @@
         return;
     }
 
-    // ✅ 调试：检查 token 是否存在
-    console.log('🔍 当前用户:', user);
-    console.log('🔍 access_token:', user.access_token ? '存在' : '不存在');
-
-    // ✅ 如果没有 access_token，从 Supabase session 获取
-    var accessToken = user.access_token;
-    if (!accessToken && supabaseClient) {
-        var { data } = await supabaseClient.auth.getSession();
-        if (data && data.session) {
-            accessToken = data.session.access_token;
-            console.log('✅ 从 Supabase session 获取 token');
-        }
-    }
-
-    if (!accessToken) {
-        showUploadMessage('❌ 请重新登录后再试', 'error');
-        return;
-    }
-
     var btn = document.getElementById('uploadPhotoSubmitBtn');
     btn.disabled = true;
     btn.textContent = '⏳ 上传中...';
     showUploadMessage('正在上传...', 'loading');
 
     try {
+        // 1. 上传每张图片到 ImgBB
         var uploadedUrls = [];
         for (var i = 0; i < uploadPhotoFiles.length; i++) {
             showUploadMessage('上传 ' + (i + 1) + '/' + uploadPhotoFiles.length + '...', 'loading');
@@ -2290,27 +2365,41 @@
             uploadedUrls.push(url);
         }
 
-        // ✅ 调用 Edge Function
-        var response = await fetch(
-            'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/update-spot-photos', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + accessToken
-                },
-                body: JSON.stringify({
-                    spot_id: uploadPhotoSpotId,
-                    photos: uploadedUrls,
-                    uploader: user.username
-                })
-            }
-        );
+        // 2. 获取当前机位的 photos 数据
+        var { data: spot, error: fetchError } = await supabaseClient
+            .from('spots')
+            .select('photos')
+            .eq('id', uploadPhotoSpotId)
+            .single();
 
-        var result = await response.json();
+        if (fetchError) {
+            throw new Error(fetchError.message);
+        }
 
-        if (!response.ok || !result.success) {
-            console.error('❌ 服务器返回:', result);
-            throw new Error(result.error || '上传失败');
+        // 3. 追加新照片
+        var existingPhotos = spot.photos || [];
+        var newPhotos = uploadedUrls.map(function(url) {
+            return {
+                id: Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
+                url: url,
+                uploader: user.username,
+                uploaderName: user.username,
+                status: 'pending',
+                date: new Date().toISOString(),
+                created_at: new Date().toISOString()
+            };
+        });
+
+        var updatedPhotos = existingPhotos.concat(newPhotos);
+
+        // 4. 更新数据库
+        var { error: updateError } = await supabaseClient
+            .from('spots')
+            .update({ photos: updatedPhotos })
+            .eq('id', uploadPhotoSpotId);
+
+        if (updateError) {
+            throw new Error(updateError.message);
         }
 
         showUploadMessage('✅ 已上传 ' + uploadedUrls.length + ' 张照片！', 'success');
@@ -2318,12 +2407,13 @@
 
         setTimeout(function() {
             closeUploadModal();
+            // 刷新地图数据
             loadData();
             showStatus('✅ 照片上传成功！', 'success');
         }, 1500);
 
     } catch (error) {
-        console.error('❌ 上传失败:', error);
+        console.error('上传失败:', error);
         showUploadMessage('❌ ' + error.message, 'error');
         btn.disabled = false;
         btn.textContent = '📤 上传';
