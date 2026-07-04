@@ -1434,11 +1434,17 @@
         }
 
         function loadAmap() {
-            var amapKey = '404164dc78620cbc5d9440e9b2ed5e85';
-            var amapSecurity = '32cb0dfc6330c69e2d13dd3164cea242';
+    // ✅ 从 Edge Function 获取高德地图配置
+    fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config')
+        .then(function(response) { return response.json(); })
+        .then(function(config) {
+            if (!config.key) {
+                console.error('❌ 无法获取高德地图密钥');
+                return;
+            }
 
             window._AMapSecurityConfig = {
-                securityJsCode: amapSecurity
+                securityJsCode: config.security
             };
 
             if (typeof AMap !== 'undefined') {
@@ -1449,7 +1455,7 @@
             }
 
             var script = document.createElement('script');
-            script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + amapKey;
+            script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + config.key;
             script.onload = function() {
                 console.log('✅ 高德地图加载成功');
                 mapLoaded = true;
@@ -1460,7 +1466,11 @@
                 console.error('❌ 高德地图加载失败');
             };
             document.head.appendChild(script);
-        }
+        })
+        .catch(function(error) {
+            console.error('❌ 获取高德配置失败:', error);
+        });
+}
 
         // ============================================================
         //  全局状态
