@@ -2326,7 +2326,7 @@
                         if (v.model) displayText += ' ' + v.model;
                         if (v.license_plate) displayText += ' (' + v.license_plate + ')';
                         if (!displayText) displayText = '车辆 #' + v.id;
-                        html += '<a href="vehicle.html?id=' + v.id + '" class="v-tag" target="_blank">' +
+                        html += '<a href=' + v.id + '"vehicles.html?id=" class="v-tag" target="_blank">' +
                             '🚌 ' + escapeHtml(displayText) +
                             '</a>';
                     });
