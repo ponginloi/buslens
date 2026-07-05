@@ -1599,43 +1599,62 @@
             }
         }
 
-        function loadAmap() {
-            fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config')
-                .then(function(response) { return response.json(); })
-                .then(function(config) {
-                    if (!config.key) {
-                        console.error('❌ 无法获取高德地图密钥');
-                        return;
-                    }
+        // ============================================================
+//  高德地图加载
+// ============================================================
+function loadAmap() {
+    fetch('https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/get-amap-config')
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('网络请求失败: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(config) {
+            console.log('✅ 获取高德配置成功');
 
-                    window._AMapSecurityConfig = {
-                        securityJsCode: config.security
-                    };
+            // 检查返回数据
+            if (!config || !config.key || !config.security) {
+                console.error('❌ 配置数据不完整:', config);
+                return;
+            }
 
-                    if (typeof AMap !== 'undefined') {
-                        mapLoaded = true;
-                        mapReadyCallbacks.forEach(function(cb) { cb(); });
-                        mapReadyCallbacks = [];
-                        return;
-                    }
+            var amapKey = config.key;
+            var amapSecurity = config.security;
 
-                    var script = document.createElement('script');
-                    script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + config.key;
-                    script.onload = function() {
-                        console.log('✅ 高德地图加载成功');
-                        mapLoaded = true;
-                        mapReadyCallbacks.forEach(function(cb) { cb(); });
-                        mapReadyCallbacks = [];
-                    };
-                    script.onerror = function() {
-                        console.error('❌ 高德地图加载失败');
-                    };
-                    document.head.appendChild(script);
-                })
-                .catch(function(error) {
-                    console.error('❌ 获取高德配置失败:', error);
-                });
-        }
+            window._AMapSecurityConfig = {
+                securityJsCode: amapSecurity
+            };
+
+            // 如果 AMap 已经加载了
+            if (typeof AMap !== 'undefined') {
+                mapLoaded = true;
+                mapReadyCallbacks.forEach(function(cb) { cb(); });
+                mapReadyCallbacks = [];
+                return;
+            }
+
+            // 加载高德地图 JS
+            var script = document.createElement('script');
+            script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + amapKey;
+            script.onload = function() {
+                console.log('✅ 高德地图加载成功');
+                mapLoaded = true;
+                mapReadyCallbacks.forEach(function(cb) { cb(); });
+                mapReadyCallbacks = [];
+            };
+            script.onerror = function() {
+                console.error('❌ 高德地图加载失败');
+            };
+            document.head.appendChild(script);
+        })
+        .catch(function(error) {
+            console.error('❌ 获取高德配置失败:', error);
+            // 显示错误提示
+            document.getElementById('loadingTip').innerHTML =
+                '<span style="color:#f44336;">⚠️ 地图加载失败，请刷新重试</span>';
+        });
+}
 
         // ============================================================
         //  全局状态
