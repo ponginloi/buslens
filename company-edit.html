@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🏢 上传公司 - BusLens</title>
+    <script>
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var SESSION_KEY = 'bus_user_session';
+    </script>
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 10px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+        .navbar .brand {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+        .navbar .brand span {
+            font-size: 24px;
+        }
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .navbar .nav-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .navbar .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        .navbar .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .navbar .nav-links .user-name {
+            color: rgba(255, 255, 255, 0.85);
+            padding: 5px 10px;
+            font-size: 13px;
+        }
+        .navbar .nav-links .btn-logout {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .navbar .nav-links .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .back-bar {
+            margin-bottom: 16px;
+        }
+        .back-bar a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-bar a:hover {
+            text-decoration: underline;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 36px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+        .form-card .form-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        .form-card .form-sub {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .form-group label .required {
+            color: #f44336;
+        }
+        .form-group label .hint-text {
+            font-weight: 400;
+            color: #999;
+            font-size: 12px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            outline: none;
+            font-family: inherit;
+            background: #fff;
+            color: #333;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #1a73e8;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .form-group .hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-divider {
+            margin-top: 8px;
+            padding-top: 14px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .section-divider .section-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3);
+        }
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: none;
+            font-size: 14px;
+        }
+        .message.error {
+            display: block;
+            background: #fee8e8;
+            color: #d32f2f;
+        }
+        .message.success {
+            display: block;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .message.loading {
+            display: block;
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.success {
+            border-color: #4caf50;
+        }
+        .toast.error {
+            border-color: #f44336;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            .navbar {
+                padding: 8px 14px;
+            }
+            .navbar .brand {
+                font-size: 16px;
+            }
+            .navbar .nav-links a {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+            .form-card {
+                padding: 20px 16px;
+            }
+            .form-card .form-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <a href="index.html" class="brand"><span>🚌</span> BusLens</a>
+            <div class="nav-links" id="navLinks"></div>
+        </nav>
+
+        <div class="back-bar">
+            <a href="vehicles.html">← 返回巴士档案</a>
+        </div>
+
+        <div class="form-card">
+            <div class="form-title">🏢 上传运营公司</div>
+            <div class="form-sub">提交公司信息，审核通过后可在车辆档案和照片中关联使用</div>
+
+            <div class="message" id="message"></div>
+
+            <form id="companyForm">
+
+                <!-- ===== 地区层级（四级联动选择） ===== -->
+                <div class="section-divider">
+                    <div class="section-title">🌍 地区信息</div>
+                </div>
+
+                <div class="form-group">
+                    <label>国家/地区 <span class="required">*</span></label>
+                    <select id="countrySelect" onchange="loadProvinces()">
+                        <option value="">请选择国家...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>省份/州 <span class="required">*</span></label>
+                    <select id="provinceSelect" onchange="loadCities()">
+                        <option value="">请先选择国家...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>城市 <span class="required">*</span></label>
+                    <select id="citySelect">
+                        <option value="">请先选择省份...</option>
+                    </select>
+                </div>
+
+                <!-- ===== 公司信息 ===== -->
+                <div class="section-divider">
+                    <div class="section-title">🏢 公司信息</div>
+                </div>
+
+                <div class="form-group">
+                    <label>公司全称 <span class="required">*</span></label>
+                    <input type="text" id="companyName" placeholder="如：新福利巴士有限公司、深圳巴士集团">
+                    <div class="hint">公司的完整官方名称</div>
+                </div>
+
+                <div class="form-group">
+                    <label>公司简称 <span class="hint-text">（选填）</span></label>
+                    <input type="text" id="companyShortName" placeholder="如：新福利、深巴">
+                    <div class="hint">公司常用的简称</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>车队规模 <span class="hint-text">（选填）</span></label>
+                        <input type="number" id="fleetSize" placeholder="如：200">
+                        <div class="hint">公司拥有的巴士数量</div>
+                    </div>
+                    <div class="form-group">
+                        <label>线路数量 <span class="hint-text">（选填）</span></label>
+                        <input type="number" id="routeCount" placeholder="如：50">
+                        <div class="hint">公司运营的公交线路数量</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>官网 <span class="hint-text">（选填）</span></label>
+                    <input type="url" id="website" placeholder="如：https://www.example.com">
+                </div>
+
+                <div class="form-group">
+                    <label>联系电话 <span class="hint-text">（选填）</span></label>
+                    <input type="text" id="phone" placeholder="如：+853 2871 8888">
+                </div>
+
+                <div class="form-group">
+                    <label>地址 <span class="hint-text">（选填）</span></label>
+                    <input type="text" id="address" placeholder="公司详细地址">
+                </div>
+
+                <div class="form-group">
+                    <label>公司简介 <span class="hint-text">（选填）</span></label>
+                    <textarea id="description" placeholder="公司的业务范围、历史、规模等..."></textarea>
+                </div>
+
+                <!-- ===== 提交 ===== -->
+                <button type="submit" class="btn-submit" id="submitBtn">📤 提交审核</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        //  Supabase 客户端
+        // ============================================================
+        var supabaseClient = null;
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+        initSupabase();
+
+        // ============================================================
+        //  用户状态
+        // ============================================================
+        function getCurrentUser() {
+            try {
+                var raw = sessionStorage.getItem(SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) { return null; }
+        }
+
+        function logout() {
+            sessionStorage.removeItem(SESSION_KEY);
+            window.location.href = 'index.html';
+        }
+
+        function renderNav() {
+            var nav = document.getElementById('navLinks');
+            var user = getCurrentUser();
+
+            if (user) {
+                nav.innerHTML =
+                    '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
+                    '<a href="vehicles.html" class="active">🚌 档案</a>' +
+                    '<a href="profile.html">👤 个人中心</a>' +
+                    '<a href="upload.html">📤 新机位</a>' +
+                    '<span class="user-name">👤 ' + escapeHtml(user.username) + '</span>' +
+                    '<button class="btn-logout" onclick="logout()">退出</button>';
+            } else {
+                nav.innerHTML =
+                    '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
+                    '<a href="vehicles.html" class="active">🚌 档案</a>' +
+                    '<a href="login.html">登录</a>' +
+                    '<a href="register.html">注册</a>';
+            }
+        }
+
+        // ============================================================
+        //  工具函数
+        // ============================================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(text, type) {
+            var el = document.getElementById('toast');
+            el.textContent = text;
+            el.className = 'toast ' + (type || '') + ' show';
+            clearTimeout(el._timer);
+            el._timer = setTimeout(function() { el.className = 'toast'; }, 3000);
+        }
+
+        function showMessage(text, type) {
+            var el = document.getElementById('message');
+            el.textContent = text;
+            el.className = 'message ' + type;
+            el.style.display = 'block';
+        }
+
+        // ============================================================
+        //  四级联动：国家 → 省份 → 城市
+        // ============================================================
+        var countriesCache = [];
+        var provincesCache = [];
+        var citiesCache = [];
+
+        function loadCountries() {
+            supabaseClient
+                .from('countries')
+                .select('id, name')
+                .eq('status', 'approved')
+                .order('name')
+                .then(function(res) {
+                    if (!res.error) {
+                        countriesCache = res.data || [];
+                        var select = document.getElementById('countrySelect');
+                        select.innerHTML = '<option value="">请选择国家...</option>';
+                        countriesCache.forEach(function(c) {
+                            select.innerHTML += '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>';
+                        });
+                    }
+                });
+        }
+
+        function loadProvinces() {
+            var countryId = document.getElementById('countrySelect').value;
+            var provinceSelect = document.getElementById('provinceSelect');
+            var citySelect = document.getElementById('citySelect');
+
+            citySelect.innerHTML = '<option value="">请先选择省份...</option>';
+
+            if (!countryId) {
+                provinceSelect.innerHTML = '<option value="">请先选择国家...</option>';
+                return;
+            }
+
+            supabaseClient
+                .from('provinces')
+                .select('id, name')
+                .eq('country_id', countryId)
+                .eq('status', 'approved')
+                .order('name')
+                .then(function(res) {
+                    if (!res.error) {
+                        provincesCache = res.data || [];
+                        provinceSelect.innerHTML = '<option value="">请选择省份...</option>';
+                        provincesCache.forEach(function(p) {
+                            provinceSelect.innerHTML += '<option value="' + p.id + '">' + escapeHtml(p.name) +
+                                '</option>';
+                        });
+                    }
+                });
+        }
+
+        function loadCities() {
+            var provinceId = document.getElementById('provinceSelect').value;
+            var citySelect = document.getElementById('citySelect');
+
+            if (!provinceId) {
+                citySelect.innerHTML = '<option value="">请先选择省份...</option>';
+                return;
+            }
+
+            supabaseClient
+                .from('cities')
+                .select('id, name')
+                .eq('province_id', provinceId)
+                .eq('status', 'approved')
+                .order('name')
+                .then(function(res) {
+                    if (!res.error) {
+                        citiesCache = res.data || [];
+                        citySelect.innerHTML = '<option value="">请选择城市...</option>';
+                        citiesCache.forEach(function(c) {
+                            citySelect.innerHTML += '<option value="' + c.id + '">' + escapeHtml(c.name) +
+                                '</option>';
+                        });
+                    }
+                });
+        }
+
+        // ============================================================
+        //  提交表单
+        // ============================================================
+        document.getElementById('companyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            var user = getCurrentUser();
+            if (!user) {
+                showMessage('❌ 请先登录', 'error');
+                return;
+            }
+
+            var countryId = document.getElementById('countrySelect').value;
+            var provinceId = document.getElementById('provinceSelect').value;
+            var cityId = document.getElementById('citySelect').value;
+            var name = document.getElementById('companyName').value.trim();
+
+            if (!countryId) { showMessage('❌ 请选择国家/地区', 'error'); return; }
+            if (!provinceId) { showMessage('❌ 请选择省份/州', 'error'); return; }
+            if (!cityId) { showMessage('❌ 请选择城市', 'error'); return; }
+            if (!name) { showMessage('❌ 请填写公司全称', 'error'); return; }
+
+            var country = countriesCache.find(function(c) { return c.id == countryId; });
+            var province = provincesCache.find(function(p) { return p.id == provinceId; });
+            var city = citiesCache.find(function(c) { return c.id == cityId; });
+
+            var btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 提交中...';
+            showMessage('⏳ 正在提交...', 'loading');
+
+            try {
+                var data = {
+                    name: name,
+                    short_name: document.getElementById('companyShortName').value.trim() || null,
+                    country_id: countryId,
+                    province_id: provinceId,
+                    city_id: cityId,
+                    country_name: country ? country.name : null,
+                    province_name: province ? province.name : null,
+                    city_name: city ? city.name : null,
+                    fleet_size: parseInt(document.getElementById('fleetSize').value) || null,
+                    route_count: parseInt(document.getElementById('routeCount').value) || null,
+                    website: document.getElementById('website').value.trim() || null,
+                    phone: document.getElementById('phone').value.trim() || null,
+                    address: document.getElementById('address').value.trim() || null,
+                    description: document.getElementById('description').value.trim() || null,
+                    created_by: user.username,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                };
+
+                var { error } = await supabaseClient
+                    .from('operators')
+                    .insert([data]);
+
+                if (error) throw new Error(error.message);
+
+                showMessage('✅ 公司「' + name + '」已提交，等待管理员审核！', 'success');
+                btn.textContent = '✅ 已提交';
+
+                document.getElementById('companyForm').reset();
+                document.getElementById('countrySelect').selectedIndex = 0;
+                document.getElementById('provinceSelect').innerHTML = '<option value="">请先选择国家...</option>';
+                document.getElementById('citySelect').innerHTML = '<option value="">请先选择省份...</option>';
+
+                setTimeout(function() {
+                    window.location.href = 'vehicles.html';
+                }, 2000);
+
+            } catch (error) {
+                console.error('提交失败:', error);
+                showMessage('❌ 提交失败：' + error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '📤 提交审核';
+            }
+        });
+
+        // ============================================================
+        //  启动
+        // ============================================================
+        renderNav();
+        loadCountries();
+
+        console.log('🏢 公司上传页面已加载');
+        console.log('✅ 四级联动：国家→省份→城市');
+        console.log('✅ 公司信息自由填写');
+    </script>
+</body>
+</html>
