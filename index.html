@@ -8,6 +8,7 @@
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx', 'shaojiu_0053', '135317'];
     </script>
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
@@ -1337,7 +1338,11 @@
     <div class="status-msg" id="statusMsg"></div>
 
     <script>
+        // ============================================================
+        //  ✅ Supabase 客户端初始化（立即执行）
+        // ============================================================
         var supabaseClient = null;
+        var supabaseReady = false;
 
         function initSupabase() {
             if (typeof supabase === 'undefined') {
@@ -1347,12 +1352,16 @@
             try {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 console.log('✅ Supabase 初始化成功');
+                supabaseReady = true;
                 return true;
             } catch (e) {
                 console.error('❌ Supabase 初始化失败:', e);
+                supabaseReady = false;
                 return false;
             }
         }
+
+        // 立即初始化
         initSupabase();
 
         // ============================================================
@@ -1363,6 +1372,12 @@
                 var raw = sessionStorage.getItem(SESSION_KEY);
                 return raw ? JSON.parse(raw) : null;
             } catch (e) { return null; }
+        }
+
+        function isAdmin() {
+            var user = getCurrentUser();
+            if (!user) return false;
+            return ADMIN_USERNAMES.indexOf(user.username) !== -1;
         }
 
         function logout() {
@@ -1412,6 +1427,9 @@
             if (tip) tip.style.display = 'none';
         }
 
+        // ============================================================
+        //  面板控制
+        // ============================================================
         var panelCollapsed = false;
 
         function togglePanel() {
@@ -1465,6 +1483,9 @@
             }
         }
 
+        // ============================================================
+        //  手机端筛选
+        // ============================================================
         var mobileFilter = 'all';
         var mobileSearchQuery = '';
 
@@ -1537,6 +1558,9 @@
             showStatus('📋 全屏查看功能开发中...', 'loading');
         }
 
+        // ============================================================
+        //  渲染导航
+        // ============================================================
         function renderNav() {
             var nav = document.getElementById('navLinks');
             var userArea = document.getElementById('userArea');
@@ -1561,6 +1585,9 @@
             }
         }
 
+        // ============================================================
+        //  高德地图加载
+        // ============================================================
         var mapLoaded = false;
         var mapReadyCallbacks = [];
 
@@ -1610,6 +1637,9 @@
                 });
         }
 
+        // ============================================================
+        //  全局状态
+        // ============================================================
         var allSpots = [];
         var filteredSpots = [];
         var currentFilter = 'all';
@@ -1620,6 +1650,9 @@
         var infoWindow = null;
         var mapMoveTimer = null;
 
+        // ============================================================
+        //  筛选与搜索
+        // ============================================================
         function setFilter(filter) {
             currentFilter = filter;
             document.querySelectorAll('#filterBar .filter-btn').forEach(function(btn) {
@@ -1650,6 +1683,9 @@
             updateMapMarkers(spots);
         }
 
+        // ============================================================
+        //  地图视野
+        // ============================================================
         function getSpotsInView(spots) {
             if (!map || !spots || spots.length === 0) return [];
 
@@ -2233,6 +2269,9 @@
             }
         }
 
+        // ============================================================
+        //  ✅ 提交上传（使用 Supabase 客户端直接更新）
+        // ============================================================
         async function submitUploadPhoto() {
             if (uploadPhotoFiles.length === 0) {
                 showUploadMessage('请至少选择 1 张照片', 'error');
@@ -2242,6 +2281,12 @@
             var user = getCurrentUser();
             if (!user) {
                 showUploadMessage('请先登录', 'error');
+                return;
+            }
+
+            // ✅ 检查 Supabase 客户端是否初始化
+            if (!supabaseClient) {
+                showUploadMessage('系统初始化失败，请刷新页面重试', 'error');
                 return;
             }
 
@@ -2333,6 +2378,7 @@
         });
 
         console.log('🚌 BusLens 地图已加载');
+        console.log('✅ Supabase 客户端状态:', supabaseReady ? '已就绪' : '未就绪');
         console.log('✅ 登录后点击机位标记 → 底部"📸 传图"按钮');
     </script>
 </body>
