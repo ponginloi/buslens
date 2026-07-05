@@ -1123,79 +1123,78 @@
         //  渲染车辆卡片
         // ============================================================
         function renderVehicles(vehicles) {
-            var grid = document.getElementById('vehicleGrid');
+    var grid = document.getElementById('vehicleGrid');
 
-            if (!vehicles || vehicles.length === 0) {
-                grid.innerHTML =
-                    '<div class="empty-state"><span class="icon">🚌</span><p>没有找到匹配的巴士</p><div class="sub">试试调整筛选条件</div></div>';
-                return;
-            }
+    if (!vehicles || vehicles.length === 0) {
+        grid.innerHTML =
+            '<div class="empty-state"><span class="icon">🚌</span><p>没有找到匹配的巴士</p><div class="sub">试试调整筛选条件</div></div>';
+        return;
+    }
 
-            var html = '';
-            vehicles.forEach(function(v) {
-                var coverPhoto = getVehicleCover(v);
-                var photoCount = photoCounts[v.id] || 0;
-                var isOfficial = v.data_source === 'official' || v.verified === true;
-                var sourceClass = isOfficial ? 'official' : 'user';
-                var sourceLabel = isOfficial ? '🏢 官方认证' : '👤 用户投稿';
-                var statusLabel = getStatusLabel(v.service_status);
-                var statusClass = getStatusClass(v.service_status);
-                var operatorName = getOperatorName(v.operator_id);
-                var typeLabel = getVehicleTypeLabel(v.vehicle_type);
+    var html = '';
+    vehicles.forEach(function(v) {
+        var coverPhoto = getVehicleCover(v);
+        var photoCount = photoCounts[v.id] || 0;
+        var isOfficial = v.data_source === 'official' || v.verified === true;
+        var sourceClass = isOfficial ? 'official' : 'user';
+        var sourceLabel = isOfficial ? '🏢 官方认证' : '👤 用户投稿';
+        var statusLabel = getStatusLabel(v.service_status);
+        var statusClass = getStatusClass(v.service_status);
+        var operatorName = getOperatorName(v.operator_id);
+        var typeLabel = getVehicleTypeLabel(v.vehicle_type);
 
-                var thumbHtml = '';
-                if (coverPhoto) {
-                    thumbHtml = '<img src="' + escapeHtml(coverPhoto) + '" alt="' + escapeHtml(v.fleet_number || v.model ||
-                        '巴士') + '" loading="lazy" />';
-                } else {
-                    thumbHtml = '<div class="no-image">🚌</div>';
-                }
-
-                // 标题：优先显示车牌号
-                // 标题：优先显示车牌号
-                var displayName = '';
-                if (v.license_plate) {
-                    displayName = '<span class="plate-text">' + escapeHtml(v.license_plate) + '</span>';
-                } else if (v.fleet_number) {
-                    displayName = '<span class="fleet-number">' + escapeHtml(v.fleet_number) + '</span>';
-                } else if (v.model) {
-                    displayName = escapeHtml(v.model);
-                } else {
-                    displayName = '未命名巴士';
-                }
-
-                html +=
-                    '<div class="vehicle-card" onclick="window.location.href=\'vehicle.html?id=' + v.id + '\'">' +
-                    '<div class="card-thumb">' +
-                    thumbHtml +
-                    '<div class="badges">' +
-                    '<span class="badge ' + sourceClass + '">' + sourceLabel + '</span>' +
-                    (v.service_status ? '<span class="badge ' + statusClass + '">' + statusLabel + '</span>' : '') +
-                    '</div>' +
-                    (photoCount > 0 ? '<span class="photo-count">📸 ' + photoCount + ' 张</span>' : '') +
-                    '</div>' +
-                    '<div class="card-body">' +
-                    '<div class="vehicle-name">' + displayName + '</div>' +
-                    '<div class="vehicle-meta">' +
-                    (operatorName ? '<span>🏢 <span class="operator-name">' + escapeHtml(operatorName) + '</span></span>' :
-                        '') +
-                    (v.manufacturer ? '<span>🏭 ' + escapeHtml(v.manufacturer) + '</span>' : '') +
-                    (v.vehicle_type ? '<span>🚌 ' + typeLabel + '</span>' : '') +
-                    (v.livery_name ? '<span>🎨 <span class="livery-tag" style="background:#f0f0f0;">' + escapeHtml(v
-                        .livery_name) + '</span></span>' : '') +
-                    '</div>' +
-                    '<div class="vehicle-stats">' +
-                    '<span>👁️ <span class="num">' + (v.views || 0) + '</span></span>' +
-                    '<span>❤️ <span class="num">' + (v.likes || 0) + '</span></span>' +
-                    '<span>📸 <span class="num">' + photoCount + '</span></span>' +
-                    '<span style="margin-left:auto;color:#bbb;">' + formatDate(v.created_at) + '</span>' +
-                    '</div>' +
-                    '</div>' +
-                    '</div>';
-            });
-
-            grid.innerHTML = html;
+        var thumbHtml = '';
+        if (coverPhoto) {
+            thumbHtml = '<img src="' + escapeHtml(coverPhoto) + '" alt="' + escapeHtml(v.fleet_number || v.model ||
+                '巴士') + '" loading="lazy" />';
+        } else {
+            thumbHtml = '<div class="no-image">🚌</div>';
         }
+
+        // ★★★★★ 标题显示逻辑（改这里）★★★★★
+        var displayName = '';
+        if (v.license_plate) {
+            displayName = '<span class="plate-text">' + escapeHtml(v.license_plate) + '</span>';
+        } else if (v.fleet_number) {
+            displayName = '<span class="fleet-number">' + escapeHtml(v.fleet_number) + '</span>';
+        } else if (v.model) {
+            displayName = escapeHtml(v.model);
+        } else {
+            displayName = '未命名巴士';
+        }
+
+        html +=
+            '<div class="vehicle-card" onclick="window.location.href=\'vehicle.html?id=' + v.id + '\'">' +
+            '<div class="card-thumb">' +
+            thumbHtml +
+            '<div class="badges">' +
+            '<span class="badge ' + sourceClass + '">' + sourceLabel + '</span>' +
+            (v.service_status ? '<span class="badge ' + statusClass + '">' + statusLabel + '</span>' : '') +
+            '</div>' +
+            (photoCount > 0 ? '<span class="photo-count">📸 ' + photoCount + ' 张</span>' : '') +
+            '</div>' +
+            '<div class="card-body">' +
+            '<div class="vehicle-name">' + displayName + '</div>' +
+            '<div class="vehicle-meta">' +
+            (operatorName ? '<span>🏢 <span class="operator-name">' + escapeHtml(operatorName) + '</span></span>' :
+                '') +
+            (v.manufacturer ? '<span>🏭 ' + escapeHtml(v.manufacturer) + '</span>' : '') +
+            (v.vehicle_type ? '<span>🚌 ' + typeLabel + '</span>' : '') +
+            (v.livery_name ? '<span>🎨 <span class="livery-tag" style="background:#f0f0f0;">' + escapeHtml(v
+                .livery_name) + '</span></span>' : '') +
+            '</div>' +
+            '<div class="vehicle-stats">' +
+            '<span>👁️ <span class="num">' + (v.views || 0) + '</span></span>' +
+            '<span>❤️ <span class="num">' + (v.likes || 0) + '</span></span>' +
+            '<span>📸 <span class="num">' + photoCount + '</span></span>' +
+            '<span style="margin-left:auto;color:#bbb;">' + formatDate(v.created_at) + '</span>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+    });
+
+    grid.innerHTML = html;
+}
 
         // ============================================================
         //  辅助函数
