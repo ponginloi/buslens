@@ -2963,179 +2963,209 @@
         // ============================================================
         //  ✅ 提交上传（精简版）
         // ============================================================
-        async function submitUploadPhoto() {
-            if (uploadPhotoFiles.length === 0) {
-                showUploadMessage('请至少选择 1 张照片', 'error');
-                return;
-            }
+        // ============================================================
+//  ✅ 提交上传（精简版 + 自动创建车辆 + 自动设封面）
+// ============================================================
+async function submitUploadPhoto() {
+    if (uploadPhotoFiles.length === 0) {
+        showUploadMessage('请至少选择 1 张照片', 'error');
+        return;
+    }
 
-            var user = getCurrentUser();
-            if (!user) {
-                showUploadMessage('请先登录', 'error');
-                return;
-            }
+    var user = getCurrentUser();
+    if (!user) {
+        showUploadMessage('请先登录', 'error');
+        return;
+    }
 
-            // 验证地区层级
-            var countryId = document.getElementById('photoCountry').value;
-            var provinceId = document.getElementById('photoProvince').value;
-            var cityId = document.getElementById('photoCity').value;
+    // 验证地区层级
+    var countryId = document.getElementById('photoCountry').value;
+    var provinceId = document.getElementById('photoProvince').value;
+    var cityId = document.getElementById('photoCity').value;
 
-            if (!countryId) { showUploadMessage('请选择国家/地区', 'error'); return; }
-            if (!provinceId) { showUploadMessage('请选择省份/州', 'error'); return; }
-            if (!cityId) { showUploadMessage('请选择城市', 'error'); return; }
+    if (!countryId) { showUploadMessage('请选择国家/地区', 'error'); return; }
+    if (!provinceId) { showUploadMessage('请选择省份/州', 'error'); return; }
+    if (!cityId) { showUploadMessage('请选择城市', 'error'); return; }
 
-            var btn = document.getElementById('uploadPhotoSubmitBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ 上传中...';
-            showUploadMessage('正在上传...', 'loading');
+    var btn = document.getElementById('uploadPhotoSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 上传中...';
+    showUploadMessage('正在上传...', 'loading');
 
-            try {
-                // 1. 上传图片到 ImgBB
-                var uploadedUrls = [];
-                for (var i = 0; i < uploadPhotoFiles.length; i++) {
-                    showUploadMessage('上传 ' + (i + 1) + '/' + uploadPhotoFiles.length + '...', 'loading');
-                    var processedFile = await processImageWithCanvas(uploadPhotoFiles[i], {
-                        maxWidth: 1920,
-                        maxHeight: 1080,
-                        quality: 0.85,
-                        maxSizeMB: 4.5,
-                        barHeight: 50,
-                        watermarkText: 'BusLens',
-                        copyrightText: '© 2026 ' + user.username + ' 版权所有'
-                    }, user.username);
-                    var url = await uploadToImgBB(processedFile);
-                    uploadedUrls.push(url);
+    try {
+        // 1. 上传图片到 ImgBB
+        var uploadedUrls = [];
+        for (var i = 0; i < uploadPhotoFiles.length; i++) {
+            showUploadMessage('上传 ' + (i + 1) + '/' + uploadPhotoFiles.length + '...', 'loading');
+            var processedFile = await processImageWithCanvas(uploadPhotoFiles[i], {
+                maxWidth: 1920,
+                maxHeight: 1080,
+                quality: 0.85,
+                maxSizeMB: 4.5,
+                barHeight: 50,
+                watermarkText: 'BusLens',
+                copyrightText: '© 2026 ' + user.username + ' 版权所有'
+            }, user.username);
+            var url = await uploadToImgBB(processedFile);
+            uploadedUrls.push(url);
+        }
+
+        // 2. 收集表单数据
+        var licensePlate = document.getElementById('vehicleLicensePlate').value.trim() || null;
+        var routeInput = document.getElementById('photoRouteInput').value.trim() || null;
+        var operatorId = document.getElementById('photoOperator').value || null;
+
+        // 3. 处理车辆：根据车牌号查找或创建
+        var finalVehicleId = selectedVehicleId || null;
+        var isNewVehicle = false;
+
+        // 如果有车牌号且没有手动选择已有车辆
+        if (!finalVehicleId && licensePlate) {
+            // 检查是否已存在相同车牌号的车辆
+            var { data: existingVehicle } = await supabaseClient
+                .from('vehicles')
+                .select('id, license_plate, cover_photo')
+                .eq('license_plate', licensePlate)
+                .eq('status', 'approved')
+                .limit(1);
+
+            if (existingVehicle && existingVehicle.length > 0) {
+                // 车辆已存在，关联到它
+                finalVehicleId = existingVehicle[0].id;
+                console.log('✅ 找到已有车辆 ID:', finalVehicleId);
+            } else {
+                // 创建新车辆，车牌号作为标题，第一张照片设为封面
+                isNewVehicle = true;
+                var newVehicle = {
+                    license_plate: licensePlate,
+                    // 标题自动使用车牌号，不填 model 和 fleet_number
+                    country_id: countryId,
+                    province_id: provinceId,
+                    city_id: cityId,
+                    operator_id: operatorId || null,
+                    route_number: routeInput || null,
+                    // ✅ 第一张上传的照片设为封面
+                    cover_photo: uploadedUrls[0],
+                    created_by: user.username,
+                    data_source: 'user',
+                    status: 'pending',  // 等待审核
+                    created_at: new Date().toISOString()
+                };
+
+                var { data: newVehicleData, error: vError } = await supabaseClient
+                    .from('vehicles')
+                    .insert([newVehicle])
+                    .select();
+
+                if (vError) {
+                    console.error('创建车辆失败:', vError);
+                    // 如果创建失败，不阻断照片上传
+                } else if (newVehicleData && newVehicleData.length > 0) {
+                    finalVehicleId = newVehicleData[0].id;
+                    allVehiclesForUpload.push(newVehicleData[0]);
+                    allVehiclesCache.push(newVehicleData[0]);
+                    console.log('✅ 创建新车辆 ID:', finalVehicleId, '车牌:', licensePlate);
+                    showUploadMessage('🚗 已自动创建车辆档案：' + licensePlate, 'success');
                 }
-
-                // 2. 收集表单数据
-                var licensePlate = document.getElementById('vehicleLicensePlate').value.trim() || null;
-                var routeInput = document.getElementById('photoRouteInput').value.trim() || null;
-                var operatorId = document.getElementById('photoOperator').value || null;
-
-                // 3. 处理车辆：如果有车牌号，查找或创建车辆
-                var finalVehicleId = selectedVehicleId || null;
-
-                if (!finalVehicleId && licensePlate) {
-                    // 检查是否已存在相同车牌号的车辆
-                    var { data: existingVehicle } = await supabaseClient
-                        .from('vehicles')
-                        .select('id')
-                        .eq('license_plate', licensePlate)
-                        .eq('status', 'approved')
-                        .limit(1);
-
-                    if (existingVehicle && existingVehicle.length > 0) {
-                        finalVehicleId = existingVehicle[0].id;
-                    } else {
-                        // 创建新车辆（只保存车牌号）
-                        var newVehicle = {
-                            license_plate: licensePlate,
-                            country_id: countryId,
-                            province_id: provinceId,
-                            city_id: cityId,
-                            operator_id: operatorId || null,
-                            route_number: routeInput || null,
-                            created_by: user.username,
-                            data_source: 'user',
-                            status: 'pending',
-                            created_at: new Date().toISOString()
-                        };
-
-                        var { data: newVehicleData, error: vError } = await supabaseClient
-                            .from('vehicles')
-                            .insert([newVehicle])
-                            .select();
-
-                        if (!vError && newVehicleData && newVehicleData.length > 0) {
-                            finalVehicleId = newVehicleData[0].id;
-                            allVehiclesForUpload.push(newVehicleData[0]);
-                            allVehiclesCache.push(newVehicleData[0]);
-                        }
-                    }
-                }
-
-                // 4. 构建 user_photos 记录
-                var photoRecords = uploadedUrls.map(function(url) {
-                    return {
-                        photo_url: url,
-                        spot_id: uploadPhotoSpotId,
-                        vehicle_id: finalVehicleId || null,
-                        uploader: user.username,
-                        uploader_name: user.username,
-                        route_number: routeInput || null,
-                        country_id: countryId || null,
-                        province_id: provinceId || null,
-                        city_id: cityId || null,
-                        operator_id: operatorId || null,
-                        status: 'pending',
-                        created_at: new Date().toISOString()
-                    };
-                });
-
-                // 5. 插入 user_photos
-                var { error: insertError } = await supabaseClient
-                    .from('user_photos')
-                    .insert(photoRecords);
-
-                if (insertError) throw new Error(insertError.message);
-
-                // 6. 更新 spots.related_vehicles（双向关联）
-                if (finalVehicleId) {
-                    var { data: vehicleData, error: vFetchError } = await supabaseClient
-                        .from('vehicles')
-                        .select('related_spot_ids')
-                        .eq('id', finalVehicleId)
-                        .single();
-
-                    if (!vFetchError && vehicleData) {
-                        var spotIds = vehicleData.related_spot_ids || [];
-                        if (!spotIds.includes(uploadPhotoSpotId)) {
-                            spotIds.push(uploadPhotoSpotId);
-                            await supabaseClient
-                                .from('vehicles')
-                                .update({ related_spot_ids: spotIds })
-                                .eq('id', finalVehicleId);
-                        }
-                    }
-
-                    var { data: spotData, error: spotFetchError } = await supabaseClient
-                        .from('spots')
-                        .select('related_vehicles')
-                        .eq('id', uploadPhotoSpotId)
-                        .single();
-
-                    if (!spotFetchError && spotData) {
-                        var relatedVehicles = spotData.related_vehicles || [];
-                        if (!relatedVehicles.includes(finalVehicleId)) {
-                            relatedVehicles.push(finalVehicleId);
-                            await supabaseClient
-                                .from('spots')
-                                .update({ related_vehicles: relatedVehicles })
-                                .eq('id', uploadPhotoSpotId);
-                        }
-                    }
-                }
-
-                // 7. 更新缓存
-                photoCache[uploadPhotoSpotId] = null;
-
-                showUploadMessage('✅ 已上传 ' + uploadedUrls.length + ' 张照片！' +
-                    (finalVehicleId ? ' 🚌 已关联车辆' : ''), 'success');
-                btn.textContent = '✅ 已完成';
-
-                setTimeout(function() {
-                    closeUploadModal();
-                    loadData();
-                    showStatus('✅ 照片上传成功！', 'success');
-                }, 1500);
-
-            } catch (error) {
-                console.error('上传失败:', error);
-                showUploadMessage('❌ ' + error.message, 'error');
-                btn.disabled = false;
-                btn.textContent = '📤 上传';
             }
         }
+
+        // 4. 如果用户手动选择了已有车辆，但车牌号字段也填了不同值，以手动选择为准
+        if (selectedVehicleId) {
+            finalVehicleId = selectedVehicleId;
+        }
+
+        // 5. 构建 user_photos 记录
+        var photoRecords = uploadedUrls.map(function(url) {
+            return {
+                photo_url: url,
+                spot_id: uploadPhotoSpotId,
+                vehicle_id: finalVehicleId || null,
+                uploader: user.username,
+                uploader_name: user.username,
+                route_number: routeInput || null,
+                country_id: countryId || null,
+                province_id: provinceId || null,
+                city_id: cityId || null,
+                operator_id: operatorId || null,
+                status: 'pending',
+                created_at: new Date().toISOString()
+            };
+        });
+
+        // 6. 插入 user_photos
+        var { error: insertError } = await supabaseClient
+            .from('user_photos')
+            .insert(photoRecords);
+
+        if (insertError) throw new Error(insertError.message);
+
+        // 7. 更新 spots.related_vehicles（双向关联）
+        if (finalVehicleId) {
+            // 更新 vehicle 的 related_spot_ids
+            var { data: vehicleData, error: vFetchError } = await supabaseClient
+                .from('vehicles')
+                .select('related_spot_ids')
+                .eq('id', finalVehicleId)
+                .single();
+
+            if (!vFetchError && vehicleData) {
+                var spotIds = vehicleData.related_spot_ids || [];
+                if (!spotIds.includes(uploadPhotoSpotId)) {
+                    spotIds.push(uploadPhotoSpotId);
+                    await supabaseClient
+                        .from('vehicles')
+                        .update({ related_spot_ids: spotIds })
+                        .eq('id', finalVehicleId);
+                }
+            }
+
+            // 更新 spot 的 related_vehicles
+            var { data: spotData, error: spotFetchError } = await supabaseClient
+                .from('spots')
+                .select('related_vehicles')
+                .eq('id', uploadPhotoSpotId)
+                .single();
+
+            if (!spotFetchError && spotData) {
+                var relatedVehicles = spotData.related_vehicles || [];
+                if (!relatedVehicles.includes(finalVehicleId)) {
+                    relatedVehicles.push(finalVehicleId);
+                    await supabaseClient
+                        .from('spots')
+                        .update({ related_vehicles: relatedVehicles })
+                        .eq('id', uploadPhotoSpotId);
+                }
+            }
+        }
+
+        // 8. 更新缓存
+        photoCache[uploadPhotoSpotId] = null;
+
+        var msg = '✅ 已上传 ' + uploadedUrls.length + ' 张照片！';
+        if (finalVehicleId) {
+            if (isNewVehicle) {
+                msg += ' 🚗 已创建车辆档案（车牌：' + licensePlate + '），等待审核';
+            } else {
+                msg += ' 🚌 已关联到现有车辆';
+            }
+        }
+        showUploadMessage(msg, 'success');
+        btn.textContent = '✅ 已完成';
+
+        setTimeout(function() {
+            closeUploadModal();
+            loadData();
+            showStatus('✅ 照片上传成功！', 'success');
+        }, 1500);
+
+    } catch (error) {
+        console.error('上传失败:', error);
+        showUploadMessage('❌ ' + error.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '📤 上传';
+    }
+}
 
         // ============================================================
         //  启动
