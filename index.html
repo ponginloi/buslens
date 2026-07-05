@@ -989,7 +989,7 @@
             font-size: 12px;
         }
 
-        /* ===== 上传弹窗 ===== */
+        /* ===== 上传弹窗（精简版） ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -1009,7 +1009,7 @@
             background: white;
             border-radius: 16px;
             padding: 28px;
-            max-width: 620px;
+            max-width: 580px;
             width: 92%;
             max-height: 92vh;
             overflow-y: auto;
@@ -1629,7 +1629,7 @@
     </div>
 
     <!-- ============================================================
-         上传照片弹窗（含车辆信息 + 四级联动 + 线路选择）
+         上传照片弹窗（精简版）
          ============================================================ -->
     <div class="modal-overlay" id="uploadPhotoModal">
         <div class="modal-content">
@@ -1645,101 +1645,21 @@
             </div>
             <div class="photo-preview-grid" id="uploadPhotoPreview"></div>
 
-            <!-- 2. 拍摄信息 -->
+            <!-- 2. 车牌号（自由填写） -->
             <div class="form-group">
-                <label>📅 拍摄日期 <span class="hint-text">（选填）</span></label>
-                <input type="date" id="shootDate">
-                <div class="hint">照片的实际拍摄日期</div>
+                <label>🚗 车牌号 <span class="hint-text">（选填）</span></label>
+                <input type="text" id="vehicleLicensePlate" placeholder="如：粤B 81001D">
+                <div class="hint">照片中巴士的车牌号</div>
             </div>
 
+            <!-- 3. 线路（手动输入） -->
             <div class="form-group">
-                <label>📝 图片说明 <span class="hint-text">（选填）</span></label>
-                <input type="text" id="photoCaption" placeholder="例如：81001 行驶在深南大道...">
-                <div class="hint">简短的图片描述</div>
+                <label>🚌 线路 <span class="hint-text">（选填）</span></label>
+                <input type="text" id="photoRouteInput" placeholder="如：1路、B2、M123">
+                <div class="hint">照片中巴士运营的线路</div>
             </div>
 
-            <!-- 3. 拍摄参数 -->
-            <div class="form-group">
-                <label>📷 拍摄参数 <span class="hint-text">（选填）</span></label>
-                <div class="input-row">
-                    <input type="text" id="cameraModel" placeholder="相机型号（如 Canon EOS R5）">
-                    <input type="text" id="lens" placeholder="镜头（如 RF 24-105mm）">
-                </div>
-                <div class="input-row" style="margin-top:6px;">
-                    <input type="number" id="focalLength" placeholder="焦距（mm）">
-                    <input type="text" id="aperture" placeholder="光圈（如 f/4）">
-                </div>
-                <div class="input-row" style="margin-top:6px;">
-                    <input type="text" id="shutterSpeed" placeholder="快门速度（如 1/500）">
-                    <input type="number" id="iso" placeholder="ISO（如 400）">
-                </div>
-                <div class="hint">填写拍摄参数，帮助其他用户了解最佳拍摄设置</div>
-            </div>
-
-            <!-- 4. 天气 -->
-            <div class="form-group">
-                <label>🌤️ 天气 <span class="hint-text">（选填）</span></label>
-                <select id="weather">
-                    <option value="">未选择</option>
-                    <option value="晴">☀️ 晴</option>
-                    <option value="多云">⛅ 多云</option>
-                    <option value="阴">☁️ 阴</option>
-                    <option value="小雨">🌧️ 小雨</option>
-                    <option value="大雨">🌧️ 大雨</option>
-                    <option value="雾">🌫️ 雾</option>
-                    <option value="雪">❄️ 雪</option>
-                </select>
-                <div class="hint">拍摄时的天气状况</div>
-            </div>
-
-            <!-- ============================================================
-            5. 车辆信息（自由填写）
-            ============================================================ -->
-            <div class="section-divider">
-                <div class="section-title">🚌 车辆信息 <span class="hint-text">（选填，关联车辆档案）</span></div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>车队编号 <span class="hint-text">（选填）</span></label>
-                    <input type="text" id="vehicleFleetNumber" placeholder="如：81001">
-                </div>
-                <div class="form-group">
-                    <label>车牌号 <span class="hint-text">（选填）</span></label>
-                    <input type="text" id="vehicleLicensePlate" placeholder="如：粤B 81001D">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>车型 <span class="hint-text">（选填）</span></label>
-                    <input type="text" id="vehicleModel" placeholder="如：BYD K9UB">
-                </div>
-                <div class="form-group">
-                    <label>制造商 <span class="hint-text">（选填）</span></label>
-                    <input type="text" id="vehicleManufacturer" placeholder="如：比亚迪、宇通">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>车辆类型 <span class="hint-text">（选填）</span></label>
-                <select id="vehicleType">
-                    <option value="">请选择</option>
-                    <option value="single_decker">单层巴士</option>
-                    <option value="double_decker">双层巴士</option>
-                    <option value="articulated">铰接巴士</option>
-                    <option value="minibus">小巴</option>
-                    <option value="coach">旅游大巴</option>
-                    <option value="electric">纯电动巴士</option>
-                    <option value="hybrid">混动巴士</option>
-                    <option value="trolleybus">无轨电车</option>
-                </select>
-                <div class="hint">💡 填写车辆信息后，系统会自动创建车辆档案</div>
-            </div>
-
-            <!-- ============================================================
-            6. 地区层级：国家 → 省份 → 城市
-            ============================================================ -->
+            <!-- 4. 地区层级：国家 → 省份 → 城市 -->
             <div class="section-divider">
                 <div class="section-title">🌍 地区信息</div>
             </div>
@@ -1763,12 +1683,10 @@
                 <select id="photoCity" onchange="loadOperatorsForPhoto()">
                     <option value="">请先选择省份...</option>
                 </select>
-                <div class="hint">选择城市后，会自动加载该城市的运营公司和线路</div>
+                <div class="hint">选择城市后，会自动加载该城市的运营公司</div>
             </div>
 
-            <!-- ============================================================
-            7. 运营公司（从后台 operators 表选择）
-            ============================================================ -->
+            <!-- 5. 运营公司（从后台 operators 表选择） -->
             <div class="form-group">
                 <label>🏢 运营公司 <span class="hint-text">（选填）</span></label>
                 <select id="photoOperator">
@@ -1777,24 +1695,11 @@
                 <div class="hint">💡 公司列表来自后台审核通过的运营公司</div>
             </div>
 
-            <!-- ============================================================
-            8. 线路（从后台 routes 表选择）
-            ============================================================ -->
-            <div class="form-group">
-                <label>🚌 线路 <span class="hint-text">（选填）</span></label>
-                <select id="photoRoute">
-                    <option value="">请先选择城市...</option>
-                </select>
-                <div class="hint">💡 线路列表来自后台审核通过的线路</div>
-            </div>
-
-            <!-- ============================================================
-            9. 关联已有车辆（搜索）
-            ============================================================ -->
+            <!-- 6. 关联已有车辆（搜索） -->
             <div class="form-group" id="vehicleAssocGroup">
                 <label>🔗 关联已有车辆 <span class="hint-text">（选填）</span></label>
                 <div class="vehicle-search-wrap">
-                    <input type="text" id="vehicleSearchInput" placeholder="搜索已有车辆（编号/车牌/型号）..." oninput="searchVehiclesForUpload()">
+                    <input type="text" id="vehicleSearchInput" placeholder="搜索已有车辆（编号/车牌）..." oninput="searchVehiclesForUpload()">
                 </div>
                 <div id="vehicleSearchResults" style="display:none;"></div>
                 <div id="selectedVehicleDisplay">
@@ -1804,9 +1709,7 @@
                 <div class="hint">💡 如果照片中的车辆已存在档案，可以直接搜索关联</div>
             </div>
 
-            <!-- ============================================================
-            提交按钮
-            ============================================================ -->
+            <!-- 提交按钮 -->
             <div class="btn-row">
                 <button class="btn-cancel" onclick="closeUploadModal()">取消</button>
                 <button class="btn-submit" id="uploadPhotoSubmitBtn" onclick="submitUploadPhoto()">📤 上传</button>
@@ -2255,7 +2158,7 @@
                 .select('*')
                 .eq('spot_id', spotId)
                 .eq('status', 'approved')
-                .order('shoot_date', { ascending: false })
+                .order('created_at', { ascending: false })
                 .then(function(res) {
                     if (!res.error && res.data && res.data.length > 0) {
                         var vehicleIds = res.data.map(function(p) { return p.vehicle_id; }).filter(function(id) { return id; });
@@ -2772,11 +2675,9 @@
             var provinceSelect = document.getElementById('photoProvince');
             var citySelect = document.getElementById('photoCity');
             var operatorSelect = document.getElementById('photoOperator');
-            var routeSelect = document.getElementById('photoRoute');
 
             citySelect.innerHTML = '<option value="">请先选择省份...</option>';
             operatorSelect.innerHTML = '<option value="">请先选择城市...</option>';
-            routeSelect.innerHTML = '<option value="">请先选择城市...</option>';
 
             if (!countryId) {
                 provinceSelect.innerHTML = '<option value="">请先选择国家...</option>';
@@ -2805,10 +2706,8 @@
             var provinceId = document.getElementById('photoProvince').value;
             var citySelect = document.getElementById('photoCity');
             var operatorSelect = document.getElementById('photoOperator');
-            var routeSelect = document.getElementById('photoRoute');
 
             operatorSelect.innerHTML = '<option value="">请先选择城市...</option>';
-            routeSelect.innerHTML = '<option value="">请先选择城市...</option>';
 
             if (!provinceId) {
                 citySelect.innerHTML = '<option value="">请先选择省份...</option>';
@@ -2855,34 +2754,6 @@
                         operatorsCache.forEach(function(op) {
                             var displayName = op.short_name || op.name;
                             operatorSelect.innerHTML += '<option value="' + op.id + '">' + escapeHtml(displayName) +
-                                '</option>';
-                        });
-                    }
-                });
-            // 同时加载线路
-            loadRoutesForPhoto(cityId);
-        }
-
-        function loadRoutesForPhoto(cityId) {
-            var routeSelect = document.getElementById('photoRoute');
-            if (!cityId) {
-                routeSelect.innerHTML = '<option value="">请先选择城市...</option>';
-                return;
-            }
-
-            supabaseClient
-                .from('routes')
-                .select('id, route_number, operator_name')
-                .eq('city_id', cityId)
-                .eq('status', 'approved')
-                .order('route_number')
-                .then(function(res) {
-                    if (!res.error) {
-                        routeSelect.innerHTML = '<option value="">选择线路（选填）...</option>';
-                        (res.data || []).forEach(function(r) {
-                            var label = r.route_number;
-                            if (r.operator_name) label += ' (' + r.operator_name + ')';
-                            routeSelect.innerHTML += '<option value="' + r.id + '">' + escapeHtml(label) +
                                 '</option>';
                         });
                     }
@@ -2999,20 +2870,8 @@
             document.getElementById('uploadPhotoPreview').style.display = 'none';
             document.getElementById('uploadPhotoMessage').className = 'modal-msg';
             document.getElementById('uploadPhotoMessage').style.display = 'none';
-            document.getElementById('shootDate').value = '';
-            document.getElementById('photoCaption').value = '';
-            document.getElementById('cameraModel').value = '';
-            document.getElementById('lens').value = '';
-            document.getElementById('focalLength').value = '';
-            document.getElementById('aperture').value = '';
-            document.getElementById('shutterSpeed').value = '';
-            document.getElementById('iso').value = '';
-            document.getElementById('weather').value = '';
-            document.getElementById('vehicleFleetNumber').value = '';
             document.getElementById('vehicleLicensePlate').value = '';
-            document.getElementById('vehicleModel').value = '';
-            document.getElementById('vehicleManufacturer').value = '';
-            document.getElementById('vehicleType').value = '';
+            document.getElementById('photoRouteInput').value = '';
             document.getElementById('vehicleSearchInput').value = '';
             document.getElementById('vehicleSearchResults').style.display = 'none';
             document.getElementById('selectedVehicleDisplay').style.display = 'none';
@@ -3022,7 +2881,6 @@
             document.getElementById('photoProvince').innerHTML = '<option value="">请先选择国家...</option>';
             document.getElementById('photoCity').innerHTML = '<option value="">请先选择省份...</option>';
             document.getElementById('photoOperator').innerHTML = '<option value="">请先选择城市...</option>';
-            document.getElementById('photoRoute').innerHTML = '<option value="">请先选择城市...</option>';
 
             // 加载国家列表
             if (countriesCache.length === 0) {
@@ -3103,7 +2961,7 @@
         }
 
         // ============================================================
-        //  ✅ 提交上传（写入 user_photos 表）
+        //  ✅ 提交上传（精简版）
         // ============================================================
         async function submitUploadPhoto() {
             if (uploadPhotoFiles.length === 0) {
@@ -3150,52 +3008,33 @@
                 }
 
                 // 2. 收集表单数据
-                var shootDate = document.getElementById('shootDate').value || null;
-                var caption = document.getElementById('photoCaption').value.trim() || null;
-                var cameraModel = document.getElementById('cameraModel').value.trim() || null;
-                var lens = document.getElementById('lens').value.trim() || null;
-                var focalLength = parseInt(document.getElementById('focalLength').value) || null;
-                var aperture = document.getElementById('aperture').value.trim() || null;
-                var shutterSpeed = document.getElementById('shutterSpeed').value.trim() || null;
-                var iso = parseInt(document.getElementById('iso').value) || null;
-                var weather = document.getElementById('weather').value || null;
+                var licensePlate = document.getElementById('vehicleLicensePlate').value.trim() || null;
+                var routeInput = document.getElementById('photoRouteInput').value.trim() || null;
                 var operatorId = document.getElementById('photoOperator').value || null;
-                var routeId = document.getElementById('photoRoute').value || null;
 
-                // 车辆信息（自由填写）
-                var vehicleFleet = document.getElementById('vehicleFleetNumber').value.trim() || null;
-                var vehiclePlate = document.getElementById('vehicleLicensePlate').value.trim() || null;
-                var vehicleModel = document.getElementById('vehicleModel').value.trim() || null;
-                var vehicleManufacturer = document.getElementById('vehicleManufacturer').value.trim() || null;
-                var vehicleType = document.getElementById('vehicleType').value || null;
-
-                // 3. 如果有车辆信息，先创建车辆
+                // 3. 处理车辆：如果有车牌号，查找或创建车辆
                 var finalVehicleId = selectedVehicleId || null;
 
-                if (!finalVehicleId && (vehicleFleet || vehiclePlate || vehicleModel || vehicleManufacturer)) {
-                    // 检查是否已存在相同车牌或车队编号的车辆
+                if (!finalVehicleId && licensePlate) {
+                    // 检查是否已存在相同车牌号的车辆
                     var { data: existingVehicle } = await supabaseClient
                         .from('vehicles')
                         .select('id')
-                        .or('license_plate.eq.' + (vehiclePlate || '') + ',fleet_number.eq.' + (vehicleFleet || ''))
+                        .eq('license_plate', licensePlate)
                         .eq('status', 'approved')
                         .limit(1);
 
                     if (existingVehicle && existingVehicle.length > 0) {
                         finalVehicleId = existingVehicle[0].id;
                     } else {
-                        // 创建新车辆
+                        // 创建新车辆（只保存车牌号）
                         var newVehicle = {
-                            fleet_number: vehicleFleet,
-                            license_plate: vehiclePlate,
-                            model: vehicleModel,
-                            manufacturer: vehicleManufacturer,
-                            vehicle_type: vehicleType,
+                            license_plate: licensePlate,
                             country_id: countryId,
                             province_id: provinceId,
                             city_id: cityId,
                             operator_id: operatorId || null,
-                            route_id: routeId || null,
+                            route_number: routeInput || null,
                             created_by: user.username,
                             data_source: 'user',
                             status: 'pending',
@@ -3209,10 +3048,8 @@
 
                         if (!vError && newVehicleData && newVehicleData.length > 0) {
                             finalVehicleId = newVehicleData[0].id;
-                            // 更新缓存
                             allVehiclesForUpload.push(newVehicleData[0]);
                             allVehiclesCache.push(newVehicleData[0]);
-                            showUploadMessage('✅ 车辆已自动创建，等待审核', 'success');
                         }
                     }
                 }
@@ -3225,20 +3062,11 @@
                         vehicle_id: finalVehicleId || null,
                         uploader: user.username,
                         uploader_name: user.username,
-                        shoot_date: shootDate,
-                        caption: caption,
-                        camera_model: cameraModel,
-                        lens: lens,
-                        focal_length: focalLength,
-                        aperture: aperture,
-                        shutter_speed: shutterSpeed,
-                        iso: iso,
-                        weather: weather,
+                        route_number: routeInput || null,
                         country_id: countryId || null,
                         province_id: provinceId || null,
                         city_id: cityId || null,
                         operator_id: operatorId || null,
-                        route_id: routeId || null,
                         status: 'pending',
                         created_at: new Date().toISOString()
                     };
@@ -3319,13 +3147,10 @@
             initMap();
         });
 
-        console.log('🚌 BusLens 地图已加载（完整版）');
+        console.log('🚌 BusLens 地图已加载（精简版）');
         console.log('✅ 照片从 user_photos 表读取');
         console.log('✅ 照片下方显示车牌号 + 运营公司');
-        console.log('✅ 上传支持四级联动：国家→省份→城市→公司');
-        console.log('✅ 支持选择线路');
-        console.log('✅ 支持填写车辆信息（自动创建车辆档案）');
-        console.log('✅ 支持搜索关联已有车辆');
+        console.log('✅ 上传弹窗已精简：只保留照片、车牌号、线路、地区、公司');
         console.log('✅ 导航栏含🚌档案入口');
         console.log('✅ 侧栏收起时显示浮动按钮组');
     </script>
