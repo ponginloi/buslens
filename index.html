@@ -2966,6 +2966,9 @@
         // ============================================================
 //  ✅ 提交上传（精简版 + 自动创建车辆 + 自动设封面）
 // ============================================================
+// ============================================================
+//  ✅ 提交上传（精简版 + 自动关联公司+地区）
+// ============================================================
 async function submitUploadPhoto() {
     if (uploadPhotoFiles.length === 0) {
         showUploadMessage('请至少选择 1 张照片', 'error');
@@ -2978,7 +2981,7 @@ async function submitUploadPhoto() {
         return;
     }
 
-    // 验证地区层级
+    // 验证地区层级（国家必须选）
     var countryId = document.getElementById('photoCountry').value;
     var provinceId = document.getElementById('photoProvince').value;
     var cityId = document.getElementById('photoCity').value;
@@ -3015,13 +3018,61 @@ async function submitUploadPhoto() {
         var routeInput = document.getElementById('photoRouteInput').value.trim() || null;
         var operatorId = document.getElementById('photoOperator').value || null;
 
-        // 3. 处理车辆：根据车牌号查找或创建
+        // 3. ★★★ 获取公司的完整信息（用于倒推地区）★★★
+        var operatorInfo = null;
+        var countryName = null;
+        var provinceName = null;
+        var cityName = null;
+        var operatorName = null;
+
+        if (operatorId) {
+            var { data: opData, error: opError } = await supabaseClient
+                .from('operators')
+                .select('*, cities!operators_city_id_fkey(name, provinces!cities_province_id_fkey(name, countries!provinces_country_id_fkey(name)))')
+                .eq('id', operatorId)
+                .single();
+
+            if (!opError && opData) {
+                operatorInfo = opData;
+                operatorName = opData.name || opData.short_name;
+
+                // 从公司获取城市信息
+                if (opData.cities) {
+                    cityName = opData.cities.name;
+                    // 从城市倒推省份
+                    if (opData.cities.provinces) {
+                        provinceName = opData.cities.provinces.name;
+                        // 从省份倒推国家
+                        if (opData.cities.provinces.countries) {
+                            countryName = opData.cities.provinces.countries.name;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 如果公司没有地区信息，使用用户手动选择的地区
+        if (!countryName) {
+            // 从 countriesCache 获取国家名称
+            var country = countriesCache.find(function(c) { return c.id == countryId; });
+            countryName = country ? country.name : null;
+        }
+        if (!provinceName) {
+            var province = provincesCache.find(function(p) { return p.id == provinceId; });
+            provinceName = province ? province.name : null;
+        }
+        if (!cityName) {
+            var city = citiesCache.find(function(c) { return c.id == cityId; });
+            cityName = city ? city.name : null;
+        }
+
+        console.log('📍 地区信息:', { countryName, provinceName, cityName, operatorName });
+
+        // 4. 处理车辆：根据车牌号查找或创建
         var finalVehicleId = selectedVehicleId || null;
         var isNewVehicle = false;
 
-        // 如果有车牌号且没有手动选择已有车辆
         if (!finalVehicleId && licensePlate) {
-            // 检查是否已存在相同车牌号的车辆
             var { data: existingVehicle } = await supabaseClient
                 .from('vehicles')
                 .select('id, license_plate, cover_photo')
@@ -3030,25 +3081,26 @@ async function submitUploadPhoto() {
                 .limit(1);
 
             if (existingVehicle && existingVehicle.length > 0) {
-                // 车辆已存在，关联到它
                 finalVehicleId = existingVehicle[0].id;
                 console.log('✅ 找到已有车辆 ID:', finalVehicleId);
             } else {
-                // 创建新车辆，车牌号作为标题，第一张照片设为封面
                 isNewVehicle = true;
                 var newVehicle = {
                     license_plate: licensePlate,
-                    // 标题自动使用车牌号，不填 model 和 fleet_number
-                    country_id: countryId,
-                    province_id: provinceId,
-                    city_id: cityId,
+                    // ★★★ 自动填充地区信息（从公司倒推）★★★
+                    country_id: countryId || null,
+                    province_id: provinceId || null,
+                    city_id: cityId || null,
+                    country_name: countryName || null,
+                    province_name: provinceName || null,
+                    city_name: cityName || null,
                     operator_id: operatorId || null,
+                    operator_name: operatorName || null,
                     route_number: routeInput || null,
-                    // ✅ 第一张上传的照片设为封面
                     cover_photo: uploadedUrls[0],
                     created_by: user.username,
                     data_source: 'user',
-                    status: 'pending',  // 等待审核
+                    status: 'pending',
                     created_at: new Date().toISOString()
                 };
 
@@ -3059,7 +3111,6 @@ async function submitUploadPhoto() {
 
                 if (vError) {
                     console.error('创建车辆失败:', vError);
-                    // 如果创建失败，不阻断照片上传
                 } else if (newVehicleData && newVehicleData.length > 0) {
                     finalVehicleId = newVehicleData[0].id;
                     allVehiclesForUpload.push(newVehicleData[0]);
@@ -3070,7 +3121,6 @@ async function submitUploadPhoto() {
             }
         }
 
-        // 4. 如果用户手动选择了已有车辆，但车牌号字段也填了不同值，以手动选择为准
         if (selectedVehicleId) {
             finalVehicleId = selectedVehicleId;
         }
@@ -3084,25 +3134,28 @@ async function submitUploadPhoto() {
                 uploader: user.username,
                 uploader_name: user.username,
                 route_number: routeInput || null,
+                // ★★★ 照片也保存地区信息 ★★★
                 country_id: countryId || null,
                 province_id: provinceId || null,
                 city_id: cityId || null,
+                country_name: countryName || null,
+                province_name: provinceName || null,
+                city_name: cityName || null,
                 operator_id: operatorId || null,
+                operator_name: operatorName || null,
                 status: 'pending',
                 created_at: new Date().toISOString()
             };
         });
 
-        // 6. 插入 user_photos
         var { error: insertError } = await supabaseClient
             .from('user_photos')
             .insert(photoRecords);
 
         if (insertError) throw new Error(insertError.message);
 
-        // 7. 更新 spots.related_vehicles（双向关联）
+        // 6. 更新 spots.related_vehicles
         if (finalVehicleId) {
-            // 更新 vehicle 的 related_spot_ids
             var { data: vehicleData, error: vFetchError } = await supabaseClient
                 .from('vehicles')
                 .select('related_spot_ids')
@@ -3120,7 +3173,6 @@ async function submitUploadPhoto() {
                 }
             }
 
-            // 更新 spot 的 related_vehicles
             var { data: spotData, error: spotFetchError } = await supabaseClient
                 .from('spots')
                 .select('related_vehicles')
@@ -3139,7 +3191,6 @@ async function submitUploadPhoto() {
             }
         }
 
-        // 8. 更新缓存
         photoCache[uploadPhotoSpotId] = null;
 
         var msg = '✅ 已上传 ' + uploadedUrls.length + ' 张照片！';
