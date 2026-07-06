@@ -13,28 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        /* 运营公司 */
-.vehicle-card .card-body .vehicle-operator {
-    font-size: 14px;
-    font-weight: 500;
-    color: #1a73e8;
-    margin-top: 2px;
-}
-
-/* 地区信息 */
-.vehicle-card .card-body .vehicle-location {
-    font-size: 12px;
-    color: #888;
-    margin-top: 2px;
-}
-
-/* 车牌号放大突出 */
-.vehicle-card .card-body .vehicle-name .plate-text {
-    font-size: 18px;
-    color: #1a73e8;
-    font-weight: 700;
-}
-
         /* ===== 全局 ===== */
         * {
             margin: 0;
@@ -232,30 +210,24 @@
         /* ===== 统计条 ===== */
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             gap: 10px;
             margin-bottom: 16px;
         }
         .stats-row .stat-item {
             background: white;
             border-radius: 12px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             text-align: center;
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
         }
         .stats-row .stat-item .num {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             color: #1a73e8;
         }
-        .stats-row .stat-item .num.official {
-            color: #4caf50;
-        }
-        .stats-row .stat-item .num.user {
-            color: #ff9800;
-        }
         .stats-row .stat-item .label {
-            font-size: 12px;
+            font-size: 11px;
             color: #999;
             margin-top: 2px;
         }
@@ -264,7 +236,7 @@
         .filter-bar {
             background: white;
             border-radius: 14px;
-            padding: 14px 18px;
+            padding: 12px 16px;
             margin-bottom: 16px;
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
             display: flex;
@@ -274,7 +246,7 @@
         }
         .filter-bar .search-wrap {
             flex: 1;
-            min-width: 180px;
+            min-width: 160px;
             display: flex;
             gap: 6px;
             align-items: center;
@@ -296,10 +268,10 @@
             flex: 1;
             border: none;
             background: transparent;
-            padding: 10px 0;
-            font-size: 14px;
+            padding: 8px 0;
+            font-size: 13px;
             outline: none;
-            min-width: 100px;
+            min-width: 80px;
         }
         .filter-bar .filter-group {
             display: flex;
@@ -308,15 +280,15 @@
             align-items: center;
         }
         .filter-bar .filter-group label {
-            font-size: 12px;
+            font-size: 11px;
             color: #888;
             font-weight: 500;
         }
         .filter-bar .filter-group select {
-            padding: 8px 12px;
+            padding: 6px 10px;
             border: 2px solid #e8e8e8;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 12px;
             background: white;
             cursor: pointer;
             outline: none;
@@ -327,7 +299,7 @@
             border-color: #1a73e8;
         }
         .filter-bar .filter-group .filter-btn {
-            padding: 6px 16px;
+            padding: 6px 14px;
             border: 2px solid #e8e8e8;
             border-radius: 8px;
             font-size: 12px;
@@ -385,7 +357,27 @@
             transition: all 0.3s;
             cursor: pointer;
             position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: cardFadeIn 0.4s ease forwards;
         }
+        @keyframes cardFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .vehicle-card:nth-child(1) { animation-delay: 0.05s; }
+        .vehicle-card:nth-child(2) { animation-delay: 0.10s; }
+        .vehicle-card:nth-child(3) { animation-delay: 0.15s; }
+        .vehicle-card:nth-child(4) { animation-delay: 0.20s; }
+        .vehicle-card:nth-child(5) { animation-delay: 0.25s; }
+        .vehicle-card:nth-child(6) { animation-delay: 0.30s; }
+        .vehicle-card:nth-child(7) { animation-delay: 0.35s; }
+        .vehicle-card:nth-child(8) { animation-delay: 0.40s; }
+        .vehicle-card:nth-child(9) { animation-delay: 0.45s; }
+        .vehicle-card:nth-child(10) { animation-delay: 0.50s; }
+
         .vehicle-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
@@ -396,24 +388,27 @@
             background: #e8edf3;
             overflow: hidden;
         }
-        .vehicle-card .card-thumb img {
+        .vehicle-card .card-thumb .lazy-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s;
+            transition: transform 0.3s, opacity 0.6s;
+            opacity: 0;
+            background: #e8edf3;
         }
-        .vehicle-card:hover .card-thumb img {
-            transform: scale(1.03);
+        .vehicle-card .card-thumb .lazy-img.loaded {
+            opacity: 1;
         }
-        .vehicle-card .card-thumb .no-image {
+        .vehicle-card .card-thumb .lazy-img.placeholder {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
-            height: 100%;
             font-size: 48px;
             color: #ccc;
             background: #f5f7fa;
+        }
+        .vehicle-card:hover .card-thumb .lazy-img.loaded {
+            transform: scale(1.03);
         }
         .vehicle-card .card-thumb .badges {
             position: absolute;
@@ -459,7 +454,7 @@
             font-weight: 500;
         }
         .vehicle-card .card-body {
-            padding: 14px 16px 16px;
+            padding: 12px 16px 14px;
         }
         .vehicle-card .card-body .vehicle-name {
             font-size: 17px;
@@ -475,8 +470,9 @@
         }
         .vehicle-card .card-body .vehicle-name .fleet-number {
             color: #1a73e8;
+            font-size: 14px;
         }
-        .vehicle-card .card-body .vehicle-name .license-plate {
+        .vehicle-card .card-body .vehicle-name .license-plate-tag {
             font-size: 13px;
             color: #666;
             font-weight: 400;
@@ -484,12 +480,39 @@
             padding: 1px 10px;
             border-radius: 10px;
         }
+        .vehicle-card .card-body .vehicle-model {
+            font-size: 13px;
+            color: #444;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .vehicle-card .card-body .vehicle-model .model-tag {
+            background: #e8f0fe;
+            color: #1a73e8;
+            padding: 1px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .vehicle-card .card-body .vehicle-operator {
+            font-size: 13px;
+            color: #1a73e8;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+        .vehicle-card .card-body .vehicle-location {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
         .vehicle-card .card-body .vehicle-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px 12px;
-            margin-top: 6px;
-            font-size: 13px;
+            gap: 4px 10px;
+            margin-top: 4px;
+            font-size: 12px;
             color: #666;
         }
         .vehicle-card .card-body .vehicle-meta span {
@@ -497,22 +520,11 @@
             align-items: center;
             gap: 4px;
         }
-        .vehicle-card .card-body .vehicle-meta .operator-name {
-            color: #1a73e8;
-            font-weight: 500;
-        }
-        .vehicle-card .card-body .vehicle-meta .livery-tag {
-            display: inline-block;
-            padding: 1px 10px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 500;
-        }
         .vehicle-card .card-body .vehicle-stats {
             display: flex;
-            gap: 16px;
-            margin-top: 10px;
-            padding-top: 10px;
+            gap: 14px;
+            margin-top: 8px;
+            padding-top: 8px;
             border-top: 1px solid #f0f0f0;
             font-size: 12px;
             color: #999;
@@ -531,26 +543,26 @@
         .empty-state {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 60px 20px;
+            padding: 50px 20px;
             color: #999;
             background: white;
             border-radius: 14px;
         }
         .empty-state .icon {
-            font-size: 48px;
+            font-size: 40px;
             display: block;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .empty-state .sub {
-            font-size: 14px;
-            margin-top: 6px;
+            font-size: 13px;
+            margin-top: 4px;
         }
 
         /* ===== 加载状态 ===== */
         .loading-spinner {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 60px 20px;
+            padding: 50px 20px;
             color: #999;
         }
         .loading-spinner .spinner {
@@ -614,8 +626,8 @@
             .page-header .actions .btn-company,
             .page-header .actions .btn-route,
             .page-header .actions .btn-secondary {
-                padding: 8px 14px;
-                font-size: 13px;
+                padding: 6px 12px;
+                font-size: 12px;
             }
             .filter-bar {
                 padding: 10px 12px;
@@ -625,26 +637,8 @@
             .filter-bar .search-wrap {
                 min-width: auto;
             }
-            .filter-bar .filter-group {
-                justify-content: flex-start;
-            }
-            .filter-bar .filter-group select {
-                font-size: 12px;
-                padding: 6px 10px;
-            }
-            .filter-bar .filter-group .filter-btn {
-                font-size: 11px;
-                padding: 4px 12px;
-            }
             .vehicle-grid {
                 grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-                gap: 12px;
-            }
-            .vehicle-card .card-body .vehicle-name {
-                font-size: 15px;
-            }
-            .vehicle-card .card-body .vehicle-meta {
-                font-size: 12px;
             }
             .stats-row {
                 grid-template-columns: repeat(4, 1fr);
@@ -671,15 +665,21 @@
             .page-header .actions .btn-secondary {
                 flex: 1;
                 justify-content: center;
-                padding: 8px 12px;
-                font-size: 12px;
-                min-width: 80px;
+                padding: 6px 10px;
+                font-size: 11px;
+                min-width: 70px;
             }
             .vehicle-grid {
                 grid-template-columns: 1fr;
             }
             .stats-row {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .vehicle-card .card-body .vehicle-name {
+                font-size: 15px;
+            }
+            .vehicle-card .card-body .vehicle-model {
+                font-size: 12px;
             }
         }
     </style>
@@ -877,36 +877,23 @@
                 active: '🚀 运营中',
                 retired: '🔄 已退役',
                 preserved: '🏛️ 保留/收藏',
-                scrapped: '💔 已报废',
-                unknown: '❓ 未知'
+                scrapped: '💔 已报废'
             };
             return map[status] || status || '未知';
         }
 
         function getStatusClass(status) {
-            var map = {
-                active: 'active-status',
-                retired: 'retired-status',
-                preserved: 'preserved-status',
-                scrapped: 'retired-status'
-            };
+            var map = { active: 'active-status', retired: 'retired-status', preserved: 'preserved-status' };
             return map[status] || '';
         }
 
         function getSourceLabel(source) {
-            var map = {
-                official: '🏢 官方认证',
-                user: '👤 用户投稿',
-                mixed: '📋 混合来源'
-            };
+            var map = { official: '🏢 官方认证', user: '👤 用户投稿' };
             return map[source] || source || '用户投稿';
         }
 
         function getSourceClass(source) {
-            var map = {
-                official: 'official',
-                user: 'user'
-            };
+            var map = { official: 'official', user: 'user' };
             return map[source] || 'user';
         }
 
@@ -932,90 +919,139 @@
         var currentSourceFilter = 'all';
         var operators = [];
         var photoCounts = {};
-        var vehicleCovers = {};  // 缓存车辆封面图
+        var vehicleCovers = {};
+        var vehicleModelsCache = [];
+        var isLoadingMore = false;
+        var pageSize = 20;
+        var currentPage = 0;
+        var hasMoreData = true;
 
         // ============================================================
-        //  加载车辆数据
+        //  加载车辆数据（分页 + 懒加载）
         // ============================================================
-        function loadVehicles() {
-            var grid = document.getElementById('vehicleGrid');
-            grid.innerHTML = '<div class="loading-spinner"><span class="spinner">⟳</span><p style="margin-top:8px;">加载巴士档案...</p></div>';
+        function loadVehicles(reset) {
+            if (reset === undefined) reset = true;
+            if (reset) {
+                currentPage = 0;
+                allVehicles = [];
+                hasMoreData = true;
+                document.getElementById('vehicleGrid').innerHTML =
+                    '<div class="loading-spinner"><span class="spinner">⟳</span><p style="margin-top:8px;">加载巴士档案...</p></div>';
+            }
 
-            // 先加载运营公司列表
-            supabaseClient
-                .from('operators')
-                .select('id, name, short_name')
-                .eq('status', 'approved')
-                .order('name')
-                .then(function(res) {
-                    if (!res.error) {
-                        operators = res.data || [];
-                        populateOperatorFilter();
-                    }
-                })
-                .catch(function(err) {
-                    console.warn('加载运营商列表失败:', err);
-                });
+            if (!supabaseClient) return;
+            if (isLoadingMore) return;
+            if (!hasMoreData && !reset) return;
 
-            // 加载车辆
+            isLoadingMore = true;
+
+            // 加载运营公司列表
+            if (operators.length === 0) {
+                supabaseClient
+                    .from('operators')
+                    .select('id, name, short_name')
+                    .eq('status', 'approved')
+                    .order('name')
+                    .then(function(res) {
+                        if (!res.error) {
+                            operators = res.data || [];
+                            populateOperatorFilter();
+                        }
+                    })
+                    .catch(function(err) { console.warn('加载运营商失败:', err); });
+            }
+
+            // 加载车型缓存
+            if (vehicleModelsCache.length === 0) {
+                supabaseClient
+                    .from('vehicle_models')
+                    .select('id, name, manufacturer')
+                    .eq('status', 'approved')
+                    .then(function(res) {
+                        if (!res.error) {
+                            vehicleModelsCache = res.data || [];
+                            console.log('✅ 已加载 ' + vehicleModelsCache.length + ' 个车型缓存');
+                        }
+                    })
+                    .catch(function(err) { console.warn('加载车型缓存失败:', err); });
+            }
+
+            var offset = currentPage * pageSize;
+
             supabaseClient
                 .from('vehicles')
                 .select('*')
                 .eq('status', 'approved')
                 .order('created_at', { ascending: false })
+                .range(offset, offset + pageSize - 1)
                 .then(function(res) {
                     if (res.error) throw new Error(res.error.message);
-                    allVehicles = res.data || [];
+                    var newVehicles = res.data || [];
 
-                    // 先统计照片数量，同时收集需要封面的车辆
-                    loadPhotoData();
+                    if (newVehicles.length < pageSize) {
+                        hasMoreData = false;
+                    }
+
+                    if (reset) {
+                        allVehicles = newVehicles;
+                    } else {
+                        allVehicles = allVehicles.concat(newVehicles);
+                    }
+
+                    currentPage++;
+
+                    // 加载照片数量
+                    loadPhotoCounts(function() {
+                        applyFilters();
+                        updateStats();
+                        renderNav();
+                        isLoadingMore = false;
+                    });
                 })
                 .catch(function(error) {
                     console.error('加载车辆失败:', error);
-                    grid.innerHTML =
+                    document.getElementById('vehicleGrid').innerHTML =
                         '<div class="empty-state"><span class="icon">❌</span><p>加载失败：' + escapeHtml(error.message) +
-                        '</p><div class="sub">请刷新页面重试</div></div>';
+                        '</p></div>';
+                    isLoadingMore = false;
                 });
         }
 
         // ============================================================
-        //  加载照片数据（统计数量 + 获取封面）
+        //  加载照片数据
         // ============================================================
-        function loadPhotoData() {
+        function loadPhotoCounts(callback) {
+            var vehicleIds = allVehicles.map(function(v) { return v.id; });
+            if (vehicleIds.length === 0) {
+                if (callback) callback();
+                return;
+            }
+
             supabaseClient
                 .from('user_photos')
                 .select('vehicle_id, photo_url')
                 .eq('status', 'approved')
+                .in('vehicle_id', vehicleIds)
                 .then(function(res) {
                     if (!res.error) {
                         var photos = res.data || [];
-
-                        // 统计每辆车的照片数量，并记录第一张照片作为封面
                         photoCounts = {};
                         vehicleCovers = {};
 
                         photos.forEach(function(p) {
                             if (p.vehicle_id) {
-                                // 统计数量
                                 photoCounts[p.vehicle_id] = (photoCounts[p.vehicle_id] || 0) + 1;
-                                // 记录第一张照片作为封面（如果还没有记录）
                                 if (!vehicleCovers[p.vehicle_id]) {
                                     vehicleCovers[p.vehicle_id] = p.photo_url;
                                 }
                             }
                         });
-
-                        // 完成数据加载，开始渲染
-                        applyFilters();
-                        updateStats();
-                        renderNav();
                     }
+                    if (callback) callback();
                 })
                 .catch(function(err) {
                     console.warn('加载照片数据失败:', err);
-                    applyFilters();
-                    updateStats();
-                    renderNav();
+                    if (callback) callback();
                 });
         }
 
@@ -1122,123 +1158,215 @@
         }
 
         // ============================================================
+        //  获取车型显示名称
+        // ============================================================
+        function getModelDisplay(vehicle) {
+            // 如果有 model 字段，直接使用
+            if (vehicle.model) {
+                return vehicle.model;
+            }
+            // 如果有 model_id，从缓存中查找
+            if (vehicle.model_id) {
+                var cached = vehicleModelsCache.find(function(m) { return m.id == vehicle.model_id; });
+                if (cached) {
+                    return cached.name;
+                }
+            }
+            return null;
+        }
+
+        // ============================================================
         //  获取车辆封面图
         // ============================================================
         function getVehicleCover(v) {
-            // 1. 优先使用 cover_photo
-            if (v.cover_photo) {
-                return v.cover_photo;
-            }
-            // 2. 从 photos 数组中取第一张
-            if (v.photos && v.photos.length > 0) {
-                return v.photos[0];
-            }
-            // 3. 从 user_photos 表中获取该车辆的第一张照片
-            if (vehicleCovers[v.id]) {
-                return vehicleCovers[v.id];
-            }
-            // 4. 没有图片
+            if (v.cover_photo) return v.cover_photo;
+            if (v.photos && v.photos.length > 0) return v.photos[0];
+            if (vehicleCovers[v.id]) return vehicleCovers[v.id];
             return null;
+        }
+
+        // ============================================================
+        //  懒加载图片
+        // ============================================================
+        function lazyLoadImages() {
+            if (!('IntersectionObserver' in window)) {
+                document.querySelectorAll('.lazy-img[data-src]').forEach(function(img) {
+                    var src = img.dataset.src;
+                    if (src) {
+                        img.src = src;
+                        img.onload = function() { img.classList.add('loaded'); };
+                    }
+                });
+                return;
+            }
+
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        var img = entry.target;
+                        var src = img.dataset.src;
+                        if (src) {
+                            img.src = src;
+                            img.onload = function() { img.classList.add('loaded'); };
+                            img.onerror = function() {
+                                img.classList.add('loaded');
+                                img.style.background = '#f5f7fa';
+                            };
+                            observer.unobserve(img);
+                        }
+                    }
+                });
+            }, {
+                rootMargin: '100px',
+                threshold: 0.01
+            });
+
+            document.querySelectorAll('.lazy-img[data-src]').forEach(function(img) {
+                observer.observe(img);
+            });
         }
 
         // ============================================================
         //  渲染车辆卡片
         // ============================================================
         function renderVehicles(vehicles) {
-    var grid = document.getElementById('vehicleGrid');
+            var grid = document.getElementById('vehicleGrid');
 
-    if (!vehicles || vehicles.length === 0) {
-        grid.innerHTML =
-            '<div class="empty-state"><span class="icon">🚌</span><p>没有找到匹配的巴士</p><div class="sub">试试调整筛选条件</div></div>';
-        return;
-    }
+            if (!vehicles || vehicles.length === 0) {
+                grid.innerHTML =
+                    '<div class="empty-state"><span class="icon">🚌</span><p>没有找到匹配的巴士</p><div class="sub">试试调整筛选条件</div></div>';
+                return;
+            }
 
-    var html = '';
-    vehicles.forEach(function(v) {
-        var coverPhoto = getVehicleCover(v);
-        var photoCount = photoCounts[v.id] || 0;
-        var isOfficial = v.data_source === 'official' || v.verified === true;
-        var sourceClass = isOfficial ? 'official' : 'user';
-        var sourceLabel = isOfficial ? '🏢 官方认证' : '👤 用户投稿';
-        var statusLabel = getStatusLabel(v.service_status);
-        var statusClass = getStatusClass(v.service_status);
-        var operatorName = getOperatorName(v.operator_id);
-        var typeLabel = getVehicleTypeLabel(v.vehicle_type);
+            var html = '';
+            vehicles.forEach(function(v, index) {
+                var coverPhoto = getVehicleCover(v);
+                var photoCount = photoCounts[v.id] || 0;
+                var isOfficial = v.data_source === 'official' || v.verified === true;
+                var sourceClass = isOfficial ? 'official' : 'user';
+                var sourceLabel = isOfficial ? '🏢 官方认证' : '👤 用户投稿';
+                var statusLabel = getStatusLabel(v.service_status);
+                var statusClass = getStatusClass(v.service_status);
+                var operatorName = getOperatorName(v.operator_id);
+                var modelDisplay = getModelDisplay(v);
+                var typeLabel = getVehicleTypeLabel(v.vehicle_type);
 
-        // ★★★ 构建地区信息（国家 → 省份 → 城市）★★★
-        var locationParts = [];
-        if (v.country_name) locationParts.push(v.country_name);
-        if (v.province_name) locationParts.push(v.province_name);
-        if (v.city_name) locationParts.push(v.city_name);
-        var locationText = locationParts.length > 0 ? locationParts.join(' → ') : '📍 位置未标注';
+                // 标题显示
+                var displayName = '';
+                if (v.license_plate) {
+                    displayName = '<span class="plate-text">' + escapeHtml(v.license_plate) + '</span>';
+                } else if (v.fleet_number) {
+                    displayName = '<span class="fleet-number">' + escapeHtml(v.fleet_number) + '</span>';
+                } else if (v.model) {
+                    displayName = escapeHtml(v.model);
+                } else {
+                    displayName = '未命名巴士';
+                }
 
-        // ★★★ 获取公司全称 ★★★
-        var operatorFullName = '';
-        if (v.operator_name) {
-            operatorFullName = v.operator_name;
-        } else if (v.operator_id) {
-            // 从 operators 缓存中查找
-            var op = operators.find(function(o) { return o.id == v.operator_id; });
-            if (op) {
-                operatorFullName = op.name || op.short_name || '';
+                // 封面图（懒加载）
+                var thumbHtml = '';
+                if (coverPhoto) {
+                    thumbHtml = '<img class="lazy-img" data-src="' + escapeHtml(coverPhoto) + '" alt="' + escapeHtml(v
+                        .license_plate || v.fleet_number || v.model || '巴士') + '" />';
+                } else {
+                    thumbHtml = '<div class="lazy-img placeholder">🚌</div>';
+                }
+
+                // 车型显示
+                var modelHtml = '';
+                if (modelDisplay) {
+                    modelHtml = '<div class="vehicle-model"><span class="model-tag">🚌 ' + escapeHtml(modelDisplay) +
+                        '</span></div>';
+                }
+
+                // 地区信息
+                var locationParts = [];
+                if (v.country_name) locationParts.push(v.country_name);
+                if (v.province_name) locationParts.push(v.province_name);
+                if (v.city_name) locationParts.push(v.city_name);
+                var locationText = locationParts.length > 0 ? locationParts.join(' → ') : '📍 位置未标注';
+
+                // 使用延迟动画
+                var delay = Math.min(index * 0.05, 0.5);
+
+                html +=
+                    '<div class="vehicle-card" style="animation-delay:' + delay + 's" onclick="window.location.href=\'vehicle.html?id=' +
+                    v.id + '\'">' +
+                    '<div class="card-thumb">' +
+                    thumbHtml +
+                    '<div class="badges">' +
+                    '<span class="badge ' + sourceClass + '">' + sourceLabel + '</span>' +
+                    (v.service_status ? '<span class="badge ' + statusClass + '">' + statusLabel + '</span>' : '') +
+                    '</div>' +
+                    (photoCount > 0 ? '<span class="photo-count">📸 ' + photoCount + ' 张</span>' : '') +
+                    '</div>' +
+                    '<div class="card-body">' +
+                    '<div class="vehicle-name">' + displayName + '</div>' +
+                    modelHtml +
+                    (operatorName ? '<div class="vehicle-operator">🏢 ' + escapeHtml(operatorName) + '</div>' : '') +
+                    '<div class="vehicle-location">📍 ' + escapeHtml(locationText) + '</div>' +
+                    '<div class="vehicle-meta">' +
+                    (v.manufacturer ? '<span>🏭 ' + escapeHtml(v.manufacturer) + '</span>' : '') +
+                    (v.vehicle_type ? '<span>🚌 ' + typeLabel + '</span>' : '') +
+                    (v.livery_name ? '<span>🎨 ' + escapeHtml(v.livery_name) + '</span>' : '') +
+                    '</div>' +
+                    '<div class="vehicle-stats">' +
+                    '<span>👁️ <span class="num">' + (v.views || 0) + '</span></span>' +
+                    '<span>❤️ <span class="num">' + (v.likes || 0) + '</span></span>' +
+                    '<span>📸 <span class="num">' + photoCount + '</span></span>' +
+                    '<span style="margin-left:auto;color:#bbb;">' + formatDate(v.created_at) + '</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+            });
+
+            grid.innerHTML = html;
+
+            // 启动懒加载
+            setTimeout(function() {
+                lazyLoadImages();
+            }, 100);
+
+            // 滚动加载更多
+            setupInfiniteScroll();
+        }
+
+        // ============================================================
+        //  无限滚动加载更多
+        // ============================================================
+        var scrollObserver = null;
+
+        function setupInfiniteScroll() {
+            if (scrollObserver) {
+                scrollObserver.disconnect();
+                scrollObserver = null;
+            }
+
+            var sentinel = document.querySelector('.scroll-sentinel');
+            if (!sentinel && hasMoreData && allVehicles.length > 0) {
+                var grid = document.getElementById('vehicleGrid');
+                var sentinelEl = document.createElement('div');
+                sentinelEl.className = 'scroll-sentinel';
+                sentinelEl.style.cssText = 'grid-column:1/-1;height:20px;text-align:center;color:#999;font-size:12px;padding:10px 0;';
+                sentinelEl.textContent = '⏳ 加载更多...';
+                grid.appendChild(sentinelEl);
+            }
+
+            var sentinelEl = document.querySelector('.scroll-sentinel');
+            if (!sentinelEl) return;
+
+            if ('IntersectionObserver' in window) {
+                scrollObserver = new IntersectionObserver(function(entries) {
+                    if (entries[0].isIntersecting && hasMoreData && !isLoadingMore) {
+                        loadVehicles(false);
+                    }
+                }, {
+                    rootMargin: '200px',
+                    threshold: 0.1
+                });
+                scrollObserver.observe(sentinelEl);
             }
         }
-
-        var thumbHtml = '';
-        if (coverPhoto) {
-            thumbHtml = '<img src="' + escapeHtml(coverPhoto) + '" alt="' + escapeHtml(v.license_plate || v.fleet_number || v.model ||
-                '巴士') + '" loading="lazy" />';
-        } else {
-            thumbHtml = '<div class="no-image">🚌</div>';
-        }
-
-        // 标题：优先显示车牌号
-        var displayName = '';
-        if (v.license_plate) {
-            displayName = '<span class="plate-text">' + escapeHtml(v.license_plate) + '</span>';
-        } else if (v.fleet_number) {
-            displayName = '<span class="fleet-number">' + escapeHtml(v.fleet_number) + '</span>';
-        } else if (v.model) {
-            displayName = escapeHtml(v.model);
-        } else {
-            displayName = '未命名巴士';
-        }
-
-        html +=
-            '<div class="vehicle-card" onclick="window.location.href=\'vehicle.html?id=' + v.id + '\'">' +
-            '<div class="card-thumb">' +
-            thumbHtml +
-            '<div class="badges">' +
-            '<span class="badge ' + sourceClass + '">' + sourceLabel + '</span>' +
-            (v.service_status ? '<span class="badge ' + statusClass + '">' + statusLabel + '</span>' : '') +
-            '</div>' +
-            (photoCount > 0 ? '<span class="photo-count">📸 ' + photoCount + ' 张</span>' : '') +
-            '</div>' +
-            '<div class="card-body">' +
-            // 车牌号标题
-            '<div class="vehicle-name">' + displayName + '</div>' +
-            // 运营公司（如果有）
-            (operatorFullName ? '<div class="vehicle-operator">🏢 ' + escapeHtml(operatorFullName) + '</div>' : '') +
-            // 地区信息
-            '<div class="vehicle-location">📍 ' + escapeHtml(locationText) + '</div>' +
-            // 其他元数据
-            '<div class="vehicle-meta">' +
-            (v.manufacturer ? '<span>🏭 ' + escapeHtml(v.manufacturer) + '</span>' : '') +
-            (v.vehicle_type ? '<span>🚌 ' + typeLabel + '</span>' : '') +
-            (v.livery_name ? '<span>🎨 ' + escapeHtml(v.livery_name) + '</span>' : '') +
-            '</div>' +
-            '<div class="vehicle-stats">' +
-            '<span>👁️ <span class="num">' + (v.views || 0) + '</span></span>' +
-            '<span>❤️ <span class="num">' + (v.likes || 0) + '</span></span>' +
-            '<span>📸 <span class="num">' + photoCount + '</span></span>' +
-            '<span style="margin-left:auto;color:#bbb;">' + formatDate(v.created_at) + '</span>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-    });
-
-    grid.innerHTML = html;
-}
 
         // ============================================================
         //  辅助函数
@@ -1263,19 +1391,19 @@
 
         function refreshData() {
             showToast('⟳ 刷新中...', '');
-            loadVehicles();
+            loadVehicles(true);
         }
 
         // ============================================================
         //  启动
         // ============================================================
         renderNav();
-        loadVehicles();
+        loadVehicles(true);
 
-        console.log('🚌 巴士档案主页已加载');
-        console.log('✅ 标题优先显示车牌号');
-        console.log('✅ 封面从 cover_photo → photos → user_photos 自动抓取');
-        console.log('📸 照片数量从 user_photos 表统计');
+        console.log('🚌 巴士档案主页已加载（懒加载 + 车型关联）');
+        console.log('✅ 车型从 vehicle_models 表关联显示');
+        console.log('✅ 图片懒加载，滚动时自动加载');
+        console.log('✅ 无限滚动分页加载（每页20辆）');
         console.log('✅ 入口：🌍 上传地区 | 🏢 上传公司 | 🚌 上传线路');
     </script>
 </body>
