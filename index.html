@@ -2274,103 +2274,127 @@
         }
 
         function buildInfoContent(spot) {
-            var color = getRankColor(spot.rank);
-            var description = spot.description || '';
-            var vehicleIds = spot.related_vehicles || [];
+    var color = getRankColor(spot.rank);
+    var description = spot.description || '';
+    var vehicleIds = spot.related_vehicles || [];
 
-            var photos = photoCache[spot.id] || [];
+    var photos = photoCache[spot.id] || [];
 
-            var html = '';
-            html += '<div class="spot-detail-wrap">';
-            html += '<div class="spot-detail-name">' + escapeHtml(spot.name) + '</div>';
-            html += '<span class="spot-detail-rank" style="background:' + color + ';">' + getRankLabel(spot.rank) + '</span>';
+    var html = '';
+    html += '<div class="spot-detail-wrap">';
+    html += '<div class="spot-detail-name">' + escapeHtml(spot.name) + '</div>';
+    html += '<span class="spot-detail-rank" style="background:' + color + ';">' + getRankLabel(spot.rank) + '</span>';
 
-            html += '<div class="spot-detail-meta">';
-            html += '<div class="meta-row"><span class="label">📤 上传者</span>' + escapeHtml(spot.created_by || '未知') + '</div>';
-            html += '<div class="meta-row"><span class="label">📍 位置</span>' + spot.lng + ', ' + spot.lat + '</div>';
-            html += '<div class="meta-row"><span class="label">📱 设备</span>' + getDeviceLabel(spot.device_type) + '</div>';
-            html += '<div class="meta-row"><span class="label">📸 照片</span>' + photos.length + ' 张</div>';
+    html += '<div class="spot-detail-meta">';
+    html += '<div class="meta-row"><span class="label">📤 上传者</span>' + escapeHtml(spot.created_by || '未知') + '</div>';
+    html += '<div class="meta-row"><span class="label">📍 位置</span>' + spot.lng + ', ' + spot.lat + '</div>';
+    html += '<div class="meta-row"><span class="label">📱 设备</span>' + getDeviceLabel(spot.device_type) + '</div>';
+    html += '<div class="meta-row"><span class="label">📸 照片</span>' + photos.length + ' 张</div>';
+    html += '</div>';
+
+    if (description) {
+        html += '<div class="spot-detail-desc">' + escapeHtml(description) + '</div>';
+    }
+
+    // 🚌 关联车辆列表
+    if (vehicleIds.length > 0) {
+        var vehicles = allVehiclesCache.filter(function(v) {
+            return vehicleIds.includes(v.id);
+        });
+        if (vehicles.length > 0) {
+            html += '<div class="spot-detail-vehicles">';
+            html += '<span class="vehicles-label">🚌 关联车辆 (' + vehicles.length + ')</span>';
+            html += '<div class="vehicle-tags">';
+            vehicles.forEach(function(v) {
+                var displayText = '';
+                if (v.fleet_number) displayText += v.fleet_number;
+                if (v.model) displayText += ' ' + v.model;
+                if (v.license_plate) displayText += ' (' + v.license_plate + ')';
+                if (!displayText) displayText = '车辆 #' + v.id;
+                html += '<a href="vehicle.html?id=' + v.id + '" class="v-tag" target="_blank">' +
+                    '🚌 ' + escapeHtml(displayText) +
+                    '</a>';
+            });
             html += '</div>';
+            html += '</div>';
+        }
+    }
 
-            if (description) {
-                html += '<div class="spot-detail-desc">' + escapeHtml(description) + '</div>';
-            }
+    // 📸 照片列表（只显示 user_photos，不显示例图）
+    var allDisplayPhotos = [];
 
-            // 🚌 关联车辆列表
-            if (vehicleIds.length > 0) {
-                var vehicles = allVehiclesCache.filter(function(v) {
-                    return vehicleIds.includes(v.id);
-                });
-                if (vehicles.length > 0) {
-                    html += '<div class="spot-detail-vehicles">';
-                    html += '<span class="vehicles-label">🚌 关联车辆 (' + vehicles.length + ')</span>';
-                    html += '<div class="vehicle-tags">';
-                    vehicles.forEach(function(v) {
-                        var displayText = '';
-                        if (v.fleet_number) displayText += v.fleet_number;
-                        if (v.model) displayText += ' ' + v.model;
-                        if (v.license_plate) displayText += ' (' + v.license_plate + ')';
-                        if (!displayText) displayText = '车辆 #' + v.id;
-                        html += '<a href="vehicle.html?id=' + v.id + '" class="v-tag" target="_blank">' +
-                            '🚌 ' + escapeHtml(displayText) +
-                            '</a>';
-                    });
-                    html += '</div>';
-                    html += '</div>';
+    // 只取 user_photos（最多前5张）
+    var userPhotos = photos.slice(0, 5);
+    userPhotos.forEach(function(p) {
+        allDisplayPhotos.push({
+            photo_url: p.photo_url,
+            is_example: false,
+            caption: p.caption || null,
+            _vehicle: p._vehicle || null,
+            shoot_date: p.shoot_date || null
+        });
+    });
+
+    if (allDisplayPhotos.length > 0) {
+        html += '<div class="spot-detail-photos">';
+        html += '<span class="photos-label">📷 照片 (' + allDisplayPhotos.length + ')</span>';
+        html += '<div class="photos-grid">';
+        allDisplayPhotos.forEach(function(p) {
+            var vehicle = p._vehicle || null;
+            var plateText = vehicle && vehicle.license_plate ? vehicle.license_plate : '';
+            var operatorText = vehicle && vehicle.operator_name ? vehicle.operator_name : '';
+            var isExample = p.is_example;
+
+            html += '<div class="photo-item" onclick="window.open(\'' + escapeHtml(p.photo_url) + '\',\'_blank\')">';
+            html += '<img src="' + escapeHtml(p.photo_url) + '" loading="lazy" />';
+            html += '<span class="photo-tag-top ' + (isExample ? 'example' : 'vehicle') + '">' + (isExample ? '📷 例图' : '📸') +
+                '</span>';
+
+            html += '<div class="photo-bottom-info">';
+            if (isExample) {
+                html += '<span class="vehicle-plate" style="color:#ff9800;">📷 例图</span>';
+                html += '<span class="operator-name" style="color:#888;">' + escapeHtml(spot.created_by || '未知') +
+                    ' 上传</span>';
+            } else {
+                if (plateText) {
+                    html += '<span class="vehicle-plate">' + escapeHtml(plateText) + '</span>';
+                } else {
+                    html += '<span class="vehicle-plate" style="color:#888;">无车牌</span>';
+                }
+                if (operatorText) {
+                    html += '<span class="operator-name">🏢 ' + escapeHtml(operatorText) + '</span>';
+                } else {
+                    html += '<span class="operator-name" style="color:#666;">未知公司</span>';
+                }
+                if (p.shoot_date) {
+                    html += '<span style="color:#888;font-size:8px;">📅 ' + escapeHtml(p.shoot_date) + '</span>';
                 }
             }
-
-            // 📸 照片列表（从 user_photos 读取，显示车牌+公司）
-            if (photos.length > 0) {
-                html += '<div class="spot-detail-photos">';
-                html += '<span class="photos-label">📷 最新照片 (' + photos.length + ')</span>';
-                html += '<div class="photos-grid">';
-                var displayPhotos = photos.slice(0, 6);
-                displayPhotos.forEach(function(p) {
-                    var vehicle = p._vehicle || null;
-                    var plateText = vehicle && vehicle.license_plate ? vehicle.license_plate : '';
-                    var operatorText = vehicle && vehicle.operator_name ? vehicle.operator_name : '';
-
-                    html += '<div class="photo-item" onclick="window.open(\'' + escapeHtml(p.photo_url) + '\',\'_blank\')">';
-                    html += '<img src="' + escapeHtml(p.photo_url) + '" loading="lazy" />';
-                    html += '<span class="photo-tag-top vehicle">📸</span>';
-
-                    html += '<div class="photo-bottom-info">';
-                    if (plateText) {
-                        html += '<span class="vehicle-plate">' + escapeHtml(plateText) + '</span>';
-                    } else {
-                        html += '<span class="vehicle-plate" style="color:#888;">无车牌</span>';
-                    }
-                    if (operatorText) {
-                        html += '<span class="operator-name">🏢 ' + escapeHtml(operatorText) + '</span>';
-                    } else {
-                        html += '<span class="operator-name" style="color:#666;">未知公司</span>';
-                    }
-                    html += '</div>';
-                    html += '</div>';
-                });
-                html += '</div>';
-                html += '</div>';
-            } else {
-                html += '<div class="spot-detail-photos"><span class="no-photos">📷 暂无照片</span></div>';
-            }
-
-            html += '<div class="spot-detail-links">';
-            html += '<a href="index.html?spot_id=' + spot.id + '">📍 定位此机位</a>';
-            html += '<span class="sep">|</span>';
-            html += '<a href="profile.html?user=' + encodeURIComponent(spot.created_by || '') + '">👤 作者主页</a>';
-
-            var user = getCurrentUser();
-            if (user) {
-                html += '<span class="sep">|</span>';
-                html += '<button class="btn-upload-photo" onclick="openUploadModal(\'' + spot.id + '\', \'' + escapeHtml(spot
-                    .name.replace(/'/g, "\\'")) + '\')">📸 传图</button>';
-            }
-
             html += '</div>';
             html += '</div>';
-            return html;
-        }
+        });
+        html += '</div>';
+        html += '</div>';
+    } else {
+        html += '<div class="spot-detail-photos"><span class="no-photos">📷 暂无照片</span></div>';
+    }
+
+    html += '<div class="spot-detail-links">';
+    html += '<a href="index.html?spot_id=' + spot.id + '">📍 定位此机位</a>';
+    html += '<span class="sep">|</span>';
+    html += '<a href="profile.html?user=' + encodeURIComponent(spot.created_by || '') + '">👤 作者主页</a>';
+
+    var user = getCurrentUser();
+    if (user) {
+        html += '<span class="sep">|</span>';
+        html += '<button class="btn-upload-photo" onclick="openUploadModal(\'' + spot.id + '\', \'' + escapeHtml(spot
+            .name.replace(/'/g, "\\'")) + '\')">📸 传图</button>';
+    }
+
+    html += '</div>';
+    html += '</div>';
+    return html;
+}
 
         // ============================================================
         //  更新地图标记
