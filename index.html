@@ -3084,65 +3084,89 @@
         var uploadPhotoSpotName = '';
         var uploadPhotoFiles = [];
 
-        function openUploadModal(spotId, spotName) {
-            var user = getCurrentUser();
-            if (!user) {
-                showStatus('⚠️ 请先登录再上传照片', 'error');
-                return;
-            }
-            uploadPhotoSpotId = spotId;
-            uploadPhotoSpotName = spotName;
-            uploadPhotoFiles = [];
-            selectedVehicleId = null;
+        function safeSetValue(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.value = value;
+}
 
-            document.getElementById('uploadPhotoSpotName').textContent = '机位：' + escapeHtml(spotName);
-            document.getElementById('uploadPhotoInput').value = '';
-            document.getElementById('uploadPhotoPreview').innerHTML = '';
-            document.getElementById('uploadPhotoPreview').style.display = 'none';
-            document.getElementById('uploadPhotoMessage').className = 'modal-msg';
-            document.getElementById('uploadPhotoMessage').style.display = 'none';
-            document.getElementById('shootDate').value = '';
-            
-            document.getElementById('cameraModel').value = '';
-            document.getElementById('lens').value = '';
-            document.getElementById('focalLength').value = '';
-            document.getElementById('aperture').value = '';
-            document.getElementById('shutterSpeed').value = '';
-            document.getElementById('iso').value = '';
-            document.getElementById('weather').value = '';
-            document.getElementById('vehicleLicensePlate').value = '';
-            document.getElementById('photoRouteInput').value = '';
-            document.getElementById('vehicleSearchInput').value = '';
-            document.getElementById('vehicleSearchResults').style.display = 'none';
-            document.getElementById('selectedVehicleDisplay').style.display = 'none';
-            document.getElementById('vehicleModelSelect').innerHTML = '<option value="">请先选择城市...</option>';
+function openUploadModal(spotId, spotName) {
+    var user = getCurrentUser();
+    if (!user) {
+        showStatus('⚠️ 请先登录再上传照片', 'error');
+        return;
+    }
+    uploadPhotoSpotId = spotId;
+    uploadPhotoSpotName = spotName;
+    uploadPhotoFiles = [];
+    selectedVehicleId = null;
 
-            // 重置地区选择
-            document.getElementById('photoCountry').selectedIndex = 0;
-            document.getElementById('photoProvince').innerHTML = '<option value="">请先选择国家...</option>';
-            document.getElementById('photoCity').innerHTML = '<option value="">请先选择省份...</option>';
-            document.getElementById('photoOperator').innerHTML = '<option value="">请先选择城市...</option>';
+    safeSetValue('uploadPhotoSpotName', '机位：' + escapeHtml(spotName));
+    safeSetValue('uploadPhotoInput', '');
+    safeSetValue('vehicleLicensePlate', '');
+    safeSetValue('photoRouteInput', '');
+    safeSetValue('vehicleSearchInput', '');
+    safeSetValue('cameraModel', '');
+    safeSetValue('lens', '');
+    safeSetValue('focalLength', '');
+    safeSetValue('aperture', '');
+    safeSetValue('shutterSpeed', '');
+    safeSetValue('iso', '');
+    safeSetValue('shootDate', '');
+    // weather 已移除，不设置
 
-            // 加载国家列表
-            if (countriesCache.length === 0) {
-                loadCountriesForUpload();
-            }
-            // 加载车辆列表
-            if (allVehiclesForUpload.length === 0) {
-                loadAllVehiclesForUpload();
-            }
+    var preview = document.getElementById('uploadPhotoPreview');
+    if (preview) {
+        preview.innerHTML = '';
+        preview.style.display = 'none';
+    }
 
-            // 绑定 EXIF 读取
-            document.getElementById('uploadPhotoInput').onchange = function(e) {
-                var file = e.target.files[0];
-                if (file) {
-                    readEXIF(file);
-                }
-            };
+    var msg = document.getElementById('uploadPhotoMessage');
+    if (msg) {
+        msg.className = 'modal-msg';
+        msg.style.display = 'none';
+    }
 
-            document.getElementById('uploadPhotoModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
+    var results = document.getElementById('vehicleSearchResults');
+    if (results) results.style.display = 'none';
+
+    var display = document.getElementById('selectedVehicleDisplay');
+    if (display) display.style.display = 'none';
+
+    var modelSelect = document.getElementById('vehicleModelSelect');
+    if (modelSelect) modelSelect.innerHTML = '<option value="">请先选择城市...</option>';
+
+    // 重置地区选择
+    var countrySelect = document.getElementById('photoCountry');
+    if (countrySelect) countrySelect.selectedIndex = 0;
+
+    var provinceSelect = document.getElementById('photoProvince');
+    if (provinceSelect) provinceSelect.innerHTML = '<option value="">请先选择国家...</option>';
+
+    var citySelect = document.getElementById('photoCity');
+    if (citySelect) citySelect.innerHTML = '<option value="">请先选择省份...</option>';
+
+    var operatorSelect = document.getElementById('photoOperator');
+    if (operatorSelect) operatorSelect.innerHTML = '<option value="">请先选择城市...</option>';
+
+    // 重置车辆状态（默认选中"运营中"）
+    var activeRadio = document.querySelector('input[name="serviceStatus"][value="active"]');
+    if (activeRadio) activeRadio.checked = true;
+
+    if (countriesCache.length === 0) loadCountriesForUpload();
+    if (allVehiclesForUpload.length === 0) loadAllVehiclesForUpload();
+
+    var photoInput = document.getElementById('uploadPhotoInput');
+    if (photoInput) {
+        photoInput.onchange = function(e) {
+            var file = e.target.files[0];
+            if (file) readEXIF(file);
+        };
+    }
+
+    var modal = document.getElementById('uploadPhotoModal');
+    if (modal) modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
 
         function closeUploadModal() {
             document.getElementById('uploadPhotoModal').classList.remove('active');
