@@ -3315,7 +3315,8 @@ async function submitUploadPhoto() {
         var aperture = document.getElementById('aperture').value || null;
         var shutterSpeed = document.getElementById('shutterSpeed').value || null;
         var iso = parseInt(document.getElementById('iso').value) || null;
-        var weather = document.getElementById('weather').value || null;
+        var weather = null;  // 天气功能已移除
+// var weather = document.getElementById('weather').value || null;
 
         // 3. 处理车辆：根据车牌号查找或创建
         var finalVehicleId = selectedVehicleId || null;
