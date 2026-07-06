@@ -3237,11 +3237,8 @@ function openUploadModal(spotId, spotName) {
             }
         }
 
-        // ============================================================
-        //  ✅ 提交上传（含 model_id 关联 + EXIF 数据）
-        // ============================================================
-        // ============================================================
-//  ✅ 提交上传（含车辆状态 + 顺序调整）
+// ============================================================
+//  ✅ 提交上传（完整版，含车辆状态 + EXIF）
 // ============================================================
 async function submitUploadPhoto() {
     if (uploadPhotoFiles.length === 0) {
@@ -3293,7 +3290,7 @@ async function submitUploadPhoto() {
         var routeInput = document.getElementById('photoRouteInput').value.trim() || null;
         var operatorId = document.getElementById('photoOperator').value || null;
 
-        // 获取车辆状态
+        // 获取车辆状态（通过 name 获取）
         var serviceStatusEl = document.querySelector('input[name="serviceStatus"]:checked');
         var serviceStatusValue = serviceStatusEl ? serviceStatusEl.value : 'active';
 
@@ -3308,15 +3305,13 @@ async function submitUploadPhoto() {
 
         // 获取 EXIF 数据（从隐藏字段读取）
         var shootDate = document.getElementById('shootDate').value || null;
-        var caption = document.getElementById('photoCaption').value.trim() || null;
         var cameraModel = document.getElementById('cameraModel').value || null;
         var lens = document.getElementById('lens').value || null;
         var focalLength = parseInt(document.getElementById('focalLength').value) || null;
         var aperture = document.getElementById('aperture').value || null;
         var shutterSpeed = document.getElementById('shutterSpeed').value || null;
         var iso = parseInt(document.getElementById('iso').value) || null;
-        var weather = null;  // 天气功能已移除
-// var weather = document.getElementById('weather').value || null;
+        // weather 已移除
 
         // 3. 处理车辆：根据车牌号查找或创建
         var finalVehicleId = selectedVehicleId || null;
@@ -3339,7 +3334,7 @@ async function submitUploadPhoto() {
                     license_plate: licensePlate,
                     model: modelName,
                     model_id: modelId || null,
-                    service_status: serviceStatusValue,  // 新增
+                    service_status: serviceStatusValue,
                     country_id: countryId,
                     province_id: provinceId,
                     city_id: cityId,
@@ -3382,14 +3377,12 @@ async function submitUploadPhoto() {
                 uploader: user.username,
                 uploader_name: user.username,
                 shoot_date: shootDate,
-                caption: caption,
                 camera_model: cameraModel,
                 lens: lens,
                 focal_length: focalLength,
                 aperture: aperture,
                 shutter_speed: shutterSpeed,
                 iso: iso,
-                weather: weather,
                 country_id: countryId || null,
                 province_id: provinceId || null,
                 city_id: cityId || null,
@@ -3475,6 +3468,16 @@ async function submitUploadPhoto() {
     }
 }
 
+// 辅助函数：获取状态标签
+function getServiceStatusLabel(status) {
+    var map = {
+        active: '运营中',
+        retired: '已退役',
+        preserved: '保留/收藏',
+        scrapped: '已报废'
+    };
+    return map[status] || status;
+}
 // 辅助函数：获取状态标签
 function getServiceStatusLabel(status) {
     var map = {
