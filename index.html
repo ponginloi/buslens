@@ -1633,161 +1633,178 @@
     <!-- ============================================================
          上传照片弹窗（含 EXIF 自动读取 + 车型关联 ID + 城市筛选）
          ============================================================ -->
-    <div class="modal-overlay" id="uploadPhotoModal">
-        <div class="modal-content">
-            <h3>📸 上传照片</h3>
-            <div class="sub" id="uploadPhotoSpotName">机位：加载中...</div>
-            <div class="modal-msg" id="uploadPhotoMessage"></div>
+    <!-- ============================================================
+     上传照片弹窗（含车辆状态 + 顺序调整）
+     ============================================================ -->
+<div class="modal-overlay" id="uploadPhotoModal">
+    <div class="modal-content">
+        <h3>📸 上传照片</h3>
+        <div class="sub" id="uploadPhotoSpotName">机位：加载中...</div>
+        <div class="modal-msg" id="uploadPhotoMessage"></div>
 
-            <!-- 1. 选择照片 -->
-            <div class="form-group">
-                <label>选择照片 <span class="hint-text">（必选，最多 5 张）</span></label>
-                <input type="file" id="uploadPhotoInput" accept="image/*" multiple>
-                <div class="hint">支持多选，最多 5 张，单张不超过 50MB</div>
-            </div>
-            <div class="photo-preview-grid" id="uploadPhotoPreview"></div>
+        <!-- ============================================================
+        第一部分：地区信息（放在最前面）
+        ============================================================ -->
+        <div class="section-divider">
+            <div class="section-title">🌍 地区信息</div>
+        </div>
 
-            <!-- 2. 拍摄信息（EXIF 自动填充） -->
-            <div class="form-group">
-                <label>📅 拍摄日期 <span class="hint-text">（选填，EXIF 自动读取）</span></label>
-                <input type="date" id="shootDate">
-                <div class="hint">照片的实际拍摄日期</div>
-            </div>
+        <div class="form-group">
+            <label>国家/地区 <span class="required">*</span></label>
+            <select id="photoCountry" onchange="loadProvincesForPhoto()">
+                <option value="">请选择国家...</option>
+            </select>
+        </div>
 
-            <div class="form-group">
-                <label>📝 图片说明 <span class="hint-text">（选填）</span></label>
-                <input type="text" id="photoCaption" placeholder="例如：81001 行驶在深南大道...">
-                <div class="hint">简短的图片描述</div>
-            </div>
+        <div class="form-group">
+            <label>省份/州 <span class="required">*</span></label>
+            <select id="photoProvince" onchange="loadCitiesForPhoto()">
+                <option value="">请先选择国家...</option>
+            </select>
+        </div>
 
-            <!-- 3. 拍摄参数（完全自动读取，用户不可见） -->
-            <div style="display:none;">
-                <input type="text" id="cameraModel">
-                <input type="text" id="lens">
-                <input type="number" id="focalLength">
-                <input type="text" id="aperture">
-                <input type="text" id="shutterSpeed">
-                <input type="number" id="iso">
-            </div>
-            <div class="form-group">
-                <label>📷 EXIF 信息 <span class="hint-text">（自动读取，无需手动填写）</span></label>
-                <div id="exifDisplay" style="background:#f5f7fa;border-radius:8px;padding:10px 14px;font-size:13px;color:#666;min-height:40px;">
-                    <span style="color:#999;">等待选择照片...</span>
-                </div>
-                <div class="hint">💡 选择照片后自动读取 EXIF 信息，没有则留空</div>
-            </div>
+        <div class="form-group">
+            <label>城市 <span class="required">*</span></label>
+            <select id="photoCity" onchange="onCityChangeForPhoto()">
+                <option value="">请先选择省份...</option>
+            </select>
+            <div class="hint">选择城市后，自动加载该城市车型和运营公司</div>
+        </div>
 
-            <!-- 4. 天气 -->
-            <div class="form-group">
-                <label>🌤️ 天气 <span class="hint-text">（选填）</span></label>
-                <select id="weather">
-                    <option value="">未选择</option>
-                    <option value="晴">☀️ 晴</option>
-                    <option value="多云">⛅ 多云</option>
-                    <option value="阴">☁️ 阴</option>
-                    <option value="小雨">🌧️ 小雨</option>
-                    <option value="大雨">🌧️ 大雨</option>
-                    <option value="雾">🌫️ 雾</option>
-                    <option value="雪">❄️ 雪</option>
-                </select>
-                <div class="hint">拍摄时的天气状况</div>
-            </div>
+        <!-- ============================================================
+        第二部分：运营公司
+        ============================================================ -->
+        <div class="section-divider">
+            <div class="section-title">🏢 运营信息</div>
+        </div>
 
-            <!-- ============================================================
-            5. 车辆信息
-            ============================================================ -->
-            <div class="section-divider">
-                <div class="section-title">🚌 车辆信息 <span class="hint-text">（选填，关联车辆档案）</span></div>
-            </div>
+        <div class="form-group">
+            <label>🏢 运营公司 <span class="hint-text">（选填）</span></label>
+            <select id="photoOperator">
+                <option value="">请先选择城市...</option>
+            </select>
+            <div class="hint">💡 公司列表来自后台审核通过的运营公司</div>
+        </div>
 
-            <div class="form-group">
-                <label>🚗 车牌号 <span class="hint-text">（选填）</span></label>
-                <input type="text" id="vehicleLicensePlate" placeholder="如：粤B 81001D">
-                <div class="hint">照片中巴士的车牌号</div>
-            </div>
+        <!-- ============================================================
+        第三部分：线路
+        ============================================================ -->
+        <div class="form-group">
+            <label>🚌 线路 <span class="hint-text">（选填）</span></label>
+            <input type="text" id="photoRouteInput" placeholder="如：1路、B2、M123">
+            <div class="hint">照片中巴士运营的线路</div>
+        </div>
 
-            <!-- 车型（根据城市动态加载） -->
-            <div class="form-group">
-                <label>🚌 车型 <span class="hint-text">（选填，根据城市自动筛选）</span></label>
-                <select id="vehicleModelSelect">
-                    <option value="">请先选择城市...</option>
-                </select>
-                <div class="hint">根据所选城市自动加载对应车型</div>
-            </div>
+        <!-- ============================================================
+        第四部分：车辆状态（新增）
+        ============================================================ -->
+        <div class="section-divider">
+            <div class="section-title">🚌 车辆状态</div>
+        </div>
 
-            <!-- 线路 -->
-            <div class="form-group">
-                <label>🚌 线路 <span class="hint-text">（选填）</span></label>
-                <input type="text" id="photoRouteInput" placeholder="如：1路、B2、M123">
-                <div class="hint">照片中巴士运营的线路</div>
+        <div class="form-group">
+            <label>📊 服役状态 <span class="hint-text">（选填）</span></label>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:#555;cursor:pointer;padding:8px 16px;border:2px solid #e0e0e0;border-radius:10px;transition:all 0.3s;" onmouseover="this.style.borderColor='#1a73e8'" onmouseout="this.style.borderColor='#e0e0e0'">
+                    <input type="radio" name="serviceStatus" value="active" checked>
+                    <span>🚀 运营中</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:#555;cursor:pointer;padding:8px 16px;border:2px solid #e0e0e0;border-radius:10px;transition:all 0.3s;" onmouseover="this.style.borderColor='#1a73e8'" onmouseout="this.style.borderColor='#e0e0e0'">
+                    <input type="radio" name="serviceStatus" value="retired">
+                    <span>🔄 已退役</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:#555;cursor:pointer;padding:8px 16px;border:2px solid #e0e0e0;border-radius:10px;transition:all 0.3s;" onmouseover="this.style.borderColor='#1a73e8'" onmouseout="this.style.borderColor='#e0e0e0'">
+                    <input type="radio" name="serviceStatus" value="preserved">
+                    <span>🏛️ 保留/收藏</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:#555;cursor:pointer;padding:8px 16px;border:2px solid #e0e0e0;border-radius:10px;transition:all 0.3s;" onmouseover="this.style.borderColor='#1a73e8'" onmouseout="this.style.borderColor='#e0e0e0'">
+                    <input type="radio" name="serviceStatus" value="scrapped">
+                    <span>💔 已报废</span>
+                </label>
             </div>
+            <div class="hint">💡 选择该车辆的当前服役状态</div>
+        </div>
 
-            <!-- ============================================================
-            6. 地区层级：国家 → 省份 → 城市
-            ============================================================ -->
-            <div class="section-divider">
-                <div class="section-title">🌍 地区信息</div>
-            </div>
+        <!-- ============================================================
+        第五部分：车牌号 + 车型
+        ============================================================ -->
+        <div class="section-divider">
+            <div class="section-title">🚌 车辆信息</div>
+        </div>
 
-            <div class="form-group">
-                <label>国家/地区 <span class="required">*</span></label>
-                <select id="photoCountry" onchange="loadProvincesForPhoto()">
-                    <option value="">请选择国家...</option>
-                </select>
-            </div>
+        <div class="form-group">
+            <label>🚗 车牌号 <span class="hint-text">（选填）</span></label>
+            <input type="text" id="vehicleLicensePlate" placeholder="如：粤B 81001D">
+            <div class="hint">照片中巴士的车牌号</div>
+        </div>
 
-            <div class="form-group">
-                <label>省份/州 <span class="required">*</span></label>
-                <select id="photoProvince" onchange="loadCitiesForPhoto()">
-                    <option value="">请先选择国家...</option>
-                </select>
-            </div>
+        <div class="form-group">
+            <label>🚌 车型 <span class="hint-text">（选填，根据城市自动筛选）</span></label>
+            <select id="vehicleModelSelect">
+                <option value="">请先选择城市...</option>
+            </select>
+            <div class="hint">根据所选城市自动加载对应车型</div>
+        </div>
 
-            <!-- 城市选择（变化时加载车型） -->
-            <div class="form-group">
-                <label>城市 <span class="required">*</span></label>
-                <select id="photoCity" onchange="onCityChangeForPhoto()">
-                    <option value="">请先选择省份...</option>
-                </select>
-                <div class="hint">选择城市后，自动加载该城市车型和运营公司</div>
-            </div>
+        <!-- ============================================================
+        第六部分：照片
+        ============================================================ -->
+        <div class="section-divider">
+            <div class="section-title">📸 照片</div>
+        </div>
 
-            <!-- ============================================================
-            7. 运营公司（从后台 operators 表选择）
-            ============================================================ -->
-            <div class="form-group">
-                <label>🏢 运营公司 <span class="hint-text">（选填）</span></label>
-                <select id="photoOperator">
-                    <option value="">请先选择城市...</option>
-                </select>
-                <div class="hint">💡 公司列表来自后台审核通过的运营公司</div>
-            </div>
+        <div class="form-group">
+            <label>选择照片 <span class="hint-text">（必选，最多 5 张）</span></label>
+            <input type="file" id="uploadPhotoInput" accept="image/*" multiple>
+            <div class="hint">支持多选，最多 5 张，单张不超过 50MB</div>
+        </div>
+        <div class="photo-preview-grid" id="uploadPhotoPreview"></div>
 
-            <!-- ============================================================
-            8. 关联已有车辆（搜索）
-            ============================================================ -->
-            <div class="form-group" id="vehicleAssocGroup">
-                <label>🔗 关联已有车辆 <span class="hint-text">（选填）</span></label>
-                <div class="vehicle-search-wrap">
-                    <input type="text" id="vehicleSearchInput" placeholder="搜索已有车辆（编号/车牌）..." oninput="searchVehiclesForUpload()">
-                </div>
-                <div id="vehicleSearchResults" style="display:none;"></div>
-                <div id="selectedVehicleDisplay">
-                    <span class="v-info" id="selectedVehicleText">🚌 已选：</span>
-                    <button class="clear-btn" onclick="clearSelectedVehicle()">×</button>
-                </div>
-                <div class="hint">💡 如果照片中的车辆已存在档案，可以直接搜索关联</div>
+        <!-- ============================================================
+        第七部分：EXIF 信息（自动读取）
+        ============================================================ -->
+        <div style="display:none;">
+            <input type="text" id="cameraModel">
+            <input type="text" id="lens">
+            <input type="number" id="focalLength">
+            <input type="text" id="aperture">
+            <input type="text" id="shutterSpeed">
+            <input type="number" id="iso">
+            <input type="date" id="shootDate">
+        </div>
+        <div class="form-group">
+            <label>📷 EXIF 信息 <span class="hint-text">（自动读取，无需手动填写）</span></label>
+            <div id="exifDisplay" style="background:#f5f7fa;border-radius:8px;padding:10px 14px;font-size:13px;color:#666;min-height:40px;">
+                <span style="color:#999;">等待选择照片...</span>
             </div>
+            <div class="hint">💡 选择照片后自动读取 EXIF 信息，没有则留空</div>
+        </div>
 
-            <!-- ============================================================
-            提交按钮
-            ============================================================ -->
-            <div class="btn-row">
-                <button class="btn-cancel" onclick="closeUploadModal()">取消</button>
-                <button class="btn-submit" id="uploadPhotoSubmitBtn" onclick="submitUploadPhoto()">📤 上传</button>
+        <!-- ============================================================
+        第八部分：关联已有车辆
+        ============================================================ -->
+        <div class="form-group" id="vehicleAssocGroup">
+            <label>🔗 关联已有车辆 <span class="hint-text">（选填）</span></label>
+            <div class="vehicle-search-wrap">
+                <input type="text" id="vehicleSearchInput" placeholder="搜索已有车辆（编号/车牌）..." oninput="searchVehiclesForUpload()">
             </div>
+            <div id="vehicleSearchResults" style="display:none;"></div>
+            <div id="selectedVehicleDisplay">
+                <span class="v-info" id="selectedVehicleText">🚌 已选：</span>
+                <button class="clear-btn" onclick="clearSelectedVehicle()">×</button>
+            </div>
+            <div class="hint">💡 如果照片中的车辆已存在档案，可以直接搜索关联</div>
+        </div>
+
+        <!-- ============================================================
+        提交按钮
+        ============================================================ -->
+        <div class="btn-row">
+            <button class="btn-cancel" onclick="closeUploadModal()">取消</button>
+            <button class="btn-submit" id="uploadPhotoSubmitBtn" onclick="submitUploadPhoto()">📤 上传</button>
         </div>
     </div>
+</div>
 
     <div class="status-msg" id="statusMsg"></div>
 
@@ -3199,230 +3216,250 @@
         // ============================================================
         //  ✅ 提交上传（含 model_id 关联 + EXIF 数据）
         // ============================================================
-        async function submitUploadPhoto() {
-            if (uploadPhotoFiles.length === 0) {
-                showUploadMessage('请至少选择 1 张照片', 'error');
-                return;
-            }
+        // ============================================================
+//  ✅ 提交上传（含车辆状态 + 顺序调整）
+// ============================================================
+async function submitUploadPhoto() {
+    if (uploadPhotoFiles.length === 0) {
+        showUploadMessage('请至少选择 1 张照片', 'error');
+        return;
+    }
 
-            var user = getCurrentUser();
-            if (!user) {
-                showUploadMessage('请先登录', 'error');
-                return;
-            }
+    var user = getCurrentUser();
+    if (!user) {
+        showUploadMessage('请先登录', 'error');
+        return;
+    }
 
-            // 验证地区层级
-            var countryId = document.getElementById('photoCountry').value;
-            var provinceId = document.getElementById('photoProvince').value;
-            var cityId = document.getElementById('photoCity').value;
+    // 验证地区层级
+    var countryId = document.getElementById('photoCountry').value;
+    var provinceId = document.getElementById('photoProvince').value;
+    var cityId = document.getElementById('photoCity').value;
 
-            if (!countryId) { showUploadMessage('请选择国家/地区', 'error'); return; }
-            if (!provinceId) { showUploadMessage('请选择省份/州', 'error'); return; }
-            if (!cityId) { showUploadMessage('请选择城市', 'error'); return; }
+    if (!countryId) { showUploadMessage('请选择国家/地区', 'error'); return; }
+    if (!provinceId) { showUploadMessage('请选择省份/州', 'error'); return; }
+    if (!cityId) { showUploadMessage('请选择城市', 'error'); return; }
 
-            var btn = document.getElementById('uploadPhotoSubmitBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ 上传中...';
-            showUploadMessage('正在上传...', 'loading');
+    var btn = document.getElementById('uploadPhotoSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 上传中...';
+    showUploadMessage('正在上传...', 'loading');
 
-            try {
-                // 1. 上传图片到 ImgBB
-                var uploadedUrls = [];
-                for (var i = 0; i < uploadPhotoFiles.length; i++) {
-                    showUploadMessage('上传 ' + (i + 1) + '/' + uploadPhotoFiles.length + '...', 'loading');
-                    var processedFile = await processImageWithCanvas(uploadPhotoFiles[i], {
-                        maxWidth: 1920,
-                        maxHeight: 1080,
-                        quality: 0.85,
-                        maxSizeMB: 4.5,
-                        barHeight: 50,
-                        watermarkText: 'BusLens',
-                        copyrightText: '© 2026 ' + user.username + ' 版权所有'
-                    }, user.username);
-                    var url = await uploadToImgBB(processedFile);
-                    uploadedUrls.push(url);
-                }
+    try {
+        // 1. 上传图片到 ImgBB
+        var uploadedUrls = [];
+        for (var i = 0; i < uploadPhotoFiles.length; i++) {
+            showUploadMessage('上传 ' + (i + 1) + '/' + uploadPhotoFiles.length + '...', 'loading');
+            var processedFile = await processImageWithCanvas(uploadPhotoFiles[i], {
+                maxWidth: 1920,
+                maxHeight: 1080,
+                quality: 0.85,
+                maxSizeMB: 4.5,
+                barHeight: 50,
+                watermarkText: 'BusLens',
+                copyrightText: '© 2026 ' + user.username + ' 版权所有'
+            }, user.username);
+            var url = await uploadToImgBB(processedFile);
+            uploadedUrls.push(url);
+        }
 
-                // 2. 收集表单数据
-                var licensePlate = document.getElementById('vehicleLicensePlate').value.trim() || null;
-                var modelId = document.getElementById('vehicleModelSelect').value || null;
-                var routeInput = document.getElementById('photoRouteInput').value.trim() || null;
-                var operatorId = document.getElementById('photoOperator').value || null;
+        // 2. 收集表单数据
+        var licensePlate = document.getElementById('vehicleLicensePlate').value.trim() || null;
+        var modelId = document.getElementById('vehicleModelSelect').value || null;
+        var routeInput = document.getElementById('photoRouteInput').value.trim() || null;
+        var operatorId = document.getElementById('photoOperator').value || null;
 
-                // 获取车型名称（用于冗余存储）
-                var modelName = null;
-                if (modelId) {
-                    var selectedModel = vehicleModelsCache.find(function(m) { return m.id == modelId; });
-                    if (selectedModel) {
-                        modelName = selectedModel.name;
-                    }
-                }
+        // 获取车辆状态
+        var serviceStatusEl = document.querySelector('input[name="serviceStatus"]:checked');
+        var serviceStatusValue = serviceStatusEl ? serviceStatusEl.value : 'active';
 
-                // 获取 EXIF 数据（从表单读取）
-                // 从隐藏字段读取 EXIF 数据（用户不可见，完全自动）
-                var shootDate = document.getElementById('shootDate').value || null;
-                var cameraModel = document.getElementById('cameraModel').value || null;
-                var lens = document.getElementById('lens').value || null;
-                var focalLength = parseInt(document.getElementById('focalLength').value) || null;
-                var aperture = document.getElementById('aperture').value || null;
-                var shutterSpeed = document.getElementById('shutterSpeed').value || null;
-                var iso = parseInt(document.getElementById('iso').value) || null;
-
-                // 3. 处理车辆：根据车牌号查找或创建
-                var finalVehicleId = selectedVehicleId || null;
-                var isNewVehicle = false;
-
-                if (!finalVehicleId && licensePlate) {
-                    var { data: existingVehicle } = await supabaseClient
-                        .from('vehicles')
-                        .select('id, license_plate, cover_photo')
-                        .eq('license_plate', licensePlate)
-                        .eq('status', 'approved')
-                        .limit(1);
-
-                    if (existingVehicle && existingVehicle.length > 0) {
-                        finalVehicleId = existingVehicle[0].id;
-                        console.log('✅ 找到已有车辆 ID:', finalVehicleId);
-                    } else {
-                        isNewVehicle = true;
-                        var newVehicle = {
-                            license_plate: licensePlate,
-                            model: modelName,
-                            model_id: modelId || null,
-                            country_id: countryId,
-                            province_id: provinceId,
-                            city_id: cityId,
-                            operator_id: operatorId || null,
-                            route_number: routeInput || null,
-                            cover_photo: uploadedUrls[0],
-                            created_by: user.username,
-                            data_source: 'user',
-                            status: 'pending',
-                            created_at: new Date().toISOString()
-                        };
-
-                        var { data: newVehicleData, error: vError } = await supabaseClient
-                            .from('vehicles')
-                            .insert([newVehicle])
-                            .select();
-
-                        if (vError) {
-                            console.error('创建车辆失败:', vError);
-                        } else if (newVehicleData && newVehicleData.length > 0) {
-                            finalVehicleId = newVehicleData[0].id;
-                            allVehiclesForUpload.push(newVehicleData[0]);
-                            allVehiclesCache.push(newVehicleData[0]);
-                            console.log('✅ 创建新车辆 ID:', finalVehicleId, '车牌:', licensePlate, '车型ID:', modelId);
-                            showUploadMessage('🚗 已自动创建车辆档案：' + licensePlate, 'success');
-                        }
-                    }
-                }
-
-                if (selectedVehicleId) {
-                    finalVehicleId = selectedVehicleId;
-                }
-
-                // 4. 构建 user_photos 记录
-                var photoRecords = uploadedUrls.map(function(url) {
-                    return {
-                        photo_url: url,
-                        spot_id: uploadPhotoSpotId,
-                        vehicle_id: finalVehicleId || null,
-                        uploader: user.username,
-                        uploader_name: user.username,
-                        shoot_date: shootDate,
-                        caption: caption,
-                        camera_model: cameraModel,
-                        lens: lens,
-                        focal_length: focalLength,
-                        aperture: aperture,
-                        shutter_speed: shutterSpeed,
-                        iso: iso,
-                        weather: weather,
-                        country_id: countryId || null,
-                        province_id: provinceId || null,
-                        city_id: cityId || null,
-                        operator_id: operatorId || null,
-                        route_number: routeInput || null,
-                        status: 'pending',
-                        created_at: new Date().toISOString()
-                    };
-                });
-
-                // 5. 插入 user_photos
-                var { error: insertError } = await supabaseClient
-                    .from('user_photos')
-                    .insert(photoRecords);
-
-                if (insertError) throw new Error(insertError.message);
-
-                // 6. 更新 spots.related_vehicles
-                if (finalVehicleId) {
-                    var { data: vehicleData, error: vFetchError } = await supabaseClient
-                        .from('vehicles')
-                        .select('related_spot_ids')
-                        .eq('id', finalVehicleId)
-                        .single();
-
-                    if (!vFetchError && vehicleData) {
-                        var spotIds = vehicleData.related_spot_ids || [];
-                        if (!spotIds.includes(uploadPhotoSpotId)) {
-                            spotIds.push(uploadPhotoSpotId);
-                            await supabaseClient
-                                .from('vehicles')
-                                .update({ related_spot_ids: spotIds })
-                                .eq('id', finalVehicleId);
-                        }
-                    }
-
-                    var { data: spotData, error: spotFetchError } = await supabaseClient
-                        .from('spots')
-                        .select('related_vehicles')
-                        .eq('id', uploadPhotoSpotId)
-                        .single();
-
-                    if (!spotFetchError && spotData) {
-                        var relatedVehicles = spotData.related_vehicles || [];
-                        if (!relatedVehicles.includes(finalVehicleId)) {
-                            relatedVehicles.push(finalVehicleId);
-                            await supabaseClient
-                                .from('spots')
-                                .update({ related_vehicles: relatedVehicles })
-                                .eq('id', uploadPhotoSpotId);
-                        }
-                    }
-                }
-
-                // 7. 更新缓存
-                photoCache[uploadPhotoSpotId] = null;
-
-                var msg = '✅ 已上传 ' + uploadedUrls.length + ' 张照片！';
-                if (finalVehicleId) {
-                    if (isNewVehicle) {
-                        msg += ' 🚗 已创建车辆档案（车牌：' + licensePlate + (modelName ? '，车型：' + modelName : '') + '），等待审核';
-                    } else {
-                        msg += ' 🚌 已关联到现有车辆';
-                    }
-                }
-                if (cameraModel || aperture || shutterSpeed) {
-                    msg += ' 📷 EXIF 已读取';
-                }
-                showUploadMessage(msg, 'success');
-                btn.textContent = '✅ 已完成';
-
-                setTimeout(function() {
-                    closeUploadModal();
-                    loadData();
-                    showStatus('✅ 照片上传成功！', 'success');
-                }, 1500);
-
-            } catch (error) {
-                console.error('上传失败:', error);
-                showUploadMessage('❌ ' + error.message, 'error');
-                btn.disabled = false;
-                btn.textContent = '📤 上传';
+        // 获取车型名称（用于冗余存储）
+        var modelName = null;
+        if (modelId) {
+            var selectedModel = vehicleModelsCache.find(function(m) { return m.id == modelId; });
+            if (selectedModel) {
+                modelName = selectedModel.name;
             }
         }
+
+        // 获取 EXIF 数据（从隐藏字段读取）
+        var shootDate = document.getElementById('shootDate').value || null;
+        var caption = document.getElementById('photoCaption').value.trim() || null;
+        var cameraModel = document.getElementById('cameraModel').value || null;
+        var lens = document.getElementById('lens').value || null;
+        var focalLength = parseInt(document.getElementById('focalLength').value) || null;
+        var aperture = document.getElementById('aperture').value || null;
+        var shutterSpeed = document.getElementById('shutterSpeed').value || null;
+        var iso = parseInt(document.getElementById('iso').value) || null;
+        var weather = document.getElementById('weather').value || null;
+
+        // 3. 处理车辆：根据车牌号查找或创建
+        var finalVehicleId = selectedVehicleId || null;
+        var isNewVehicle = false;
+
+        if (!finalVehicleId && licensePlate) {
+            var { data: existingVehicle } = await supabaseClient
+                .from('vehicles')
+                .select('id, license_plate, cover_photo')
+                .eq('license_plate', licensePlate)
+                .eq('status', 'approved')
+                .limit(1);
+
+            if (existingVehicle && existingVehicle.length > 0) {
+                finalVehicleId = existingVehicle[0].id;
+                console.log('✅ 找到已有车辆 ID:', finalVehicleId);
+            } else {
+                isNewVehicle = true;
+                var newVehicle = {
+                    license_plate: licensePlate,
+                    model: modelName,
+                    model_id: modelId || null,
+                    service_status: serviceStatusValue,  // 新增
+                    country_id: countryId,
+                    province_id: provinceId,
+                    city_id: cityId,
+                    operator_id: operatorId || null,
+                    route_number: routeInput || null,
+                    cover_photo: uploadedUrls[0],
+                    created_by: user.username,
+                    data_source: 'user',
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                };
+
+                var { data: newVehicleData, error: vError } = await supabaseClient
+                    .from('vehicles')
+                    .insert([newVehicle])
+                    .select();
+
+                if (vError) {
+                    console.error('创建车辆失败:', vError);
+                } else if (newVehicleData && newVehicleData.length > 0) {
+                    finalVehicleId = newVehicleData[0].id;
+                    allVehiclesForUpload.push(newVehicleData[0]);
+                    allVehiclesCache.push(newVehicleData[0]);
+                    console.log('✅ 创建新车辆 ID:', finalVehicleId, '车牌:', licensePlate, '车型ID:', modelId, '状态:', serviceStatusValue);
+                    showUploadMessage('🚗 已自动创建车辆档案：' + licensePlate, 'success');
+                }
+            }
+        }
+
+        if (selectedVehicleId) {
+            finalVehicleId = selectedVehicleId;
+        }
+
+        // 4. 构建 user_photos 记录
+        var photoRecords = uploadedUrls.map(function(url) {
+            return {
+                photo_url: url,
+                spot_id: uploadPhotoSpotId,
+                vehicle_id: finalVehicleId || null,
+                uploader: user.username,
+                uploader_name: user.username,
+                shoot_date: shootDate,
+                caption: caption,
+                camera_model: cameraModel,
+                lens: lens,
+                focal_length: focalLength,
+                aperture: aperture,
+                shutter_speed: shutterSpeed,
+                iso: iso,
+                weather: weather,
+                country_id: countryId || null,
+                province_id: provinceId || null,
+                city_id: cityId || null,
+                operator_id: operatorId || null,
+                route_number: routeInput || null,
+                status: 'pending',
+                created_at: new Date().toISOString()
+            };
+        });
+
+        // 5. 插入 user_photos
+        var { error: insertError } = await supabaseClient
+            .from('user_photos')
+            .insert(photoRecords);
+
+        if (insertError) throw new Error(insertError.message);
+
+        // 6. 更新 spots.related_vehicles
+        if (finalVehicleId) {
+            var { data: vehicleData, error: vFetchError } = await supabaseClient
+                .from('vehicles')
+                .select('related_spot_ids')
+                .eq('id', finalVehicleId)
+                .single();
+
+            if (!vFetchError && vehicleData) {
+                var spotIds = vehicleData.related_spot_ids || [];
+                if (!spotIds.includes(uploadPhotoSpotId)) {
+                    spotIds.push(uploadPhotoSpotId);
+                    await supabaseClient
+                        .from('vehicles')
+                        .update({ related_spot_ids: spotIds })
+                        .eq('id', finalVehicleId);
+                }
+            }
+
+            var { data: spotData, error: spotFetchError } = await supabaseClient
+                .from('spots')
+                .select('related_vehicles')
+                .eq('id', uploadPhotoSpotId)
+                .single();
+
+            if (!spotFetchError && spotData) {
+                var relatedVehicles = spotData.related_vehicles || [];
+                if (!relatedVehicles.includes(finalVehicleId)) {
+                    relatedVehicles.push(finalVehicleId);
+                    await supabaseClient
+                        .from('spots')
+                        .update({ related_vehicles: relatedVehicles })
+                        .eq('id', uploadPhotoSpotId);
+                }
+            }
+        }
+
+        // 7. 更新缓存
+        photoCache[uploadPhotoSpotId] = null;
+
+        var msg = '✅ 已上传 ' + uploadedUrls.length + ' 张照片！';
+        if (finalVehicleId) {
+            if (isNewVehicle) {
+                msg += ' 🚗 已创建车辆档案（车牌：' + licensePlate + (modelName ? '，车型：' + modelName : '') + '，状态：' + getServiceStatusLabel(serviceStatusValue) + '），等待审核';
+            } else {
+                msg += ' 🚌 已关联到现有车辆';
+            }
+        }
+        if (cameraModel || aperture || shutterSpeed) {
+            msg += ' 📷 EXIF 已读取';
+        }
+        showUploadMessage(msg, 'success');
+        btn.textContent = '✅ 已完成';
+
+        setTimeout(function() {
+            closeUploadModal();
+            loadData();
+            showStatus('✅ 照片上传成功！', 'success');
+        }, 1500);
+
+    } catch (error) {
+        console.error('上传失败:', error);
+        showUploadMessage('❌ ' + error.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '📤 上传';
+    }
+}
+
+// 辅助函数：获取状态标签
+function getServiceStatusLabel(status) {
+    var map = {
+        active: '运营中',
+        retired: '已退役',
+        preserved: '保留/收藏',
+        scrapped: '已报废'
+    };
+    return map[status] || status;
+}
 
         // ============================================================
         //  启动
