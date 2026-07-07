@@ -8,6 +8,7 @@
         var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
         var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx', 'shaojiu_0053', '135317'];
     </script>
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
@@ -156,7 +157,7 @@
             margin-bottom: 20px;
         }
 
-        /* ===== 车牌搜索框（醒目） ===== */
+        /* ===== 车牌搜索框 ===== */
         .plate-search-area {
             background: linear-gradient(135deg, #e8f0fe, #d2e3fc);
             border-radius: 14px;
@@ -268,6 +269,19 @@
         .plate-search-result .found-info .btn-edit:hover {
             background: #0d47a1;
         }
+        .btn-clear {
+            padding: 8px 16px;
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .btn-clear:hover {
+            background: #eee;
+        }
 
         .form-group {
             margin-bottom: 16px;
@@ -352,14 +366,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        .section-divider .section-title .auto-badge {
-            font-size: 10px;
-            font-weight: 500;
-            background: #e8f5e9;
-            color: #4caf50;
-            padding: 2px 10px;
-            border-radius: 12px;
         }
 
         /* ===== 状态选择 ===== */
@@ -478,6 +484,17 @@
             border-radius: 10px;
             font-weight: 500;
         }
+        .preview-container .preview-item .existing-label {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            font-size: 9px;
+            padding: 1px 8px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
 
         /* ===== 按钮 ===== */
         .btn-submit {
@@ -519,20 +536,6 @@
         .btn-delete:hover {
             background: #f44336;
             color: white;
-        }
-
-        .btn-clear {
-            padding: 8px 16px;
-            background: #f5f5f5;
-            color: #666;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        .btn-clear:hover {
-            background: #eee;
         }
 
         /* ===== Message ===== */
@@ -813,7 +816,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>上传照片 <span class="hint-text">（选填，建议上传）</span></label>
+                    <label>上传照片 <span class="hint-text">（选填，已有照片会保留）</span></label>
                     <div class="upload-area" id="uploadArea" onclick="document.getElementById('photoInput').click()">
                         <span class="icon">📷</span>
                         <div class="text">点击上传照片</div>
@@ -821,7 +824,7 @@
                         <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotoUpload(event)">
                     </div>
                     <div class="preview-container" id="photoPreview"></div>
-                    <div class="hint">💡 第一张照片将自动设为封面图</div>
+                    <div class="hint">💡 第一张照片将自动设为封面图 · 已有照片会保留</div>
                 </div>
 
                 <!-- ===== 提交 ===== -->
@@ -863,6 +866,12 @@
                 var raw = sessionStorage.getItem(SESSION_KEY);
                 return raw ? JSON.parse(raw) : null;
             } catch (e) { return null; }
+        }
+
+        function isAdmin() {
+            var user = getCurrentUser();
+            if (!user) return false;
+            return ADMIN_USERNAMES.indexOf(user.username) !== -1;
         }
 
         function logout() {
@@ -925,7 +934,7 @@
         }
 
         // ============================================================
-        //  照片上传
+        //  照片上传（支持区分已有和新照片）
         // ============================================================
         var uploadedPhotos = [];
 
@@ -942,7 +951,8 @@
                 reader.onload = function(e) {
                     uploadedPhotos.push({
                         file: files[i],
-                        url: e.target.result
+                        url: e.target.result,
+                        existing: false  // ✅ 标记为新上传的
                     });
                     renderPhotoPreview();
                 };
@@ -964,6 +974,7 @@
                     '<img src="' + p.url + '" alt="照片' + (index + 1) + '" />' +
                     '<button type="button" class="remove-btn" onclick="removePhoto(' + index + ')">×</button>' +
                     (isCover ? '<span class="cover-badge">📌 封面</span>' : '') +
+                    (p.existing ? '<span class="existing-label">✅ 已保存</span>' : '') +
                     '</div>';
             });
             container.innerHTML = html;
@@ -1229,12 +1240,10 @@
                         resultDiv.className = 'plate-search-result notfound';
                         resultDiv.innerHTML = '🔍 未找到车牌 <strong>' + escapeHtml(plate) +
                             '</strong> 的车辆，请填写下方信息创建新档案';
-                        // 清空表单，准备创建新车辆
                         clearForm();
                         return;
                     }
 
-                    // ===== 找到车辆，自动填充 =====
                     resultDiv.className = 'plate-search-result found';
                     resultDiv.innerHTML = '<div class="found-info">' +
                         '✅ 找到车辆：<strong>' + escapeHtml(vehicle.license_plate) + '</strong>' +
@@ -1243,7 +1252,6 @@
                         '<button class="btn-edit" onclick="fillFormWithVehicle(' + vehicle.id + ')">📝 加载编辑</button>' +
                         '</div>';
 
-                    // 自动填充
                     fillFormWithVehicle(vehicle.id);
                 })
                 .catch(function(error) {
@@ -1273,10 +1281,9 @@
                     document.getElementById('formSub').textContent = '正在编辑车牌 ' + escapeHtml(v.license_plate) +
                         '，修改后重新提交审核';
                     document.getElementById('deleteBtn').style.display = 'block';
+                    document.getElementById('submitBtn').textContent = '💾 更新';
 
-                    // 填充表单
                     fillForm(v);
-
                     showToast('✅ 已加载车辆信息，可编辑后重新提交', 'success');
                 });
         }
@@ -1294,7 +1301,6 @@
             document.getElementById('licensePlate').value = '';
             document.getElementById('vehicleType').value = '';
             document.getElementById('manufacturer').value = '';
-            // 不要重置地区、车型、公司、状态
         }
 
         // ============================================================
@@ -1341,15 +1347,18 @@
                 document.querySelector('input[name="serviceStatus"][value="' + v.service_status + '"]').checked = true;
             }
 
-            // 照片
+            // ✅ 修复：加载已有照片时标记为 existing
             if (v.photos && v.photos.length > 0) {
                 v.photos.forEach(function(url) {
-                    uploadedPhotos.push({ file: null, url: url, existing: true });
+                    uploadedPhotos.push({
+                        file: null,
+                        url: url,
+                        existing: true  // ✅ 标记为已有照片
+                    });
                 });
                 renderPhotoPreview();
             }
 
-            // 如果是从搜索来的，清空搜索结果
             clearSearchResult();
         }
 
@@ -1378,7 +1387,7 @@
         }
 
         // ============================================================
-        //  提交表单
+        //  ✅ 提交表单（修复版：正确处理已有照片）
         // ============================================================
         document.getElementById('vehicleForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1409,12 +1418,23 @@
             showMessage('⏳ 正在处理...', 'loading');
 
             try {
-                // 上传照片
-                var photoUrls = [];
-                for (var i = 0; i < uploadedPhotos.length; i++) {
-                    showMessage('📤 上传照片 ' + (i + 1) + '/' + uploadedPhotos.length + '...', 'loading');
-                    var url = await uploadToImgBB(uploadedPhotos[i].file);
-                    photoUrls.push(url);
+                // ✅ 修复：区分已有图片和新上传的图片
+                var allPhotoUrls = [];
+
+                // 1. 先保留已有的图片（从 uploadedPhotos 中标记为 existing 的）
+                var existingPhotos = uploadedPhotos.filter(function(p) { return p.existing === true; });
+                existingPhotos.forEach(function(p) {
+                    if (p.url) {
+                        allPhotoUrls.push(p.url);
+                    }
+                });
+
+                // 2. 新上传的图片需要上传到 ImgBB
+                var newPhotos = uploadedPhotos.filter(function(p) { return p.existing !== true; });
+                for (var i = 0; i < newPhotos.length; i++) {
+                    showMessage('📤 上传照片 ' + (i + 1) + '/' + newPhotos.length + '...', 'loading');
+                    var url = await uploadToImgBB(newPhotos[i].file);
+                    allPhotoUrls.push(url);
                 }
 
                 var country = countriesCache.find(function(c) { return c.id == countryId; });
@@ -1437,8 +1457,8 @@
                     province_name: province ? province.name : null,
                     city_name: city ? city.name : null,
                     service_status: serviceStatus.value,
-                    cover_photo: photoUrls.length > 0 ? photoUrls[0] : null,
-                    photos: photoUrls.length > 0 ? photoUrls : null,
+                    cover_photo: allPhotoUrls.length > 0 ? allPhotoUrls[0] : null,
+                    photos: allPhotoUrls.length > 0 ? allPhotoUrls : null,
                     created_by: user.username,
                     data_source: 'user',
                     status: 'pending'
@@ -1447,7 +1467,7 @@
                 var result;
 
                 if (isEditMode && currentVehicleId) {
-                    // 更新
+                    // ✅ 编辑模式：更新
                     var { data: updateResult, error: updateError } = await supabaseClient
                         .from('vehicles')
                         .update(data)
@@ -1458,7 +1478,7 @@
                     result = updateResult;
                     showMessage('✅ 车辆档案已更新，等待管理员审核！', 'success');
                 } else {
-                    // 插入
+                    // 新增模式：插入
                     var { data: insertResult, error: insertError } = await supabaseClient
                         .from('vehicles')
                         .insert([data])
@@ -1555,10 +1575,9 @@
         loadAllVehicleModels();
         loadEditData();
 
-        console.log('🚌 车辆编辑页面已加载（车牌搜索自动填充）');
-        console.log('✅ 输入车牌号 → 搜索已有车辆 → 自动填充所有信息');
-        console.log('✅ 支持编辑已有车辆（URL 参数 id）');
-        console.log('✅ 支持创建新车辆');
+        console.log('🚌 车辆编辑页面已加载（修复版：编辑模式正确处理已有图片）');
+        console.log('✅ 已有图片会保留，新图片才上传');
+        console.log('✅ 编辑模式下不会要求重新上传已有图片');
     </script>
 </body>
 </html>
