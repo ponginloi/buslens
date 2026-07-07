@@ -938,47 +938,34 @@
         // ============================================================
         var uploadedPhotos = [];
 
-        function handlePhotoUpload(event) {
-            var files = event.target.files;
-            if (!files || files.length === 0) return;
+        // ============================================================
+//  照片上传处理（确保文件对象正确存储）
+// ============================================================
+function handlePhotoUpload(event) {
+    var files = event.target.files;
+    if (!files || files.length === 0) return;
 
-            for (var i = 0; i < files.length; i++) {
-                if (files[i].size > 50 * 1024 * 1024) {
-                    showToast('❌ 单张照片不能超过 50MB', 'error');
-                    continue;
-                }
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    uploadedPhotos.push({
-                        file: files[i],
-                        url: e.target.result,
-                        existing: false  // ✅ 标记为新上传的
-                    });
-                    renderPhotoPreview();
-                };
-                reader.readAsDataURL(files[i]);
-            }
-            event.target.value = '';
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        if (file.size > 50 * 1024 * 1024) {
+            showToast('❌ 单张照片不能超过 50MB', 'error');
+            continue;
         }
 
-        function renderPhotoPreview() {
-            var container = document.getElementById('photoPreview');
-            if (uploadedPhotos.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            var html = '';
-            uploadedPhotos.forEach(function(p, index) {
-                var isCover = index === 0;
-                html += '<div class="preview-item">' +
-                    '<img src="' + p.url + '" alt="照片' + (index + 1) + '" />' +
-                    '<button type="button" class="remove-btn" onclick="removePhoto(' + index + ')">×</button>' +
-                    (isCover ? '<span class="cover-badge">📌 封面</span>' : '') +
-                    (p.existing ? '<span class="existing-label">✅ 已保存</span>' : '') +
-                    '</div>';
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            // ✅ 保存完整的 File 对象到 uploadedPhotos
+            uploadedPhotos.push({
+                file: file,           // 保存原始 File 对象
+                url: e.target.result,
+                existing: false
             });
-            container.innerHTML = html;
-        }
+            renderPhotoPreview();
+        };
+        reader.readAsDataURL(file);
+    }
+    event.target.value = '';
+}
 
         function removePhoto(index) {
             uploadedPhotos.splice(index, 1);
@@ -1372,46 +1359,65 @@ async function uploadToImgBB(file) {
     var user = getCurrentUser();
     if (!user) throw new Error('请先登录');
 
-    // ✅ 修复：更健壮的文件类型检查
     if (!file) {
-        throw new Error('文件不存在');
+        throw new Error('文件不存在，请重新选择图片');
     }
 
-    // 检查是否是 File 对象
+    // ✅ 确保是 File 对象，并且有 type 属性
+    var uploadFile = file;
+
+    // 如果 file 不是 File 对象，尝试转换
     if (!(file instanceof File)) {
-        console.warn('file 不是 File 对象，尝试转换:', file);
-        // 尝试从 Blob 转换
+        console.warn('⚠️ file 不是 File 对象，尝试转换:', file);
+
+        // 如果 file 有 blob 属性
         if (file.blob) {
-            file = new File([file.blob], file.name || 'image.jpg', { type: file.type || 'image/jpeg' });
-        } else {
-            throw new Error('请上传图片文件（不支持的格式）');
+            uploadFile = new File([file.blob], file.name || 'image.jpg', {
+                type: file.type || 'image/jpeg'
+            });
+        }
+        // 如果 file 有 file 属性（嵌套）
+        else if (file.file instanceof File) {
+            uploadFile = file.file;
+        }
+        // 如果是 Blob
+        else if (file instanceof Blob) {
+            uploadFile = new File([file], 'image.jpg', { type: file.type || 'image/jpeg' });
+        }
+        // 尝试直接使用 file（可能是 File 但 instanceof 失败）
+        else if (file.name && file.size !== undefined) {
+            uploadFile = new File([file], file.name, { type: file.type || 'image/jpeg' });
+        }
+        else {
+            throw new Error('无法识别的文件格式，请重新选择图片');
         }
     }
 
     // 检查文件类型
-    if (!file.type || !file.type.startsWith('image/')) {
-        console.warn('文件类型不是 image，实际类型:', file.type, '文件名:', file.name);
-        // 强制设置为图片类型
-        var ext = file.name ? file.name.split('.').pop().toLowerCase() : '';
+    if (!uploadFile.type || !uploadFile.type.startsWith('image/')) {
+        console.warn('⚠️ 文件类型不是 image，实际类型:', uploadFile.type);
+        // 根据扩展名推断 MIME 类型
+        var ext = uploadFile.name ? uploadFile.name.split('.').pop().toLowerCase() : '';
         var mimeType = 'image/jpeg';
         if (ext === 'png') mimeType = 'image/png';
         else if (ext === 'gif') mimeType = 'image/gif';
         else if (ext === 'webp') mimeType = 'image/webp';
         else if (ext === 'bmp') mimeType = 'image/bmp';
+        else if (ext === 'svg') mimeType = 'image/svg+xml';
 
-        // 重新创建 File 对象
         try {
-            var blob = await file.slice(0, file.size);
-            file = new File([blob], file.name || 'image.jpg', { type: mimeType });
+            var blob = await uploadFile.slice(0, uploadFile.size);
+            uploadFile = new File([blob], uploadFile.name || 'image.jpg', { type: mimeType });
+            console.log('✅ 已转换文件类型为:', mimeType);
         } catch (e) {
             throw new Error('无法处理文件，请重新选择图片');
         }
     }
 
-    console.log('📤 上传文件:', file.name, file.type, file.size + 'bytes');
+    console.log('📤 上传文件:', uploadFile.name, uploadFile.type, uploadFile.size + ' bytes');
 
     var formData = new FormData();
-    formData.append('image', file);
+    formData.append('image', uploadFile);
 
     var response = await fetch(
         'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/upload-image', {
@@ -1428,121 +1434,119 @@ async function uploadToImgBB(file) {
 }
 
         // ============================================================
-        //  ✅ 提交表单（修复版：正确处理已有照片）
-        // ============================================================
-        document.getElementById('vehicleForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+//  提交表单（修复版：正确处理已有照片 + 文件对象）
+// ============================================================
+document.getElementById('vehicleForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-            var user = getCurrentUser();
-            if (!user) {
-                showMessage('❌ 请先登录', 'error');
-                return;
-            }
+    var user = getCurrentUser();
+    if (!user) {
+        showMessage('❌ 请先登录', 'error');
+        return;
+    }
 
-            var countryId = document.getElementById('countrySelect').value;
-            var provinceId = document.getElementById('provinceSelect').value;
-            var cityId = document.getElementById('citySelect').value;
-            var modelId = document.getElementById('modelSelect').value;
-            var licensePlate = document.getElementById('licensePlate').value.trim();
-            var serviceStatus = document.querySelector('input[name="serviceStatus"]:checked');
+    var countryId = document.getElementById('countrySelect').value;
+    var provinceId = document.getElementById('provinceSelect').value;
+    var cityId = document.getElementById('citySelect').value;
+    var modelId = document.getElementById('modelSelect').value;
+    var licensePlate = document.getElementById('licensePlate').value.trim();
+    var serviceStatus = document.querySelector('input[name="serviceStatus"]:checked');
 
-            if (!countryId) { showMessage('❌ 请选择国家/地区', 'error'); return; }
-            if (!provinceId) { showMessage('❌ 请选择省份/州', 'error'); return; }
-            if (!cityId) { showMessage('❌ 请选择城市', 'error'); return; }
-            if (!modelId) { showMessage('❌ 请选择车型', 'error'); return; }
-            if (!licensePlate) { showMessage('❌ 请填写车牌号', 'error'); return; }
-            if (!serviceStatus) { showMessage('❌ 请选择服役状态', 'error'); return; }
+    if (!countryId) { showMessage('❌ 请选择国家/地区', 'error'); return; }
+    if (!provinceId) { showMessage('❌ 请选择省份/州', 'error'); return; }
+    if (!cityId) { showMessage('❌ 请选择城市', 'error'); return; }
+    if (!modelId) { showMessage('❌ 请选择车型', 'error'); return; }
+    if (!licensePlate) { showMessage('❌ 请填写车牌号', 'error'); return; }
+    if (!serviceStatus) { showMessage('❌ 请选择服役状态', 'error'); return; }
 
-            var btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ 处理中...';
-            showMessage('⏳ 正在处理...', 'loading');
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 处理中...';
+    showMessage('⏳ 正在处理...', 'loading');
 
-            try {
-                // ✅ 修复：区分已有图片和新上传的图片
-                var allPhotoUrls = [];
+    try {
+        var allPhotoUrls = [];
 
-                // 1. 先保留已有的图片（从 uploadedPhotos 中标记为 existing 的）
-                var existingPhotos = uploadedPhotos.filter(function(p) { return p.existing === true; });
-                existingPhotos.forEach(function(p) {
-                    if (p.url) {
-                        allPhotoUrls.push(p.url);
-                    }
-                });
-
-                // 2. 新上传的图片需要上传到 ImgBB
-                var newPhotos = uploadedPhotos.filter(function(p) { return p.existing !== true; });
-                for (var i = 0; i < newPhotos.length; i++) {
-                    showMessage('📤 上传照片 ' + (i + 1) + '/' + newPhotos.length + '...', 'loading');
-                    var url = await uploadToImgBB(newPhotos[i].file);
-                    allPhotoUrls.push(url);
-                }
-
-                var country = countriesCache.find(function(c) { return c.id == countryId; });
-                var province = provincesCache.find(function(p) { return p.id == provinceId; });
-                var city = citiesCache.find(function(c) { return c.id == cityId; });
-                var model = allVehicleModels.find(function(m) { return m.id == modelId; });
-                var operatorId = document.getElementById('operatorSelect').value || null;
-
-                var data = {
-                    license_plate: licensePlate,
-                    model_id: modelId,
-                    model: model ? model.name : null,
-                    manufacturer: document.getElementById('manufacturer').value.trim() || null,
-                    vehicle_type: document.getElementById('vehicleType').value || null,
-                    operator_id: operatorId,
-                    country_id: countryId,
-                    province_id: provinceId,
-                    city_id: cityId,
-                    country_name: country ? country.name : null,
-                    province_name: province ? province.name : null,
-                    city_name: city ? city.name : null,
-                    service_status: serviceStatus.value,
-                    cover_photo: allPhotoUrls.length > 0 ? allPhotoUrls[0] : null,
-                    photos: allPhotoUrls.length > 0 ? allPhotoUrls : null,
-                    created_by: user.username,
-                    data_source: 'user',
-                    status: 'pending'
-                };
-
-                var result;
-
-                if (isEditMode && currentVehicleId) {
-                    // ✅ 编辑模式：更新
-                    var { data: updateResult, error: updateError } = await supabaseClient
-                        .from('vehicles')
-                        .update(data)
-                        .eq('id', currentVehicleId)
-                        .select();
-
-                    if (updateError) throw new Error(updateError.message);
-                    result = updateResult;
-                    showMessage('✅ 车辆档案已更新，等待管理员审核！', 'success');
-                } else {
-                    // 新增模式：插入
-                    var { data: insertResult, error: insertError } = await supabaseClient
-                        .from('vehicles')
-                        .insert([data])
-                        .select();
-
-                    if (insertError) throw new Error(insertError.message);
-                    result = insertResult;
-                    showMessage('✅ 车辆档案已提交，等待管理员审核！', 'success');
-                }
-
-                btn.textContent = '✅ 已提交';
-
-                setTimeout(function() {
-                    window.location.href = 'vehicles.html';
-                }, 2000);
-
-            } catch (error) {
-                console.error('提交失败:', error);
-                showMessage('❌ 提交失败：' + error.message, 'error');
-                btn.disabled = false;
-                btn.textContent = isEditMode ? '💾 更新' : '📤 提交审核';
+        // 1. 收集已有的图片 URL（existing = true）
+        var existingPhotos = uploadedPhotos.filter(function(p) { return p.existing === true; });
+        existingPhotos.forEach(function(p) {
+            if (p.url) {
+                allPhotoUrls.push(p.url);
             }
         });
+
+        // 2. 新上传的图片（existing = false 或没有 existing 标记）
+        var newPhotos = uploadedPhotos.filter(function(p) {
+            return p.existing !== true && p.file;
+        });
+
+        if (newPhotos.length > 0) {
+            for (var i = 0; i < newPhotos.length; i++) {
+                showMessage('📤 上传照片 ' + (i + 1) + '/' + newPhotos.length + '...', 'loading');
+                var url = await uploadToImgBB(newPhotos[i].file);
+                allPhotoUrls.push(url);
+            }
+        }
+
+        var country = countriesCache.find(function(c) { return c.id == countryId; });
+        var province = provincesCache.find(function(p) { return p.id == provinceId; });
+        var city = citiesCache.find(function(c) { return c.id == cityId; });
+        var model = allVehicleModels.find(function(m) { return m.id == modelId; });
+        var operatorId = document.getElementById('operatorSelect').value || null;
+
+        var data = {
+            license_plate: licensePlate,
+            model_id: modelId,
+            model: model ? model.name : null,
+            manufacturer: document.getElementById('manufacturer').value.trim() || null,
+            vehicle_type: document.getElementById('vehicleType').value || null,
+            operator_id: operatorId,
+            country_id: countryId,
+            province_id: provinceId,
+            city_id: cityId,
+            country_name: country ? country.name : null,
+            province_name: province ? province.name : null,
+            city_name: city ? city.name : null,
+            service_status: serviceStatus.value,
+            cover_photo: allPhotoUrls.length > 0 ? allPhotoUrls[0] : null,
+            photos: allPhotoUrls.length > 0 ? allPhotoUrls : null,
+            created_by: user.username,
+            data_source: 'user',
+            status: 'pending'
+        };
+
+        if (isEditMode && currentVehicleId) {
+            var { data: updateResult, error: updateError } = await supabaseClient
+                .from('vehicles')
+                .update(data)
+                .eq('id', currentVehicleId)
+                .select();
+
+            if (updateError) throw new Error(updateError.message);
+            showMessage('✅ 车辆档案已更新，等待管理员审核！', 'success');
+        } else {
+            var { data: insertResult, error: insertError } = await supabaseClient
+                .from('vehicles')
+                .insert([data])
+                .select();
+
+            if (insertError) throw new Error(insertError.message);
+            showMessage('✅ 车辆档案已提交，等待管理员审核！', 'success');
+        }
+
+        btn.textContent = '✅ 已提交';
+
+        setTimeout(function() {
+            window.location.href = 'vehicles.html';
+        }, 2000);
+
+    } catch (error) {
+        console.error('提交失败:', error);
+        showMessage('❌ 提交失败：' + error.message, 'error');
+        btn.disabled = false;
+        btn.textContent = isEditMode ? '💾 更新' : '📤 提交审核';
+    }
+});
 
         // ============================================================
         //  加载编辑数据（URL 参数）
