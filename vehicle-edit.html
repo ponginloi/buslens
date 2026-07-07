@@ -1365,26 +1365,67 @@
         // ============================================================
         //  ImgBB 上传
         // ============================================================
-        async function uploadToImgBB(file) {
-            var user = getCurrentUser();
-            if (!user) throw new Error('请先登录');
+        // ============================================================
+//  ImgBB 上传（修复版）
+// ============================================================
+async function uploadToImgBB(file) {
+    var user = getCurrentUser();
+    if (!user) throw new Error('请先登录');
 
-            var formData = new FormData();
-            formData.append('image', file);
+    // ✅ 修复：更健壮的文件类型检查
+    if (!file) {
+        throw new Error('文件不存在');
+    }
 
-            var response = await fetch(
-                'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/upload-image', {
-                    method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + (user.access_token || '') },
-                    body: formData
-                }
-            );
-            var result = await response.json();
-            if (!response.ok || !result.success) {
-                throw new Error(result.error || '上传失败');
-            }
-            return result.url;
+    // 检查是否是 File 对象
+    if (!(file instanceof File)) {
+        console.warn('file 不是 File 对象，尝试转换:', file);
+        // 尝试从 Blob 转换
+        if (file.blob) {
+            file = new File([file.blob], file.name || 'image.jpg', { type: file.type || 'image/jpeg' });
+        } else {
+            throw new Error('请上传图片文件（不支持的格式）');
         }
+    }
+
+    // 检查文件类型
+    if (!file.type || !file.type.startsWith('image/')) {
+        console.warn('文件类型不是 image，实际类型:', file.type, '文件名:', file.name);
+        // 强制设置为图片类型
+        var ext = file.name ? file.name.split('.').pop().toLowerCase() : '';
+        var mimeType = 'image/jpeg';
+        if (ext === 'png') mimeType = 'image/png';
+        else if (ext === 'gif') mimeType = 'image/gif';
+        else if (ext === 'webp') mimeType = 'image/webp';
+        else if (ext === 'bmp') mimeType = 'image/bmp';
+
+        // 重新创建 File 对象
+        try {
+            var blob = await file.slice(0, file.size);
+            file = new File([blob], file.name || 'image.jpg', { type: mimeType });
+        } catch (e) {
+            throw new Error('无法处理文件，请重新选择图片');
+        }
+    }
+
+    console.log('📤 上传文件:', file.name, file.type, file.size + 'bytes');
+
+    var formData = new FormData();
+    formData.append('image', file);
+
+    var response = await fetch(
+        'https://keeybzxxkjxvlvhjjdpr.supabase.co/functions/v1/upload-image', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + (user.access_token || '') },
+            body: formData
+        }
+    );
+    var result = await response.json();
+    if (!response.ok || !result.success) {
+        throw new Error(result.error || '上传失败');
+    }
+    return result.url;
+}
 
         // ============================================================
         //  ✅ 提交表单（修复版：正确处理已有照片）
