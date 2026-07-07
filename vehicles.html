@@ -1267,7 +1267,7 @@
         }
 
         // ============================================================
-        //  渲染车辆卡片
+        //  ✅ 渲染车辆卡片（已修改：跳转到 vehicle-detail.html）
         // ============================================================
         function renderVehicleCard(v, index) {
             var coverPhoto = v.cover_photo || null;
@@ -1311,7 +1311,8 @@
 
             var delay = Math.min(index * 0.04, 0.4);
 
-            return '<div class="item-card" style="animation-delay:' + delay + 's" onclick="window.location.href=\'vehicle-edit.html?id=' +
+            // ✅ 已修改：跳转到 vehicle-detail.html（详情页）
+            return '<div class="item-card" style="animation-delay:' + delay + 's" onclick="window.location.href=\'vehicle-detail.html?id=' +
                 v.id + '\'">' +
                 '<span class="card-type-badge vehicle">🚌 车辆</span>' +
                 '<div class="card-thumb">' +
@@ -1451,7 +1452,7 @@
         loadAllData();
 
         console.log('🚌 巴士档案已分开显示（车辆 + 线路 Tab）');
-        console.log('✅ 车辆和线路分 Tab 显示');
+        console.log('✅ 车辆点击跳转到 vehicle-detail.html（详情页）');
         console.log('✅ 快速上传工具栏完整');
         console.log('✅ 适配手机端');
     </script>

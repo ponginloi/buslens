@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🚌 车辆详情 - BusLens</title>
+    <script>
+        var SUPABASE_URL = 'https://keeybzxxkjxvlvhjjdpr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_SpzHfgcLn0deJWoqEPJQ4g_2jzyXXci';
+        var SESSION_KEY = 'bus_user_session';
+        var ADMIN_USERNAMES = ['ponginloi', 'lnx', 'shaojiu_0053', '135317'];
+    </script>
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <style>
+        /* ===== 全局 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 10px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ===== 导航栏 ===== */
+        .navbar {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+        .navbar .brand {
+            font-size: 17px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: white;
+        }
+        .navbar .brand span {
+            font-size: 22px;
+        }
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            flex-wrap: wrap;
+        }
+        .navbar .nav-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .navbar .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        .navbar .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .navbar .nav-links .user-name {
+            color: rgba(255, 255, 255, 0.85);
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        .navbar .nav-links .btn-logout {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        .navbar .nav-links .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* ===== 返回栏 + 操作按钮 ===== */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .top-bar a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .top-bar a:hover {
+            text-decoration: underline;
+        }
+        .top-bar .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .top-bar .actions .btn-edit {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .top-bar .actions .btn-edit:hover {
+            background: #0d47a1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(26, 115, 232, 0.3);
+        }
+        .top-bar .actions .btn-delete {
+            background: #ffebee;
+            color: #f44336;
+            border: 2px solid #f44336;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .top-bar .actions .btn-delete:hover {
+            background: #f44336;
+            color: white;
+        }
+        .top-bar .badge-status {
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+        }
+        .top-bar .badge-status.pending {
+            background: #ff9800;
+        }
+        .top-bar .badge-status.approved {
+            background: #4caf50;
+        }
+        .top-bar .badge-status.rejected {
+            background: #f44336;
+        }
+
+        /* ===== 加载状态 ===== */
+        .loading-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+        .loading-state .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+            font-size: 40px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-state p {
+            margin-top: 12px;
+            font-size: 15px;
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            background: white;
+            border-radius: 14px;
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .empty-state .sub {
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        /* ===== 车辆详情卡片 ===== */
+        .vehicle-detail {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+        }
+
+        /* 封面图 */
+        .vehicle-detail .cover-section {
+            position: relative;
+            aspect-ratio: 16/7;
+            background: #1a1a2e;
+            overflow: hidden;
+        }
+        .vehicle-detail .cover-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .vehicle-detail .cover-section .no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: 72px;
+            color: #444;
+            background: #2a2a3e;
+        }
+        .vehicle-detail .cover-section .cover-badges {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .vehicle-detail .cover-section .cover-badges .badge {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.6);
+        }
+        .vehicle-detail .cover-section .cover-badges .badge.official {
+            background: rgba(76, 175, 80, 0.9);
+        }
+        .vehicle-detail .cover-section .cover-badges .badge.user {
+            background: rgba(255, 152, 0, 0.9);
+        }
+        .vehicle-detail .cover-section .cover-badges .badge.active {
+            background: rgba(76, 175, 80, 0.9);
+        }
+        .vehicle-detail .cover-section .cover-badges .badge.retired {
+            background: rgba(244, 67, 54, 0.9);
+        }
+        .vehicle-detail .cover-section .cover-badges .badge.preserved {
+            background: rgba(33, 150, 243, 0.9);
+        }
+        .vehicle-detail .cover-section .cover-badges .badge.scrapped {
+            background: rgba(96, 96, 96, 0.9);
+        }
+
+        /* 信息区域 */
+        .vehicle-detail .info-section {
+            padding: 20px 28px 24px;
+        }
+        .vehicle-detail .info-section .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .vehicle-detail .info-section .header-row .title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .vehicle-detail .info-section .header-row .title .plate {
+            color: #1a73e8;
+        }
+        .vehicle-detail .info-section .header-row .title .model-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 16px;
+            border-radius: 12px;
+        }
+        .vehicle-detail .info-section .header-row .stats {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: #888;
+        }
+        .vehicle-detail .info-section .header-row .stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .vehicle-detail .info-section .header-row .stats .num {
+            color: #333;
+            font-weight: 600;
+        }
+
+        /* 信息网格 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px 24px;
+            margin: 12px 0 16px;
+            padding-top: 14px;
+            border-top: 1px solid #f0f0f0;
+        }
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 480px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+        .info-grid .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .info-grid .info-item .label {
+            font-size: 11px;
+            color: #999;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .info-grid .info-item .value {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+        .info-grid .info-item .value .tag {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #f0f0f0;
+            color: #666;
+        }
+        .info-grid .info-item .value .tag.active {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+        .info-grid .info-item .value .tag.retired {
+            background: #ffebee;
+            color: #f44336;
+        }
+        .info-grid .info-item .value .tag.preserved {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+        .info-grid .info-item .value .tag.scrapped {
+            background: #f5f5f5;
+            color: #757575;
+        }
+        .info-grid .info-item .value .tag.pending {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        /* 描述 */
+        .description-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin: 8px 0 14px;
+            border-left: 4px solid #1a73e8;
+        }
+        .description-box .label {
+            font-size: 12px;
+            color: #999;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .description-box .content {
+            font-size: 14px;
+            color: #444;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ===== 关联机位 ===== */
+        .related-section {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 24px 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+        }
+        .related-section .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .related-section .section-title .count {
+            font-size: 13px;
+            font-weight: 400;
+            color: #999;
+        }
+        .related-section .spots-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .related-section .spots-list .spot-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e8f0fe;
+            color: #1a73e8;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .related-section .spots-list .spot-item:hover {
+            background: #d2e3fc;
+            border-color: #1a73e8;
+            transform: translateY(-2px);
+        }
+        .related-section .spots-list .spot-item .rank-tag {
+            font-size: 10px;
+            padding: 1px 8px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+        }
+        .related-section .spots-list .spot-item .rank-tag.high {
+            background: #ff4444;
+        }
+        .related-section .spots-list .spot-item .rank-tag.medium {
+            background: #ffbb33;
+            color: #333;
+        }
+        .related-section .spots-list .spot-item .rank-tag.low {
+            background: #00c851;
+        }
+        .related-section .spots-list .no-spots {
+            color: #bbb;
+            font-size: 14px;
+            padding: 4px 0;
+        }
+
+        /* ===== 照片墙 ===== */
+        .photo-section {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 24px 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+        }
+        .photo-section .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .photo-section .section-title .count {
+            font-size: 13px;
+            font-weight: 400;
+            color: #999;
+        }
+        .photo-section .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .photo-section .photo-grid .photo-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid #e8e8e8;
+        }
+        .photo-section .photo-grid .photo-item:hover {
+            transform: scale(1.03);
+            border-color: #1a73e8;
+        }
+        .photo-section .photo-grid .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-section .photo-grid .photo-item .photo-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .photo-section .photo-grid .photo-item:hover .photo-info {
+            opacity: 1;
+        }
+        .photo-section .photo-grid .photo-item .photo-info .spot-link {
+            color: #64b5f6;
+            text-decoration: none;
+            font-size: 10px;
+        }
+        .photo-section .photo-grid .photo-item .photo-info .spot-link:hover {
+            text-decoration: underline;
+        }
+        .photo-section .photo-grid .photo-item .photo-exif {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #aaa;
+            font-size: 9px;
+            padding: 2px 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            backdrop-filter: blur(4px);
+        }
+        .photo-section .photo-grid .photo-item .photo-uploader {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 9px;
+            padding: 2px 10px;
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
+        }
+        .photo-section .photo-empty {
+            color: #bbb;
+            font-size: 14px;
+            padding: 20px 0;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
+        /* ===== 贡献者 ===== */
+        .contributors-section {
+            background: white;
+            border-radius: 16px;
+            padding: 14px 24px 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+        }
+        .contributors-section .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .contributors-section .contributors-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .contributors-section .contributors-list .contributor {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #333;
+            background: #f5f7fa;
+            padding: 4px 14px;
+            border-radius: 16px;
+            border: 1px solid #e8e8e8;
+        }
+        .contributors-section .contributors-list .contributor .role {
+            font-size: 10px;
+            color: #999;
+            background: #f0f0f0;
+            padding: 0 8px;
+            border-radius: 8px;
+        }
+
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.success {
+            border-color: #4caf50;
+        }
+        .toast.error {
+            border-color: #f44336;
+        }
+
+        /* ===== Lightbox ===== */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 99998;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .lightbox.active {
+            display: flex;
+        }
+        .lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .lightbox .close-lightbox {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .lightbox .close-lightbox:hover {
+            transform: scale(1.2);
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+            .navbar {
+                padding: 8px 12px;
+            }
+            .navbar .brand {
+                font-size: 15px;
+            }
+            .navbar .brand span {
+                font-size: 20px;
+            }
+            .navbar .nav-links a {
+                font-size: 11px;
+                padding: 3px 8px;
+            }
+            .vehicle-detail .cover-section {
+                aspect-ratio: 16/9;
+            }
+            .vehicle-detail .info-section {
+                padding: 16px 18px 18px;
+            }
+            .vehicle-detail .info-section .header-row .title {
+                font-size: 20px;
+            }
+            .vehicle-detail .info-section .header-row .title .model-name {
+                font-size: 14px;
+                padding: 2px 12px;
+            }
+            .vehicle-detail .info-section .header-row .stats {
+                font-size: 12px;
+                gap: 10px;
+            }
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .top-bar .actions {
+                width: 100%;
+            }
+            .top-bar .actions .btn-edit,
+            .top-bar .actions .btn-delete {
+                flex: 1;
+                justify-content: center;
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            .photo-section .photo-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+            .info-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .vehicle-detail .cover-section {
+                aspect-ratio: 16/10;
+            }
+            .vehicle-detail .cover-section .no-image {
+                font-size: 48px;
+            }
+            .vehicle-detail .info-section .header-row {
+                flex-direction: column;
+            }
+            .vehicle-detail .info-section .header-row .stats {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+            .photo-section .photo-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+            .photo-section {
+                padding: 14px 14px 16px;
+            }
+            .related-section {
+                padding: 14px 14px 16px;
+            }
+            .related-section .spots-list .spot-item {
+                font-size: 12px;
+                padding: 4px 12px;
+            }
+            .top-bar .actions .btn-edit,
+            .top-bar .actions .btn-delete {
+                font-size: 11px;
+                padding: 5px 10px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .vehicle-detail .info-section .header-row .title {
+                font-size: 17px;
+            }
+            .vehicle-detail .info-section .header-row .title .model-name {
+                font-size: 12px;
+                padding: 1px 10px;
+            }
+            .photo-section .photo-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+            }
+            .photo-section .photo-grid .photo-item .photo-exif {
+                font-size: 7px;
+                padding: 1px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <a href="index.html" class="brand"><span>🚌</span> BusLens</a>
+            <div class="nav-links" id="navLinks"></div>
+        </nav>
+
+        <!-- 顶部栏 -->
+        <div class="top-bar" id="topBar">
+            <a href="vehicles.html">← 返回档案列表</a>
+            <div class="actions" id="actionButtons">
+                <!-- 由 JS 动态渲染 -->
+            </div>
+        </div>
+
+        <!-- 详情内容 -->
+        <div id="vehicleContent">
+            <div class="loading-state">
+                <span class="spinner">⟳</span>
+                <p>加载车辆信息...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <span class="close-lightbox">×</span>
+        <img id="lightboxImg" src="" alt="预览">
+    </div>
+
+    <script>
+        // ============================================================
+        //  Supabase 客户端
+        // ============================================================
+        var supabaseClient = null;
+
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase SDK 未加载');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase 初始化成功');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase 初始化失败:', e);
+                return false;
+            }
+        }
+        initSupabase();
+
+        // ============================================================
+        //  用户状态
+        // ============================================================
+        function getCurrentUser() {
+            try {
+                var raw = sessionStorage.getItem(SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) { return null; }
+        }
+
+        function isAdmin() {
+            var user = getCurrentUser();
+            if (!user) return false;
+            return ADMIN_USERNAMES.indexOf(user.username) !== -1;
+        }
+
+        function logout() {
+            sessionStorage.removeItem(SESSION_KEY);
+            window.location.href = 'index.html';
+        }
+
+        function renderNav() {
+            var nav = document.getElementById('navLinks');
+            var user = getCurrentUser();
+
+            if (user) {
+                nav.innerHTML =
+                    '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
+                    '<a href="vehicles.html" class="active">🚌 档案</a>' +
+                    '<a href="profile.html">👤 个人中心</a>' +
+                    '<a href="upload.html">📤 新机位</a>' +
+                    '<span class="user-name">👤 ' + escapeHtml(user.username) + '</span>' +
+                    '<button class="btn-logout" onclick="logout()">退出</button>';
+            } else {
+                nav.innerHTML =
+                    '<a href="index.html">🏠 地图</a>' +
+                    '<a href="discover.html">🔍 发现</a>' +
+                    '<a href="vehicles.html" class="active">🚌 档案</a>' +
+                    '<a href="login.html">登录</a>' +
+                    '<a href="register.html">注册</a>';
+            }
+        }
+
+        // ============================================================
+        //  工具函数
+        // ============================================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(text, type) {
+            var el = document.getElementById('toast');
+            el.textContent = text;
+            el.className = 'toast ' + (type || '') + ' show';
+            clearTimeout(el._timer);
+            el._timer = setTimeout(function() { el.className = 'toast'; }, 3000);
+        }
+
+        function openLightbox(url) {
+            document.getElementById('lightboxImg').src = url;
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        // ============================================================
+        //  获取车辆 ID
+        // ============================================================
+        function getVehicleId() {
+            var params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        // ============================================================
+        //  加载车辆详情
+        // ============================================================
+        var vehicleData = null;
+        var relatedSpots = [];
+        var vehiclePhotos = [];
+        var operatorsCache = [];
+        var vehicleModelsCache = [];
+
+        function loadVehicle() {
+            var id = getVehicleId();
+            if (!id) {
+                document.getElementById('vehicleContent').innerHTML =
+                    '<div class="empty-state"><span class="icon">❌</span><p>未指定车辆 ID</p><div class="sub"><a href="vehicles.html">返回档案列表</a></div></div>';
+                return;
+            }
+
+            // 加载运营商列表
+            supabaseClient
+                .from('operators')
+                .select('id, name, short_name')
+                .then(function(res) {
+                    if (!res.error) {
+                        operatorsCache = res.data || [];
+                    }
+                })
+                .catch(function(err) {
+                    console.warn('加载运营商失败:', err);
+                });
+
+            // 加载车型缓存
+            supabaseClient
+                .from('vehicle_models')
+                .select('id, name, manufacturer')
+                .eq('status', 'approved')
+                .then(function(res) {
+                    if (!res.error) {
+                        vehicleModelsCache = res.data || [];
+                    }
+                })
+                .catch(function(err) {
+                    console.warn('加载车型缓存失败:', err);
+                });
+
+            // 加载车辆详情
+            supabaseClient
+                .from('vehicles')
+                .select('*')
+                .eq('id', id)
+                .single()
+                .then(function(res) {
+                    if (res.error) {
+                        if (res.error.code === 'PGRST116') {
+                            document.getElementById('vehicleContent').innerHTML =
+                                '<div class="empty-state"><span class="icon">🔍</span><p>未找到该车辆</p><div class="sub">车辆可能已被删除或 ID 不正确</div></div>';
+                        } else {
+                            throw new Error(res.error.message);
+                        }
+                        return;
+                    }
+                    vehicleData = res.data;
+
+                    // 更新浏览量
+                    supabaseClient
+                        .from('vehicles')
+                        .update({ views: (vehicleData.views || 0) + 1 })
+                        .eq('id', id)
+                        .then(function() {})
+                        .catch(function(err) {
+                            console.warn('更新浏览量失败:', err);
+                        });
+
+                    // 加载关联机位
+                    loadRelatedSpots();
+                    // 加载车辆照片
+                    loadVehiclePhotos(id);
+                    // 渲染车辆信息
+                    renderVehicle();
+                })
+                .catch(function(error) {
+                    console.error('加载车辆失败:', error);
+                    document.getElementById('vehicleContent').innerHTML =
+                        '<div class="empty-state"><span class="icon">❌</span><p>加载失败：' + escapeHtml(error.message) +
+                        '</p></div>';
+                });
+        }
+
+        // ============================================================
+        //  加载关联机位
+        // ============================================================
+        function loadRelatedSpots() {
+            if (!vehicleData) return;
+            var spotIds = vehicleData.related_spot_ids || [];
+            if (spotIds.length === 0) {
+                relatedSpots = [];
+                renderRelatedSpots();
+                return;
+            }
+            supabaseClient
+                .from('spots')
+                .select('id, name, lng, lat, rank, status')
+                .in('id', spotIds)
+                .then(function(res) {
+                    if (res.error) {
+                        console.warn('加载关联机位失败:', res.error);
+                        return;
+                    }
+                    relatedSpots = res.data || [];
+                    renderRelatedSpots();
+                })
+                .catch(function(err) {
+                    console.warn('加载关联机位失败:', err);
+                });
+        }
+
+        function renderRelatedSpots() {
+            var container = document.getElementById('relatedSpotsContainer');
+            if (!container) return;
+
+            if (relatedSpots.length === 0) {
+                container.innerHTML = '<span class="no-spots">📍 暂无关联机位</span>';
+                return;
+            }
+
+            var rankMap = { high: '上等', medium: '中等', low: '下等' };
+
+            var html = '';
+            relatedSpots.forEach(function(spot) {
+                var rankClass = spot.rank || 'medium';
+                var rankLabel = rankMap[spot.rank] || '';
+                html += '<a href="index.html?spot_id=' + spot.id + '" class="spot-item" target="_blank">' +
+                    '📍 ' + escapeHtml(spot.name) +
+                    (spot.rank ? ' <span class="rank-tag ' + rankClass + '">' + rankLabel + '</span>' : '') +
+                    '</a>';
+            });
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        //  加载车辆照片
+        // ============================================================
+        function loadVehiclePhotos(vehicleId) {
+            if (!vehicleId) return;
+
+            supabaseClient
+                .from('user_photos')
+                .select('*')
+                .eq('vehicle_id', vehicleId)
+                .eq('status', 'approved')
+                .order('created_at', { ascending: false })
+                .then(function(res) {
+                    if (res.error) {
+                        console.warn('加载车辆照片失败:', res.error);
+                        return;
+                    }
+                    vehiclePhotos = res.data || [];
+                    renderVehiclePhotos();
+                })
+                .catch(function(err) {
+                    console.warn('加载车辆照片失败:', err);
+                    vehiclePhotos = [];
+                    renderVehiclePhotos();
+                });
+        }
+
+        function renderVehiclePhotos() {
+            var container = document.getElementById('vehiclePhotosContainer');
+            if (!container) return;
+
+            if (vehiclePhotos.length === 0) {
+                container.innerHTML = '<div class="photo-empty">📷 暂无该车辆的照片</div>';
+                return;
+            }
+
+            var html = '<div class="photo-grid">';
+            vehiclePhotos.forEach(function(p) {
+                var spotLink = p.spot_id ? '<a href="index.html?spot_id=' + p.spot_id +
+                    '" class="spot-link" target="_blank">📍 查看机位</a>' : '';
+
+                var exifParts = [];
+                if (p.camera_model) exifParts.push(p.camera_model);
+                if (p.focal_length) exifParts.push(p.focal_length + 'mm');
+                if (p.aperture) exifParts.push(p.aperture);
+                if (p.shutter_speed) exifParts.push(p.shutter_speed);
+                if (p.iso) exifParts.push('ISO' + p.iso);
+                var exifText = exifParts.length > 0 ? exifParts.join(' ｜ ') : '';
+
+                html += '<div class="photo-item" onclick="openLightbox(\'' + escapeHtml(p.photo_url) + '\')">' +
+                    '<img src="' + escapeHtml(p.photo_url) + '" loading="lazy" />' +
+                    (p.uploader ? '<div class="photo-uploader">📤 ' + escapeHtml(p.uploader) + '</div>' : '') +
+                    (exifText ? '<div class="photo-exif">' + escapeHtml(exifText) + '</div>' : '') +
+                    '<div class="photo-info">' +
+                    (p.caption ? '<span>' + escapeHtml(p.caption) + '</span>' : '<span>📸 车辆照片</span>') +
+                    spotLink +
+                    '</div>' +
+                    '</div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        //  获取辅助信息
+        // ============================================================
+        function getOperatorName(id) {
+            if (!id) return null;
+            var op = operatorsCache.find(function(o) { return o.id == id; });
+            return op ? (op.short_name || op.name) : null;
+        }
+
+        function getModelDisplay() {
+            if (!vehicleData) return null;
+            if (vehicleData.model) return vehicleData.model;
+            if (vehicleData.model_id) {
+                var cached = vehicleModelsCache.find(function(m) { return m.id == vehicleData.model_id; });
+                if (cached) return cached.name;
+            }
+            return null;
+        }
+
+        function getStatusLabel(status) {
+            var map = {
+                active: '🚀 运营中',
+                retired: '🔄 已退役',
+                preserved: '🏛️ 保留/收藏',
+                scrapped: '💔 已报废',
+                unknown: '❓ 未知'
+            };
+            return map[status] || status || '未知';
+        }
+
+        function getStatusClass(status) {
+            var map = {
+                active: 'active',
+                retired: 'retired',
+                preserved: 'preserved',
+                scrapped: 'scrapped'
+            };
+            return map[status] || '';
+        }
+
+        function getSourceLabel(source) {
+            var map = {
+                official: '🏢 官方认证',
+                user: '👤 用户投稿',
+                mixed: '📋 混合来源'
+            };
+            return map[source] || source || '👤 用户投稿';
+        }
+
+        function getSourceClass(source) {
+            var map = {
+                official: 'official',
+                user: 'user',
+                mixed: 'user'
+            };
+            return map[source] || 'user';
+        }
+
+        function getVehicleTypeLabel(type) {
+            var map = {
+                single_decker: '单层巴士',
+                double_decker: '双层巴士',
+                articulated: '铰接巴士',
+                minibus: '小巴',
+                coach: '旅游大巴',
+                electric: '纯电动巴士',
+                hybrid: '混动巴士',
+                trolleybus: '无轨电车'
+            };
+            return map[type] || type || '巴士';
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                var d = new Date(dateStr);
+                return d.getFullYear() + '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getDate()).padStart(2, '0');
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        // ============================================================
+        //  渲染车辆详情
+        // ============================================================
+        function renderVehicle() {
+            var v = vehicleData;
+            if (!v) return;
+
+            var isOfficial = v.data_source === 'official' || v.verified === true;
+            var sourceClass = getSourceClass(v.data_source);
+            var sourceLabel = getSourceLabel(v.data_source);
+            var statusLabel = getStatusLabel(v.service_status);
+            var statusClass = getStatusClass(v.service_status);
+            var typeLabel = getVehicleTypeLabel(v.vehicle_type);
+            var modelDisplay = getModelDisplay();
+            var operatorName = getOperatorName(v.operator_id);
+            var coverPhoto = v.cover_photo || (v.photos && v.photos.length > 0 ? v.photos[0] : null);
+
+            // 状态徽章
+            var statusBadgeHtml = '';
+            if (v.status === 'pending') {
+                statusBadgeHtml = '<span class="badge-status pending">⏳ 待审核</span>';
+            } else if (v.status === 'approved') {
+                statusBadgeHtml = '<span class="badge-status approved">✅ 已审核</span>';
+            } else if (v.status === 'rejected') {
+                statusBadgeHtml = '<span class="badge-status rejected">❌ 已拒绝</span>';
+            }
+            document.getElementById('topBar').querySelector('.actions').innerHTML = statusBadgeHtml +
+                '<a href="vehicle-edit.html?id=' + v.id + '" class="btn-edit">✏️ 编辑</a>';
+
+            // 封面图
+            var coverHtml = '';
+            if (coverPhoto) {
+                coverHtml = '<img src="' + escapeHtml(coverPhoto) + '" alt="' + escapeHtml(v.license_plate || v.model || '巴士') +
+                    '" onclick="openLightbox(\'' + escapeHtml(coverPhoto) + '\')" />';
+            } else {
+                coverHtml = '<div class="no-image">🚌</div>';
+            }
+
+            // 标题
+            var titleHtml = '';
+            if (v.license_plate) {
+                titleHtml += '<span class="plate">' + escapeHtml(v.license_plate) + '</span>';
+            }
+            if (modelDisplay) {
+                titleHtml += ' <span class="model-name">' + escapeHtml(modelDisplay) + '</span>';
+            } else if (v.model) {
+                titleHtml += ' <span class="model-name">' + escapeHtml(v.model) + '</span>';
+            }
+            if (!titleHtml) {
+                titleHtml = '未命名巴士';
+            }
+
+            // 信息网格
+            var infoItems = [
+                { label: '车牌号', value: v.license_plate || '-' },
+                { label: '车型', value: modelDisplay || '-' },
+                { label: '制造商', value: v.manufacturer || '-' },
+                { label: '车辆类型', value: typeLabel },
+                { label: '运营公司', value: operatorName || '-' },
+                { label: '服役状态', value: '<span class="tag ' + statusClass + '">' + statusLabel + '</span>' },
+                { label: '地区', value: [v.country_name, v.province_name, v.city_name].filter(Boolean).join(' → ') || '-' },
+                { label: '数据来源', value: sourceLabel },
+                { label: '创建者', value: v.created_by || '-' },
+                { label: '创建时间', value: formatDate(v.created_at) },
+                { label: '浏览数', value: (v.views || 0) + ' 次' },
+                { label: '点赞数', value: (v.likes || 0) + ' 次' },
+            ];
+
+            var infoHtml = infoItems.map(function(item) {
+                return '<div class="info-item">' +
+                    '<span class="label">' + item.label + '</span>' +
+                    '<span class="value">' + item.value + '</span>' +
+                    '</div>';
+            }).join('');
+
+            // 描述
+            var descHtml = '';
+            if (v.description) {
+                descHtml = '<div class="description-box">' +
+                    '<div class="label">📝 描述</div>' +
+                    '<div class="content">' + escapeHtml(v.description) + '</div>' +
+                    '</div>';
+            }
+
+            // 关联机位
+            var spotHtml = '<div class="related-section">' +
+                '<div class="section-title">📍 关联机位 <span class="count" id="spotCount">0 个</span></div>' +
+                '<div class="spots-list" id="relatedSpotsContainer">' +
+                '<span class="no-spots">加载中...</span>' +
+                '</div>' +
+                '</div>';
+
+            // 照片墙
+            var photoHtml = '<div class="photo-section">' +
+                '<div class="section-title">📸 车辆照片 <span class="count" id="photoCount">0 张</span></div>' +
+                '<div id="vehiclePhotosContainer"><div class="photo-empty">加载中...</div></div>' +
+                '</div>';
+
+            // 贡献者
+            var contributorHtml = '';
+            var contributors = [];
+            if (v.created_by) contributors.push({ name: v.created_by, role: '创建者' });
+            if (v.reviewed_by) contributors.push({ name: v.reviewed_by, role: '审核人' });
+            if (contributors.length > 0) {
+                contributorHtml = '<div class="contributors-section">' +
+                    '<div class="section-title">👥 贡献者</div>' +
+                    '<div class="contributors-list">' +
+                    contributors.map(function(c) {
+                        return '<span class="contributor">👤 ' + escapeHtml(c.name) +
+                            ' <span class="role">' + escapeHtml(c.role) + '</span></span>';
+                    }).join('') +
+                    '</div>' +
+                    '</div>';
+            }
+
+            // 组装完整 HTML
+            var html = '';
+            html += '<div class="vehicle-detail">';
+            html += '<div class="cover-section">' +
+                coverHtml +
+                '<div class="cover-badges">' +
+                '<span class="badge ' + sourceClass + '">' + sourceLabel + '</span>' +
+                (v.service_status ? '<span class="badge ' + statusClass + '">' + statusLabel + '</span>' : '') +
+                (v.verified ? '<span class="badge official">✅ 已验证</span>' : '') +
+                '</div>' +
+                '</div>';
+
+            html += '<div class="info-section">';
+            html += '<div class="header-row">' +
+                '<div class="title">' + titleHtml + '</div>' +
+                '</div>';
+
+            html += '<div class="info-grid">' + infoHtml + '</div>';
+            html += descHtml;
+            html += '</div>';
+            html += '</div>';
+
+            // 照片墙 + 关联机位 + 贡献者
+            html += photoHtml;
+            html += spotHtml;
+            html += contributorHtml;
+
+            document.getElementById('vehicleContent').innerHTML = html;
+
+            // 更新计数
+            var countEl = document.getElementById('photoCount');
+            if (countEl) countEl.textContent = vehiclePhotos.length + ' 张';
+
+            var spotCountEl = document.getElementById('spotCount');
+            if (spotCountEl) spotCountEl.textContent = relatedSpots.length + ' 个';
+
+            // 渲染照片和机位
+            renderVehiclePhotos();
+            renderRelatedSpots();
+
+            // 更新导航
+            renderNav();
+        }
+
+        // ============================================================
+        //  删除车辆
+        // ============================================================
+        function deleteVehicle() {
+            var id = getVehicleId();
+            if (!id) return;
+
+            if (!confirm('⚠️ 确定要删除这辆巴士吗？此操作不可恢复！')) return;
+
+            supabaseClient
+                .from('vehicles')
+                .delete()
+                .eq('id', id)
+                .then(function(res) {
+                    if (res.error) {
+                        showToast('❌ 删除失败：' + res.error.message, 'error');
+                        return;
+                    }
+                    showToast('✅ 已删除', 'success');
+                    setTimeout(function() {
+                        window.location.href = 'vehicles.html';
+                    }, 1000);
+                });
+        }
+
+        // ============================================================
+        //  启动
+        // ============================================================
+        renderNav();
+        loadVehicle();
+
+        console.log('🚌 车辆详情页面已加载');
+        console.log('✅ 展示车辆完整信息');
+        console.log('✅ 显示关联机位');
+        console.log('✅ 显示车辆照片（含 EXIF）');
+        console.log('✅ 可编辑/删除（权限控制）');
+    </script>
+</body>
+</html>
