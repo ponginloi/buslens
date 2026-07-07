@@ -125,64 +125,42 @@
             font-size: 13px;
             margin-top: 2px;
         }
-        .page-header .actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
 
-        /* ===== 显眼的上传按钮 ===== */
-        .btn-upload-vehicle {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            color: white;
+        /* ===== 快速上传工具栏 ===== */
+        .upload-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: white;
+            border-radius: 14px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border: 2px solid #e8ecf0;
+            margin-bottom: 6px;
+        }
+        .upload-toolbar .toolbar-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+        .upload-toolbar .toolbar-label .line {
+            flex: 1;
+            height: 1px;
+            background: #e8ecf0;
+        }
+        .upload-toolbar .btn-upload {
+            padding: 10px 18px;
             border: none;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 20px rgba(238, 90, 36, 0.35);
-            animation: pulse-glow 2s ease-in-out infinite;
-            flex: 1;
-            justify-content: center;
-            min-width: 140px;
-        }
-        .btn-upload-vehicle:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 35px rgba(238, 90, 36, 0.5);
-        }
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 4px 20px rgba(238, 90, 36, 0.35); }
-            50% { box-shadow: 0 4px 35px rgba(238, 90, 36, 0.6); }
-        }
-        .btn-upload-vehicle .icon {
-            font-size: 20px;
-        }
-        .btn-upload-vehicle .badge-new {
-            background: #ffd700;
-            color: #333;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 2px;
-        }
-
-        .page-header .actions .btn-secondary {
-            background: white;
-            color: #333;
-            border: 2px solid #e0e0e0;
-            padding: 10px 16px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -191,9 +169,103 @@
             justify-content: center;
             min-width: 80px;
         }
-        .page-header .actions .btn-secondary:hover {
+        .upload-toolbar .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+        .upload-toolbar .btn-upload .icon {
+            font-size: 18px;
+        }
+
+        .upload-toolbar .btn-upload.primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        .upload-toolbar .btn-upload.primary .badge-new {
+            background: #ffd700;
+            color: #333;
+            font-size: 8px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-left: 2px;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 2px 12px rgba(238, 90, 36, 0.3); }
+            50% { box-shadow: 0 2px 20px rgba(238, 90, 36, 0.5); }
+        }
+
+        .upload-toolbar .btn-upload.region {
+            background: #2196f3;
+            color: white;
+        }
+        .upload-toolbar .btn-upload.company {
+            background: #ff9800;
+            color: white;
+        }
+        .upload-toolbar .btn-upload.route {
+            background: #9c27b0;
+            color: white;
+        }
+        .upload-toolbar .btn-upload.refresh {
+            background: #f5f7fa;
+            color: #666;
+            border: 2px solid #e0e0e0;
+            flex: 0.5;
+            min-width: 60px;
+        }
+        .upload-toolbar .btn-upload.refresh:hover {
+            background: #e8ecf0;
             border-color: #1a73e8;
-            background: #f5f8ff;
+        }
+
+        /* ===== Tab 切换 ===== */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: white;
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            overflow-x: auto;
+        }
+        .tabs .tab {
+            padding: 10px 24px;
+            border: none;
+            background: transparent;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tabs .tab:hover {
+            background: #f0f2f5;
+            color: #333;
+        }
+        .tabs .tab.active {
+            background: #1a73e8;
+            color: white;
+        }
+        .tabs .tab .count {
+            font-size: 11px;
+            font-weight: 400;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 1px 10px;
+            border-radius: 10px;
+        }
+        .tabs .tab.active .count {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .tabs .tab .icon {
+            font-size: 16px;
         }
 
         /* ===== 统计条 ===== */
@@ -291,52 +363,18 @@
         .filter-bar .filter-group select:focus {
             border-color: #1a73e8;
         }
-        .filter-bar .filter-group .filter-btn {
-            padding: 5px 12px;
-            border: 2px solid #e8e8e8;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: white;
-            color: #666;
-            white-space: nowrap;
-        }
-        .filter-bar .filter-group .filter-btn:hover {
-            border-color: #1a73e8;
-            color: #1a73e8;
-        }
-        .filter-bar .filter-group .filter-btn.active {
-            border-color: #1a73e8;
-            background: #e8f0fe;
-            color: #1a73e8;
-        }
-        .filter-bar .filter-group .filter-btn .dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 4px;
-        }
-        .filter-bar .filter-group .filter-btn .dot.vehicle {
-            background: #1a73e8;
-        }
-        .filter-bar .filter-group .filter-btn .dot.route {
-            background: #9c27b0;
-        }
-        .filter-bar .filter-group .filter-btn .dot.all {
-            background: #888;
-        }
 
-        /* ===== 混合网格 ===== */
-        .mixed-grid {
+        /* ===== 网格 ===== */
+        .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 14px;
         }
+        .grid.hidden {
+            display: none;
+        }
 
-        /* ===== 车辆卡片 ===== */
+        /* ===== 卡片 ===== */
         .item-card {
             background: white;
             border-radius: 14px;
@@ -666,52 +704,35 @@
             .navbar .brand { font-size: 15px; }
             .navbar .brand span { font-size: 20px; }
             .navbar .nav-links a { font-size: 11px; padding: 3px 8px; }
-
             .page-header .title-section h1 { font-size: 19px; }
-            .page-header .actions { flex-wrap: wrap; }
-            .btn-upload-vehicle { font-size: 13px; padding: 10px 16px; min-width: 100px; }
-            .btn-upload-vehicle .icon { font-size: 17px; }
-            .page-header .actions .btn-secondary { font-size: 12px; padding: 8px 12px; min-width: 60px; }
-
+            .upload-toolbar { padding: 10px 12px; gap: 6px; }
+            .upload-toolbar .btn-upload { font-size: 12px; padding: 8px 12px; min-width: 60px; }
+            .upload-toolbar .btn-upload .icon { font-size: 15px; }
+            .upload-toolbar .btn-upload.refresh { flex: 0.3; min-width: 50px; }
+            .tabs .tab { padding: 8px 14px; font-size: 13px; }
             .stats-row { grid-template-columns: repeat(4, 1fr); gap: 6px; }
             .stats-row .stat-item { padding: 6px 8px; }
             .stats-row .stat-item .num { font-size: 16px; }
             .stats-row .stat-item .label { font-size: 9px; }
-
             .filter-bar { padding: 8px 10px; flex-direction: column; align-items: stretch; }
             .filter-bar .search-wrap { min-width: auto; }
-            .filter-bar .filter-group { justify-content: flex-start; }
-
-            .mixed-grid { grid-template-columns: 1fr; gap: 12px; }
-
-            .item-card .card-body .item-name { font-size: 15px; }
-            .item-card .card-body .item-model { font-size: 12px; }
-            .item-card .card-body .item-operator { font-size: 12px; }
+            .grid { grid-template-columns: 1fr; gap: 12px; }
         }
 
         @media (max-width: 480px) {
             .navbar .brand { font-size: 14px; }
             .navbar .nav-links a { font-size: 10px; padding: 3px 6px; }
             .page-header .title-section h1 { font-size: 17px; }
-            .btn-upload-vehicle { font-size: 12px; padding: 8px 14px; min-width: 80px; }
-            .btn-upload-vehicle .icon { font-size: 15px; }
-            .page-header .actions .btn-secondary { font-size: 11px; padding: 6px 10px; }
+            .upload-toolbar { padding: 8px 10px; gap: 4px; }
+            .upload-toolbar .btn-upload { font-size: 10px; padding: 6px 8px; min-width: 50px; }
+            .upload-toolbar .btn-upload .icon { font-size: 13px; }
+            .tabs .tab { padding: 6px 10px; font-size: 11px; }
+            .tabs .tab .count { font-size: 9px; padding: 1px 6px; }
             .stats-row { grid-template-columns: repeat(2, 1fr); }
             .stats-row .stat-item .num { font-size: 14px; }
-            .filter-bar .filter-group .filter-btn { font-size: 10px; padding: 4px 8px; }
-            .filter-bar .filter-group select { font-size: 11px; padding: 4px 6px; }
-            .mixed-grid { gap: 10px; }
+            .grid { gap: 10px; }
             .item-card .card-body { padding: 10px 12px; }
             .item-card .card-body .item-name { font-size: 14px; }
-        }
-
-        @media (max-width: 380px) {
-            .navbar .brand { font-size: 13px; }
-            .navbar .nav-links a { font-size: 9px; padding: 2px 5px; }
-            .btn-upload-vehicle { font-size: 11px; padding: 6px 10px; min-width: 60px; }
-            .btn-upload-vehicle .badge-new { font-size: 7px; padding: 1px 5px; }
-            .stats-row .stat-item .num { font-size: 13px; }
-            .stats-row .stat-item .label { font-size: 8px; }
         }
     </style>
 </head>
@@ -724,7 +745,7 @@
             <div class="nav-links" id="navLinks"></div>
         </nav>
 
-        <!-- 页面头部 - 显眼的上传按钮 -->
+        <!-- 页面头部 -->
         <div class="page-header">
             <div class="title-section">
                 <h1>
@@ -733,14 +754,48 @@
                 </h1>
                 <p>📸 发现每一辆巴士的故事 · 探索每条线路的风景</p>
             </div>
-            <div class="actions">
-                <a href="vehicle-edit.html?mode=upload" class="btn-upload-vehicle" id="uploadBtn">
-                    <span class="icon">📤</span>
-                    上传巴士档案
-                    <span class="badge-new">NEW</span>
-                </a>
-                <button class="btn-secondary" onclick="refreshData()">⟳ 刷新</button>
+        </div>
+
+        <!-- ===== 快速上传工具栏 ===== -->
+        <div class="upload-toolbar">
+            <div class="toolbar-label">
+                📤 快速上传
+                <span class="line"></span>
             </div>
+            <a href="vehicle-edit.html?mode=upload" class="btn-upload primary" id="uploadBtn">
+                <span class="icon">🚌</span>
+                巴士档案
+                <span class="badge-new">NEW</span>
+            </a>
+            <a href="region-edit.html" class="btn-upload region">
+                <span class="icon">🌍</span>
+                地区
+            </a>
+            <a href="company-edit.html" class="btn-upload company">
+                <span class="icon">🏢</span>
+                公司
+            </a>
+            <a href="route-edit.html" class="btn-upload route">
+                <span class="icon">🚏</span>
+                线路
+            </a>
+            <button class="btn-upload refresh" onclick="refreshData()">
+                ⟳
+            </button>
+        </div>
+
+        <!-- ===== Tab 切换 ===== -->
+        <div class="tabs" id="tabContainer">
+            <button class="tab active" data-tab="vehicles" onclick="switchTab('vehicles')">
+                <span class="icon">🚌</span>
+                车辆
+                <span class="count" id="vehicleCount">0</span>
+            </button>
+            <button class="tab" data-tab="routes" onclick="switchTab('routes')">
+                <span class="icon">🚏</span>
+                线路
+                <span class="count" id="routeCount">0</span>
+            </button>
         </div>
 
         <!-- 统计条 -->
@@ -750,7 +805,7 @@
                 <div class="label">📊 总计</div>
             </div>
             <div class="stat-item">
-                <div class="num blue" id="statVehicles">0</div>
+                <div class="num" id="statVehicles">0</div>
                 <div class="label">🚌 车辆</div>
             </div>
             <div class="stat-item">
@@ -767,20 +822,7 @@
         <div class="filter-bar" id="filterBar">
             <div class="search-wrap">
                 <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" placeholder="搜索车辆/线路..." oninput="applyFilters()">
-            </div>
-
-            <div class="filter-group">
-                <label style="font-size:11px;color:#888;font-weight:500;">📌 类型</label>
-                <button class="filter-btn active" data-type="all" onclick="setTypeFilter('all')">
-                    <span class="dot all"></span>全部
-                </button>
-                <button class="filter-btn" data-type="vehicle" onclick="setTypeFilter('vehicle')">
-                    <span class="dot vehicle"></span>车辆
-                </button>
-                <button class="filter-btn" data-type="route" onclick="setTypeFilter('route')">
-                    <span class="dot route"></span>线路
-                </button>
+                <input type="text" id="searchInput" placeholder="搜索..." oninput="applyFilters()">
             </div>
 
             <div class="filter-group">
@@ -800,11 +842,19 @@
             </div>
         </div>
 
-        <!-- 混合网格 -->
-        <div class="mixed-grid" id="mixedGrid">
+        <!-- ===== 车辆网格 ===== -->
+        <div class="grid" id="vehicleGrid">
             <div class="loading-spinner">
                 <span class="spinner">⟳</span>
-                <p style="margin-top:8px;">加载巴士档案...</p>
+                <p style="margin-top:8px;">加载车辆...</p>
+            </div>
+        </div>
+
+        <!-- ===== 线路网格（隐藏） ===== -->
+        <div class="grid hidden" id="routeGrid">
+            <div class="loading-spinner">
+                <span class="spinner">⟳</span>
+                <p style="margin-top:8px;">加载线路...</p>
             </div>
         </div>
     </div>
@@ -980,10 +1030,8 @@
         // ============================================================
         var allVehicles = [];
         var allRoutes = [];
-        var allItems = [];
-        var filteredItems = [];
         var operators = [];
-        var currentTypeFilter = 'all';
+        var currentTab = 'vehicles';
         var isLoading = false;
 
         // ============================================================
@@ -992,9 +1040,6 @@
         function loadAllData() {
             if (isLoading) return;
             isLoading = true;
-
-            document.getElementById('mixedGrid').innerHTML =
-                '<div class="loading-spinner"><span class="spinner">⟳</span><p style="margin-top:8px;">加载巴士档案...</p></div>';
 
             // 加载运营公司
             supabaseClient
@@ -1020,11 +1065,12 @@
                     if (res.error) throw new Error(res.error.message);
                     allVehicles = res.data || [];
                     console.log('✅ 加载车辆: ' + allVehicles.length + ' 辆');
-                    mergeAndRender();
+                    renderVehicles();
+                    checkLoaded();
                 })
                 .catch(function(error) {
                     console.error('加载车辆失败:', error);
-                    mergeAndRender();
+                    checkLoaded();
                 });
 
             // 加载线路
@@ -1037,49 +1083,34 @@
                     if (res.error) throw new Error(res.error.message);
                     allRoutes = res.data || [];
                     console.log('✅ 加载线路: ' + allRoutes.length + ' 条');
-                    mergeAndRender();
+                    renderRoutes();
+                    checkLoaded();
                 })
                 .catch(function(error) {
                     console.error('加载线路失败:', error);
-                    mergeAndRender();
+                    checkLoaded();
                 });
         }
 
-        // ============================================================
-        //  合并数据并渲染
-        // ============================================================
         var loadCounter = 0;
 
-        function mergeAndRender() {
+        function checkLoaded() {
             loadCounter++;
-            if (loadCounter < 2) return;
-            loadCounter = 0;
-            isLoading = false;
-
-            // 标记类型
-            var vehicles = allVehicles.map(function(v) {
-                return { ...v, _type: 'vehicle' };
-            });
-            var routes = allRoutes.map(function(r) {
-                return { ...r, _type: 'route' };
-            });
-
-            allItems = vehicles.concat(routes);
-
-            // 更新统计
-            updateStats();
-
-            // 应用筛选
-            applyFilters();
+            if (loadCounter >= 2) {
+                loadCounter = 0;
+                isLoading = false;
+                updateStats();
+                applyFilters();
+                // 显示当前 Tab
+                switchTab(currentTab);
+            }
         }
 
         // ============================================================
         //  更新统计
         // ============================================================
         function updateStats() {
-            var total = allItems.length;
-            var vehicleCount = allVehicles.length;
-            var routeCount = allRoutes.length;
+            var total = allVehicles.length + allRoutes.length;
 
             var operatorSet = new Set();
             allVehicles.forEach(function(v) {
@@ -1090,10 +1121,12 @@
             });
 
             document.getElementById('statTotal').textContent = total;
-            document.getElementById('statVehicles').textContent = vehicleCount;
-            document.getElementById('statRoutes').textContent = routeCount;
+            document.getElementById('statVehicles').textContent = allVehicles.length;
+            document.getElementById('statRoutes').textContent = allRoutes.length;
             document.getElementById('statOperators').textContent = operatorSet.size;
             document.getElementById('totalBadge').textContent = total + ' 项';
+            document.getElementById('vehicleCount').textContent = allVehicles.length;
+            document.getElementById('routeCount').textContent = allRoutes.length;
         }
 
         // ============================================================
@@ -1111,29 +1144,39 @@
         }
 
         // ============================================================
-        //  筛选与搜索
+        //  Tab 切换
         // ============================================================
-        function setTypeFilter(type) {
-            currentTypeFilter = type;
-            document.querySelectorAll('[data-type]').forEach(function(btn) {
-                btn.classList.toggle('active', btn.dataset.type === type);
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tabs .tab').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
             });
-            applyFilters();
+            document.getElementById('vehicleGrid').classList.toggle('hidden', tab !== 'vehicles');
+            document.getElementById('routeGrid').classList.toggle('hidden', tab !== 'routes');
+            // 重新触发懒加载
+            setTimeout(function() { lazyLoadImages(); }, 200);
         }
 
+        // ============================================================
+        //  筛选与搜索
+        // ============================================================
         function applyFilters() {
             var search = document.getElementById('searchInput').value.trim().toLowerCase();
             var operatorId = document.getElementById('operatorFilter').value;
             var sort = document.getElementById('sortFilter').value;
 
-            filteredItems = allItems.filter(function(item) {
-                // 类型筛选
-                if (currentTypeFilter !== 'all' && item._type !== currentTypeFilter) return false;
+            var filteredVehicles = filterItems(allVehicles, search, operatorId, sort, 'vehicle');
+            var filteredRoutes = filterItems(allRoutes, search, operatorId, sort, 'route');
 
-                // 搜索
+            renderVehicles(filteredVehicles);
+            renderRoutes(filteredRoutes);
+        }
+
+        function filterItems(items, search, operatorId, sort, type) {
+            var filtered = items.filter(function(item) {
                 if (search) {
                     var searchable = '';
-                    if (item._type === 'vehicle') {
+                    if (type === 'vehicle') {
                         searchable = (item.fleet_number || '') + ' ' +
                             (item.license_plate || '') + ' ' +
                             (item.model || '') + ' ' +
@@ -1146,24 +1189,20 @@
                     }
                     if (!searchable.toLowerCase().includes(search)) return false;
                 }
-
-                // 公司筛选
                 if (operatorId !== 'all' && item.operator_id != operatorId) return false;
-
                 return true;
             });
 
-            // 排序
-            filteredItems.sort(function(a, b) {
+            filtered.sort(function(a, b) {
                 switch (sort) {
                     case 'newest':
                         return new Date(b.created_at) - new Date(a.created_at);
                     case 'oldest':
                         return new Date(a.created_at) - new Date(b.created_at);
                     case 'name':
-                        var nameA = a._type === 'vehicle' ? (a.fleet_number || a.license_plate || a.model || '') :
+                        var nameA = type === 'vehicle' ? (a.fleet_number || a.license_plate || a.model || '') :
                             (a.route_number || '');
-                        var nameB = b._type === 'vehicle' ? (b.fleet_number || b.license_plate || b.model || '') :
+                        var nameB = type === 'vehicle' ? (b.fleet_number || b.license_plate || b.model || '') :
                             (b.route_number || '');
                         return nameA.localeCompare(nameB);
                     default:
@@ -1171,7 +1210,7 @@
                 }
             });
 
-            renderItems(filteredItems);
+            return filtered;
         }
 
         // ============================================================
@@ -1184,32 +1223,47 @@
         }
 
         // ============================================================
-        //  渲染混合列表
+        //  渲染车辆
         // ============================================================
-        function renderItems(items) {
-            var grid = document.getElementById('mixedGrid');
+        function renderVehicles(vehicles) {
+            var grid = document.getElementById('vehicleGrid');
+            var items = vehicles || allVehicles;
 
             if (!items || items.length === 0) {
                 grid.innerHTML =
-                    '<div class="empty-state"><span class="icon">🔍</span><p>没有找到匹配的档案</p><div class="sub">试试调整筛选条件</div></div>';
+                    '<div class="empty-state"><span class="icon">🚌</span><p>没有找到匹配的车辆</p><div class="sub">试试调整筛选条件</div></div>';
                 return;
             }
 
             var html = '';
-            items.forEach(function(item, index) {
-                if (item._type === 'vehicle') {
-                    html += renderVehicleCard(item, index);
-                } else {
-                    html += renderRouteCard(item, index);
-                }
+            items.forEach(function(v, index) {
+                html += renderVehicleCard(v, index);
             });
 
             grid.innerHTML = html;
+            setTimeout(function() { lazyLoadImages(); }, 100);
+        }
 
-            // 启动懒加载
-            setTimeout(function() {
-                lazyLoadImages();
-            }, 100);
+        // ============================================================
+        //  渲染线路
+        // ============================================================
+        function renderRoutes(routes) {
+            var grid = document.getElementById('routeGrid');
+            var items = routes || allRoutes;
+
+            if (!items || items.length === 0) {
+                grid.innerHTML =
+                    '<div class="empty-state"><span class="icon">🚏</span><p>没有找到匹配的线路</p><div class="sub">试试调整筛选条件</div></div>';
+                return;
+            }
+
+            var html = '';
+            items.forEach(function(r, index) {
+                html += renderRouteCard(r, index);
+            });
+
+            grid.innerHTML = html;
+            setTimeout(function() { lazyLoadImages(); }, 100);
         }
 
         // ============================================================
@@ -1311,7 +1365,6 @@
 
             var delay = Math.min(index * 0.04, 0.4);
 
-            // 线路卡片使用紫色边框
             return '<div class="item-card route-card" style="animation-delay:' + delay + 's" onclick="window.location.href=\'route-edit.html?id=' +
                 r.id + '\'">' +
                 '<span class="card-type-badge route">🚏 线路</span>' +
@@ -1388,7 +1441,6 @@
             loadCounter = 0;
             allVehicles = [];
             allRoutes = [];
-            allItems = [];
             loadAllData();
         }
 
@@ -1398,11 +1450,10 @@
         renderNav();
         loadAllData();
 
-        console.log('🚌 巴士档案混合展示已加载（车辆 + 线路）');
-        console.log('✅ 车辆和线路混合显示');
-        console.log('✅ 支持按类型筛选（全部/车辆/线路）');
+        console.log('🚌 巴士档案已分开显示（车辆 + 线路 Tab）');
+        console.log('✅ 车辆和线路分 Tab 显示');
+        console.log('✅ 快速上传工具栏完整');
         console.log('✅ 适配手机端');
-        console.log('✅ 显眼的上传按钮');
     </script>
 </body>
 </html>
